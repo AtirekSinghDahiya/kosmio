@@ -153,6 +153,32 @@ export const MainChat: React.FC = () => {
       return;
     }
 
+    // Auto-detect image generation requests
+    const imageKeywords = /\b(generate|create|make|draw|design|show|paint|illustrate|render)\b.*\b(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\b/i;
+    const imageRequestPattern = /\b(image|picture|photo|illustration) (of|about|showing|with|depicting)\b/i;
+
+    if (imageKeywords.test(textToSend) || imageRequestPattern.test(textToSend)) {
+      console.log('🎨 Image generation detected!');
+      setInputValue('');
+      setShowImageGenerator(true);
+
+      // Extract the prompt (remove command words)
+      const cleanPrompt = textToSend
+        .replace(/^(generate|create|make|draw|design|show|paint|illustrate|render)\s+(an?\s+)?(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\s+(of|about|showing|with|depicting)?\s*/i, '')
+        .trim();
+
+      // Set the prompt in the image generator
+      setTimeout(() => {
+        const promptInput = document.querySelector('textarea[placeholder*="describe what you want"]') as HTMLTextAreaElement;
+        if (promptInput && cleanPrompt) {
+          promptInput.value = cleanPrompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }, 100);
+
+      return;
+    }
+
     setInputValue('');
     setIsLoading(true);
 
@@ -375,36 +401,61 @@ export const MainChat: React.FC = () => {
         ) : (
           <>
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-32">
+            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 pb-32">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
-                  <div
-                    className={`max-w-3xl rounded-2xl px-6 py-4 ${
+                  {/* Avatar */}
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                    message.role === 'user'
+                      ? 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2]'
+                      : 'bg-gradient-to-br from-purple-500 to-pink-500'
+                  }`}>
+                    {message.role === 'user' ? (
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                        <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                      </svg>
+                    )}
+                  </div>
+
+                  {/* Message Content */}
+                  <div className={`flex-1 max-w-3xl ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                    <div className={`inline-block rounded-2xl px-5 py-3 shadow-lg ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white'
-                        : 'bg-white/10 backdrop-blur-md border border-white/10 text-gray-100'
-                    }`}
-                  >
-                    <div className="whitespace-pre-wrap">{message.content}</div>
-                    <div className={`text-xs mt-2 ${
-                      message.role === 'user' ? 'text-cyan-100' : 'text-gray-400'
+                        ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'
+                        : 'bg-white/5 backdrop-blur-xl border border-white/10 text-white'
                     }`}>
-                      {message.created_at && new Date(message.created_at).toLocaleTimeString()}
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
+                    </div>
+                    <div className={`text-xs mt-1.5 px-1 ${
+                      message.role === 'user' ? 'text-white/50' : 'text-white/40'
+                    }`}>
+                      {message.created_at && new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 </div>
               ))}
 
               {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white/10 backdrop-blur-md border border-white/10 text-gray-100 rounded-2xl px-6 py-4">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                      <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                    </svg>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 shadow-lg">
                     <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                     </div>
                   </div>
                 </div>
@@ -414,26 +465,14 @@ export const MainChat: React.FC = () => {
             </div>
 
             {/* Input Area */}
-            <div className="border-t border-white/10 bg-slate-900/50 backdrop-blur-xl p-4">
+            <div className="border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
               <div className="max-w-4xl mx-auto">
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex-1">
-                    <AIModelSelector
-                      selectedModel={selectedModel}
-                      onModelChange={setSelectedModel}
-                      category="chat"
-                    />
-                  </div>
-                  <button
-                    onClick={() => setShowImageGenerator(true)}
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all hover:shadow-lg hover:shadow-purple-500/20 flex items-center gap-2 whitespace-nowrap"
-                    title="Generate Image with AI"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Generate Image
-                  </button>
+                <div className="mb-4">
+                  <AIModelSelector
+                    selectedModel={selectedModel}
+                    onModelChange={setSelectedModel}
+                    category="chat"
+                  />
                 </div>
                 <ChatInput
                   value={inputValue}
