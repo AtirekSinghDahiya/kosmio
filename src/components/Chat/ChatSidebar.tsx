@@ -147,7 +147,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                               isActive
                                 ? 'bg-white/10 text-white border-[#00FFF0]/30'
                                 : 'text-white/70 hover:bg-white/10 hover:text-white border-transparent hover:border-white/10'
-                            } ${isHovered ? 'px-3 py-2' : 'p-2 justify-center'}`}
+                            } ${isHovered ? 'px-3 py-2 pr-20' : 'p-2 justify-center'}`}
                             title={!isHovered ? project.name : ''}
                           >
                             <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 transition-colors ${
@@ -161,7 +161,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             )}
                           </button>
                           {isHovered && (
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-item/item:opacity-100 group-hover/item:opacity-100 transition-opacity">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -171,7 +171,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                                 className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-all duration-200"
                                 title="Rename project"
                               >
-                                <Edit2 className="w-4 h-4" />
+                                <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={(e) => {
@@ -182,7 +182,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                                 className="p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-white/40 hover:text-white transition-all duration-200"
                                 title="Delete project"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           )}
