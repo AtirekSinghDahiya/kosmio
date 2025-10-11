@@ -160,9 +160,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                console.log('🗑️ Delete button clicked for project:', project.id, project.name);
                                 setProjectToDelete({ id: project.id, name: project.name || 'this project' });
                               }}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-white/30 hover:text-white transition-all opacity-0 group-hover/item:opacity-100"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-white/40 hover:text-white transition-all duration-200"
                               title="Delete project"
                             >
                               <Trash2 className="w-4 h-4" />

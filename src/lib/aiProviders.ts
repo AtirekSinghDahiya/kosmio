@@ -225,8 +225,11 @@ async function callGemini(messages: AIMessage[], model: string): Promise<AIRespo
       parts: [{ text: m.content }],
     }));
 
+  // Fix model name - remove 'models/' prefix if present
+  const cleanModel = model.replace('models/', '');
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

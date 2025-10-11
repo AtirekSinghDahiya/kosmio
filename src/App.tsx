@@ -9,6 +9,9 @@ import { CosmicBackground } from './components/Layout/CosmicBackground';
 import { MainChat } from './components/Chat/MainChat';
 import { ProjectsView } from './components/Projects/ProjectsView';
 import { VoiceStudio } from './components/Studio/VoiceStudio';
+import { CodeStudio } from './components/Studio/CodeStudio';
+import { DesignStudio } from './components/Studio/DesignStudio';
+import { VideoStudio } from './components/Studio/VideoStudio';
 import { BillingView } from './components/Billing/BillingView';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { SettingsView } from './components/Settings/SettingsView';
@@ -23,11 +26,15 @@ const MainApp: React.FC = () => {
   }
 
   const handleOpenProject = (project: Project) => {
-    if (project.type === 'voice') {
-      navigateTo('voice', project);
-    } else {
-      navigateTo('chat', project);
-    }
+    const typeToView: Record<string, typeof currentView> = {
+      voice: 'voice',
+      code: 'code',
+      design: 'design',
+      video: 'video',
+      chat: 'chat',
+    };
+    const view = typeToView[project.type] || 'chat';
+    navigateTo(view, project);
   };
 
   const renderView = () => {
@@ -38,6 +45,12 @@ const MainApp: React.FC = () => {
         return <ProjectsView onOpenProject={handleOpenProject} />;
       case 'voice':
         return <VoiceStudio projectId={activeProject?.id} />;
+      case 'code':
+        return <CodeStudio projectId={activeProject?.id} />;
+      case 'design':
+        return <DesignStudio projectId={activeProject?.id} />;
+      case 'video':
+        return <VideoStudio projectId={activeProject?.id} />;
       case 'billing':
         return <BillingView />;
       case 'admin':
@@ -49,8 +62,8 @@ const MainApp: React.FC = () => {
     }
   };
 
-  // Voice Studio renders independently (no sidebar/navbar)
-  if (currentView === 'voice') {
+  // Studios render independently (no sidebar/navbar)
+  if (['voice', 'code', 'design', 'video'].includes(currentView)) {
     return (
       <div className="h-screen overflow-hidden relative">
         <CosmicBackground />
@@ -70,7 +83,7 @@ const MainApp: React.FC = () => {
           <MainChat />
         ) : (
           <div className="flex h-screen">
-            <Sidebar currentView={currentView} onViewChange={(view) => navigateTo(view as 'chat' | 'projects' | 'voice' | 'billing' | 'admin' | 'settings')} />
+            <Sidebar currentView={currentView} onViewChange={(view) => navigateTo(view as any)} />
             <div className="flex-1 ml-16">
               <FloatingNavbar />
               {renderView()}
