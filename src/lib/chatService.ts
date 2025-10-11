@@ -226,6 +226,26 @@ export const subscribeToMessages = (
   };
 };
 
+// Rename project
+export const renameProject = async (projectId: string, newName: string): Promise<void> => {
+  console.log('✏️ Renaming project:', projectId, 'to:', newName);
+
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      name: newName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', projectId);
+
+  if (error) {
+    console.error('❌ Error renaming project:', error);
+    throw error;
+  }
+
+  console.log('✅ Project renamed successfully');
+};
+
 // Delete project (with CASCADE, automatically deletes related data)
 export const deleteProject = async (projectId: string): Promise<void> => {
   console.log('🗑️ Deleting project:', projectId);

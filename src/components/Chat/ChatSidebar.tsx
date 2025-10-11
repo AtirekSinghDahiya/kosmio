@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2 } from 'lucide-react';
+import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
@@ -10,6 +10,7 @@ interface ChatSidebarProps {
   onNewChat: () => void;
   onSelectProject: (projectId: string) => void;
   onDeleteProject: (projectId: string) => void;
+  onRenameProject: (projectId: string, newName: string) => void;
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -18,11 +19,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onNewChat,
   onSelectProject,
   onDeleteProject,
+  onRenameProject,
 }) => {
   const { signOut, userData } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   const getProjectIcon = (type: string) => {
     switch (type) {
@@ -157,17 +161,30 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             )}
                           </button>
                           {isHovered && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                console.log('🗑️ Delete button clicked for project:', project.id, project.name);
-                                setProjectToDelete({ id: project.id, name: project.name || 'this project' });
-                              }}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-white/40 hover:text-white transition-all duration-200"
-                              title="Delete project"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingProjectId(project.id);
+                                  setEditingName(project.name);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-all duration-200"
+                                title="Rename project"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log('🗑️ Delete button clicked for project:', project.id, project.name);
+                                  setProjectToDelete({ id: project.id, name: project.name || 'this project' });
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-white/40 hover:text-white transition-all duration-200"
+                                title="Delete project"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           )}
                         </div>
                       );
@@ -231,6 +248,51 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           }}
           onCancel={() => setProjectToDelete(null)}
         />
+      )}
+
+      {editingProjectId && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="glass-panel rounded-2xl p-6 max-w-md w-full mx-4 border border-white/20">
+            <h3 className="text-xl font-bold text-white mb-4">Rename Project</h3>
+            <input
+              type="text"
+              value={editingName}
+              onChange={(e) => setEditingName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && editingName.trim()) {
+                  onRenameProject(editingProjectId, editingName.trim());
+                  setEditingProjectId(null);
+                }
+                if (e.key === 'Escape') {
+                  setEditingProjectId(null);
+                }
+              }}
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 mb-4"
+              placeholder="Enter new project name"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEditingProjectId(null)}
+                className="flex-1 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (editingName.trim()) {
+                    onRenameProject(editingProjectId, editingName.trim());
+                    setEditingProjectId(null);
+                  }
+                }}
+                disabled={!editingName.trim()}
+                className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-[#00FFF0]/20"
+              >
+                Rename
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

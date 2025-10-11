@@ -116,15 +116,20 @@ export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
 /**
  * Main AI function - Simple wrapper around Groq
  */
-export async function getAIResponse(userMessage: string, conversationHistory: Message[] = []): Promise<string> {
+export async function getAIResponse(
+  userMessage: string,
+  conversationHistory: Message[] = [],
+  systemPrompt?: string
+): Promise<string> {
   console.log('🚀 getAIResponse called');
   console.log('User message:', userMessage.substring(0, 50));
   console.log('History length:', conversationHistory.length);
+  console.log('Custom system prompt:', !!systemPrompt);
 
   const messages: Message[] = [
     {
       role: 'system',
-      content: 'You are Kosmio AI, a helpful and intelligent assistant. Be concise, helpful, and friendly.',
+      content: systemPrompt || 'You are Kosmio AI, a helpful and intelligent assistant. Be concise, helpful, and friendly.',
     },
     ...conversationHistory.slice(-10), // Last 10 messages for context
     {

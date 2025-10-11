@@ -21,9 +21,11 @@ import {
   subscribeToProjects,
   subscribeToMessages,
   deleteProject,
+  renameProject,
   Project,
   Message,
 } from '../../lib/chatService';
+import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../../lib/userPreferences';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
@@ -33,12 +35,28 @@ export const MainChat: React.FC = () => {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showIntentDialog, setShowIntentDialog] = useState(false);
   const [pendingIntent, setPendingIntent] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState('grok-2');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load user preferences on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const prefs = await getUserPreferences();
+        console.log('✅ User preferences loaded:', prefs);
+        setUserPreferences(prefs);
+      } catch (error) {
+        console.error('❌ Failed to load preferences:', error);
+      }
+    };
+
+    loadPreferences();
+  }, []);
 
   // Load projects on mount
   useEffect(() => {
@@ -209,8 +227,15 @@ export const MainChat: React.FC = () => {
       console.log('📝 Messages count:', conversationHistory.length);
       console.log('⏳ Calling SIMPLE AI service...');
 
-      // Call simple AI service
-      const aiContent = await callSimpleAI(userMessage, conversationHistory);
+      // Generate custom system prompt based on user preferences
+      const systemPrompt = userPreferences
+        ? generateSystemPrompt(userPreferences)
+        : undefined;
+
+      console.log('🎯 Using custom preferences:', !!systemPrompt);
+
+      // Call simple AI service with user preferences
+      const aiContent = await callSimpleAI(userMessage, conversationHistory, systemPrompt);
 
       console.log('✅ AI Response received! Length:', aiContent.length);
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
@@ -294,6 +319,17 @@ export const MainChat: React.FC = () => {
     }
   };
 
+  // Rename project
+  const handleRenameProject = async (projectId: string, newName: string) => {
+    try {
+      await renameProject(projectId, newName);
+      showToast('success', 'Success', 'Project renamed successfully');
+    } catch (error: any) {
+      console.error('❌ Error renaming project:', error);
+      showToast('error', 'Error', 'Failed to rename project');
+    }
+  };
+
   // Delete project
   const handleDeleteProject = async (projectId: string) => {
     try {
@@ -324,6 +360,7 @@ export const MainChat: React.FC = () => {
         onNewChat={handleNewChat}
         onSelectProject={handleSelectProject}
         onDeleteProject={handleDeleteProject}
+        onRenameProject={handleRenameProject}
       />
 
       <div className="flex-1 flex flex-col ml-16 pt-20">
