@@ -47,15 +47,33 @@ export const getProjects = async (): Promise<Project[]> => {
   return data || [];
 };
 
-// Subscribe to projects (real-time)
+// Subscribe to projects (real-time + polling fallback)
 export const subscribeToProjects = (callback: (projects: Project[]) => void) => {
+  console.log('🔔 Setting up projects subscription');
+
+  let lastProjectCount = 0;
+
   const loadProjects = async () => {
-    const projects = await getProjects();
-    callback(projects);
+    console.log('📥 Loading projects...');
+    try {
+      const projects = await getProjects();
+      console.log('✅ Loaded projects:', projects.length);
+
+      // Only trigger callback if project count changed or on first load
+      if (projects.length !== lastProjectCount || lastProjectCount === 0) {
+        console.log('🆕 Project count changed:', lastProjectCount, '->', projects.length);
+        lastProjectCount = projects.length;
+        callback(projects);
+      }
+    } catch (error) {
+      console.error('❌ Error loading projects:', error);
+    }
   };
 
+  // Initial load
   loadProjects();
 
+  // Set up real-time subscription
   const channel = supabase
     .channel('projects-changes')
     .on('postgres_changes',
@@ -64,13 +82,26 @@ export const subscribeToProjects = (callback: (projects: Project[]) => void) => 
         schema: 'public',
         table: 'projects',
       },
-      () => {
+      (payload) => {
+        console.log('🔔 Projects event received:', payload.eventType);
+        console.log('🔔 Payload:', payload);
         loadProjects();
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log('🔌 Projects subscription status:', status);
+    });
+
+  // Polling fallback - check every 3 seconds
+  console.log('⏰ Starting projects polling fallback (every 3s)');
+  const pollInterval = setInterval(() => {
+    console.log('🔄 Polling for project changes...');
+    loadProjects();
+  }, 3000);
 
   return () => {
+    console.log('🔌 Unsubscribing from projects');
+    clearInterval(pollInterval);
     supabase.removeChannel(channel);
   };
 };
@@ -132,18 +163,36 @@ export const getMessages = async (projectId: string): Promise<Message[]> => {
   return data || [];
 };
 
-// Subscribe to messages (real-time)
+// Subscribe to messages (real-time + polling fallback)
 export const subscribeToMessages = (
   projectId: string,
   callback: (messages: Message[]) => void
 ) => {
+  console.log('🔔 Setting up subscription for project:', projectId);
+
+  let lastMessageCount = 0;
+
   const loadMessages = async () => {
-    const messages = await getMessages(projectId);
-    callback(messages);
+    console.log('📥 Loading messages for:', projectId);
+    try {
+      const messages = await getMessages(projectId);
+      console.log('✅ Loaded messages:', messages.length);
+
+      // Only trigger callback if message count changed
+      if (messages.length !== lastMessageCount) {
+        console.log('🆕 Message count changed:', lastMessageCount, '->', messages.length);
+        lastMessageCount = messages.length;
+        callback(messages);
+      }
+    } catch (error) {
+      console.error('❌ Error loading messages:', error);
+    }
   };
 
+  // Initial load
   loadMessages();
 
+  // Set up real-time subscription
   const channel = supabase
     .channel(`messages-${projectId}`)
     .on('postgres_changes',
@@ -153,13 +202,26 @@ export const subscribeToMessages = (
         table: 'messages',
         filter: `project_id=eq.${projectId}`,
       },
-      () => {
+      (payload) => {
+        console.log('🔔 Real-time event received:', payload.eventType);
+        console.log('🔔 Payload:', payload);
         loadMessages();
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log('🔌 Subscription status:', status);
+    });
+
+  // Polling fallback - check every 2 seconds
+  console.log('⏰ Starting polling fallback (every 2s)');
+  const pollInterval = setInterval(() => {
+    console.log('🔄 Polling for new messages...');
+    loadMessages();
+  }, 2000);
 
   return () => {
+    console.log('🔌 Unsubscribing from:', projectId);
+    clearInterval(pollInterval);
     supabase.removeChannel(channel);
   };
 };
