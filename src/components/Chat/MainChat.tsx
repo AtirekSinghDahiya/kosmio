@@ -42,6 +42,7 @@ export const MainChat: React.FC = () => {
   const [pendingIntent, setPendingIntent] = useState<any>(null);
   const [selectedModel, setSelectedModel] = useState('grok-2');
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -160,21 +161,14 @@ export const MainChat: React.FC = () => {
     if (imageKeywords.test(textToSend) || imageRequestPattern.test(textToSend)) {
       console.log('🎨 Image generation detected!');
       setInputValue('');
-      setShowImageGenerator(true);
 
       // Extract the prompt (remove command words)
       const cleanPrompt = textToSend
         .replace(/^(generate|create|make|draw|design|show|paint|illustrate|render)\s+(an?\s+)?(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\s+(of|about|showing|with|depicting)?\s*/i, '')
         .trim();
 
-      // Set the prompt in the image generator
-      setTimeout(() => {
-        const promptInput = document.querySelector('textarea[placeholder*="describe what you want"]') as HTMLTextAreaElement;
-        if (promptInput && cleanPrompt) {
-          promptInput.value = cleanPrompt;
-          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      }, 100);
+      setImagePrompt(cleanPrompt || textToSend);
+      setShowImageGenerator(true);
 
       return;
     }
@@ -503,11 +497,15 @@ export const MainChat: React.FC = () => {
 
       {showImageGenerator && (
         <ImageGenerator
-          onClose={() => setShowImageGenerator(false)}
+          onClose={() => {
+            setShowImageGenerator(false);
+            setImagePrompt('');
+          }}
           onImageGenerated={(image) => {
             showToast('success', 'Success', 'Image generated! You can download it now.');
             console.log('Generated image:', image);
           }}
+          initialPrompt={imagePrompt}
         />
       )}
     </div>
