@@ -81,25 +81,43 @@ export const addMessage = async (
   role: 'user' | 'assistant' | 'system',
   content: string
 ): Promise<Message> => {
-  const { data, error } = await supabase
-    .from('messages')
-    .insert({
-      project_id: projectId,
-      role,
-      content,
-    })
-    .select()
-    .single();
+  console.log('📝 addMessage called:', { projectId, role, contentLength: content.length });
+  console.log('📝 Content preview:', content.substring(0, 100));
 
-  if (error) throw error;
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        project_id: projectId,
+        role,
+        content,
+      })
+      .select()
+      .single();
 
-  // Update project updated_at
-  await supabase
-    .from('projects')
-    .update({ updated_at: new Date().toISOString() })
-    .eq('id', projectId);
+    if (error) {
+      console.error('❌ Supabase error adding message:', error);
+      throw error;
+    }
 
-  return data;
+    console.log('✅ Message inserted successfully:', data);
+
+    // Update project updated_at
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', projectId);
+
+    if (updateError) {
+      console.warn('⚠️ Failed to update project timestamp:', updateError);
+    }
+
+    console.log('✅ addMessage complete');
+    return data;
+  } catch (error) {
+    console.error('❌ Unexpected error in addMessage:', error);
+    throw error;
+  }
 };
 
 // Get messages for a project

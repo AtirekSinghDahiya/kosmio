@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Project } from '../../types';
+import { ConfirmDialog } from '../Common/ConfirmDialog';
 
 interface ChatSidebarProps {
   projects: Project[];
@@ -21,6 +22,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const { signOut, userData } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const getProjectIcon = (type: string) => {
     switch (type) {
@@ -158,11 +160,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const projectName = project.name || 'this project';
-                                const confirmed = window.confirm(`Delete "${projectName}"?\n\nThis action cannot be undone.`);
-                                if (confirmed) {
-                                  onDeleteProject(project.id);
-                                }
+                                setProjectToDelete({ id: project.id, name: project.name || 'this project' });
                               }}
                               className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-white/30 hover:text-white transition-all opacity-0 group-hover/item:opacity-100"
                               title="Delete project"
@@ -218,6 +216,21 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           {isHovered && <span className="animate-fade-in">Sign Out</span>}
         </button>
       </div>
+
+      {projectToDelete && (
+        <ConfirmDialog
+          title="Delete Project"
+          message={`Are you sure you want to delete "${projectToDelete.name}"?\n\nThis action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+          onConfirm={() => {
+            onDeleteProject(projectToDelete.id);
+            setProjectToDelete(null);
+          }}
+          onCancel={() => setProjectToDelete(null)}
+        />
+      )}
     </div>
   );
 };
