@@ -1,0 +1,222 @@
+export interface IntentResult {
+  intent: 'chat' | 'code' | 'design' | 'video' | 'voice';
+  confidence: number;
+  suggestedStudio: 'Chat Studio' | 'Code Studio' | 'Design Studio' | 'Video Studio' | 'Voice Studio';
+  reasoning: string;
+}
+
+const CODE_KEYWORDS = [
+  'function', 'component', 'react', 'html', 'css', 'javascript', 'typescript',
+  'js', 'variable', 'api', 'endpoint', 'database', 'sql', 'node', 'express',
+  'build', 'create', 'implement', 'code', 'program', 'script', 'class',
+  'interface', 'type', 'import', 'export', 'async', 'await', 'promise',
+  'fetch', 'axios', 'backend', 'frontend', 'server', 'client', 'http',
+  'rest', 'graphql', 'query', 'mutation', 'state', 'props', 'hook',
+  'npm', 'yarn', 'package', 'dependency', 'module', 'webpack', 'vite',
+  'debug', 'error', 'bug', 'fix', 'test', 'unit', 'integration',
+  'website', 'web', 'app', 'application', 'page', 'site'
+];
+
+const DESIGN_KEYWORDS = [
+  'logo', 'thumbnail', 'poster', 'flyer', 'design', 'layout', 'banner',
+  'mockup', 'graphic', 'image', 'icon', 'illustration', 'branding',
+  'color', 'font', 'typography', 'palette', 'gradient', 'shadow',
+  'ui', 'ux', 'interface', 'wireframe', 'prototype', 'sketch',
+  'figma', 'adobe', 'photoshop', 'illustrator', 'canvas', 'artboard',
+  'visual', 'aesthetic', 'style', 'theme', 'brand', 'identity',
+  'photo', 'picture', 'artwork', 'creative', 'artistic'
+];
+
+const VIDEO_KEYWORDS = [
+  'video', 'edit', 'clip', 'montage', 'footage', 'timeline', 'render',
+  'transition', 'effect', 'animation', 'movie', 'film', 'cinematic',
+  'premiere', 'aftereffects', 'davinci', 'finalcut', 'editing',
+  'cut', 'trim', 'splice', 'export', 'encode', 'mp4', 'mov',
+  'frame', 'fps', 'resolution', '4k', 'hd', 'video editing'
+];
+
+const VOICE_KEYWORDS = [
+  'voice', 'audio', 'speech', 'tts', 'text-to-speech', 'speak', 'narrator',
+  'voiceover', 'narrate', 'sound', 'mp3', 'wav', 'generate voice',
+  'voice generation', 'ai voice', 'voice over', 'read aloud', 'pronunciation',
+  'elevenlabs', 'voice synthesis', 'vocal', 'microphone', 'recording',
+  'podcast', 'audiobook', 'dubbing', 'voice acting'
+];
+
+const CODE_PHRASES = [
+  'build a', 'create a component', 'write a function', 'develop an app',
+  'implement a feature', 'fix the bug', 'add functionality', 'create an api',
+  'build an application', 'develop a website', 'code a', 'program a',
+  'set up', 'configure', 'integrate with', 'connect to database'
+];
+
+const DESIGN_PHRASES = [
+  'design a', 'create a logo', 'make a poster', 'design a banner',
+  'create a thumbnail', 'design an interface', 'make a mockup',
+  'design a layout', 'create graphics', 'design a flyer'
+];
+
+const VIDEO_PHRASES = [
+  'edit a video', 'create a video', 'make a video', 'edit this clip',
+  'video editing', 'create montage', 'edit footage', 'make a movie',
+  'cut the video', 'add transitions', 'render video'
+];
+
+const VOICE_PHRASES = [
+  'generate voice', 'create audio', 'text to speech', 'make voice',
+  'generate audio', 'voice generation', 'ai voice', 'voice over',
+  'convert text to speech', 'read this aloud', 'narrate this',
+  'create voiceover', 'generate speech', 'say this', 'speak this'
+];
+
+export const classifyIntent = (prompt: string): IntentResult => {
+  const lowerPrompt = prompt.toLowerCase().trim();
+
+  let codeScore = 0;
+  let designScore = 0;
+  let videoScore = 0;
+  let voiceScore = 0;
+
+  CODE_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      codeScore += matches.length * 2;
+    }
+  });
+
+  DESIGN_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      designScore += matches.length * 2;
+    }
+  });
+
+  VIDEO_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      videoScore += matches.length * 2;
+    }
+  });
+
+  VOICE_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      voiceScore += matches.length * 2;
+    }
+  });
+
+  CODE_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      codeScore += 5;
+    }
+  });
+
+  DESIGN_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      designScore += 5;
+    }
+  });
+
+  VIDEO_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      videoScore += 5;
+    }
+  });
+
+  VOICE_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      voiceScore += 5;
+    }
+  });
+
+  if (lowerPrompt.includes('.js') || lowerPrompt.includes('.ts') ||
+      lowerPrompt.includes('.jsx') || lowerPrompt.includes('.tsx') ||
+      lowerPrompt.includes('.css') || lowerPrompt.includes('.html')) {
+    codeScore += 10;
+  }
+
+  if (lowerPrompt.includes('.png') || lowerPrompt.includes('.jpg') ||
+      lowerPrompt.includes('.svg') || lowerPrompt.includes('.gif') ||
+      lowerPrompt.includes('.psd') || lowerPrompt.includes('.ai')) {
+    designScore += 10;
+  }
+
+  if (lowerPrompt.includes('.mp4') || lowerPrompt.includes('.mov') ||
+      lowerPrompt.includes('.avi') || lowerPrompt.includes('.mkv') ||
+      lowerPrompt.includes('.wmv') || lowerPrompt.includes('.flv')) {
+    videoScore += 10;
+  }
+
+  if (lowerPrompt.includes('.mp3') || lowerPrompt.includes('.wav') ||
+      lowerPrompt.includes('.ogg') || lowerPrompt.includes('.webm') ||
+      lowerPrompt.includes('.aac') || lowerPrompt.includes('.flac')) {
+    voiceScore += 10;
+  }
+
+  const totalScore = codeScore + designScore + videoScore + voiceScore;
+  const maxScore = Math.max(codeScore, designScore, videoScore, voiceScore);
+
+  // Require higher score threshold to avoid false positives
+  if (totalScore === 0 || maxScore < 8) {
+    return {
+      intent: 'chat',
+      confidence: 1.0,
+      suggestedStudio: 'Chat Studio',
+      reasoning: 'General conversation or query'
+    };
+  }
+
+  // More conservative confidence calculation
+  const confidence = totalScore > 0 ? maxScore / (totalScore + 10) : 0;
+
+  if (voiceScore > codeScore && voiceScore > designScore && voiceScore > videoScore) {
+    return {
+      intent: 'voice',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Voice Studio',
+      reasoning: `Detected voice generation intent with score ${voiceScore} (code: ${codeScore}, design: ${designScore}, video: ${videoScore})`
+    };
+  } else if (videoScore > codeScore && videoScore > designScore && videoScore > voiceScore) {
+    return {
+      intent: 'video',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Video Studio',
+      reasoning: `Detected video editing intent with score ${videoScore} (code: ${codeScore}, design: ${designScore}, voice: ${voiceScore})`
+    };
+  } else if (codeScore > designScore && codeScore > videoScore && codeScore > voiceScore) {
+    return {
+      intent: 'code',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Code Studio',
+      reasoning: `Detected coding intent with score ${codeScore} (design: ${designScore}, video: ${videoScore}, voice: ${voiceScore})`
+    };
+  } else if (designScore > codeScore && designScore > videoScore && designScore > voiceScore) {
+    return {
+      intent: 'design',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Design Studio',
+      reasoning: `Detected design intent with score ${designScore} (code: ${codeScore}, video: ${videoScore}, voice: ${voiceScore})`
+    };
+  }
+
+  return {
+    intent: 'chat',
+    confidence: 0.3,
+    suggestedStudio: 'Chat Studio',
+    reasoning: 'Ambiguous intent, defaulting to chat'
+  };
+};
+
+export const shouldAutoRoute = (intentResult: IntentResult): boolean => {
+  // Never auto-route, always ask for confirmation
+  return false;
+};
+
+export const shouldShowConfirmation = (intentResult: IntentResult): boolean => {
+  // Show confirmation if confidence is reasonable and not chat
+  return intentResult.confidence >= 0.5 && intentResult.intent !== 'chat';
+};
