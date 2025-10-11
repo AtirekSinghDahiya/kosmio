@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
-import { callAI } from '../../lib/aiProviders';
+import { getAIResponse as callSimpleAI } from '../../lib/simpleAI';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
@@ -195,43 +195,44 @@ export const MainChat: React.FC = () => {
     }
   };
 
-  // Get AI response
+  // Get AI response - SIMPLE VERSION
   const getAIResponse = async (projectId: string, userMessage: string) => {
     try {
       console.log('🚀 getAIResponse called with:', { projectId, userMessage: userMessage.substring(0, 50) });
 
       // Build conversation history
-      const conversationMessages = messages.slice(-10).map(msg => ({
+      const conversationHistory = messages.slice(-10).map(msg => ({
         role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
         content: msg.content,
       }));
 
-      conversationMessages.push({ role: 'user', content: userMessage });
+      console.log('📝 Messages count:', conversationHistory.length);
+      console.log('⏳ Calling SIMPLE AI service...');
 
-      console.log('🤖 Calling AI with model:', selectedModel);
-      console.log('📝 Messages count:', conversationMessages.length);
-      console.log('📝 Last message:', conversationMessages[conversationMessages.length - 1]);
+      // Call simple AI service
+      const aiContent = await callSimpleAI(userMessage, conversationHistory);
 
-      // Get AI response
-      console.log('⏳ About to call AI...');
-      const aiResponse = await callAI(conversationMessages, selectedModel);
-      console.log('✅ AI Response received! Length:', aiResponse.content.length);
-      console.log('✅ First 100 chars:', aiResponse.content.substring(0, 100));
+      console.log('✅ AI Response received! Length:', aiContent.length);
+      console.log('✅ First 100 chars:', aiContent.substring(0, 100));
 
       // Save AI response
       console.log('💾 Saving AI response to database...');
-      await addMessage(projectId, 'assistant', aiResponse.content);
+      await addMessage(projectId, 'assistant', aiContent);
       console.log('✅ AI response saved successfully');
 
     } catch (error: any) {
-      console.error('❌ AI Error Details:', error);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ Error stack:', error.stack);
-      console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+      console.error('❌❌❌ AI ERROR ❌❌❌');
+      console.error('Error type:', error.constructor?.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
 
-      const errorMessage = error.message || 'Unknown error';
-      const fallback = `⚠️ AI Error: ${errorMessage}\n\nPlease check:\n1. API key is configured in .env\n2. API key is valid\n3. Check browser console for details\n\nYour message was: "${userMessage}"`;
+      const errorMessage = error.message || 'Unknown error occurred';
+      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n**Troubleshooting:**\n1. Check that VITE_GROK_API_KEY is set in .env file\n2. Make sure the API key is valid (get free key at console.groq.com)\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page\n\n**Your message:** "${userMessage}"`;
+
+      console.log('💾 Saving error message to chat...');
       await addMessage(projectId, 'assistant', fallback);
+      console.log('✅ Error message saved to chat');
+
       showToast('error', 'AI Error', errorMessage);
     }
   };
