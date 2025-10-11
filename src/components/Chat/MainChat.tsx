@@ -120,8 +120,18 @@ export const MainChat: React.FC = () => {
 
   // Send message
   const handleSendMessage = async (messageText?: string) => {
+    console.log('🚀 handleSendMessage CALLED!');
+    console.log('📝 messageText:', messageText);
+    console.log('📝 inputValue:', inputValue);
+
     const textToSend = messageText || inputValue.trim();
-    if (!textToSend || isLoading) return;
+    console.log('📝 textToSend:', textToSend);
+    console.log('⏳ isLoading:', isLoading);
+
+    if (!textToSend || isLoading) {
+      console.warn('⚠️ BLOCKED: textToSend empty or already loading');
+      return;
+    }
 
     setInputValue('');
     setIsLoading(true);
@@ -315,7 +325,7 @@ export const MainChat: React.FC = () => {
         onDeleteProject={handleDeleteProject}
       />
 
-      <div className="flex-1 flex flex-col ml-16">
+      <div className="flex-1 flex flex-col ml-16 pt-20">
         {showLanding ? (
           <LandingView
             onQuickAction={(text) => handleSendMessage(text)}
@@ -325,7 +335,7 @@ export const MainChat: React.FC = () => {
         ) : (
           <>
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-32">
               {messages.map((message) => (
                 <div
                   key={message.id}

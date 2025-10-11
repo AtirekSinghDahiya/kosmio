@@ -134,7 +134,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           />
         </div>
         <button
-          onClick={onSend}
+          onClick={() => {
+            console.log('💬 Send button clicked!');
+            console.log('💬 Value:', value);
+            console.log('💬 Disabled:', disabled);
+            onSend();
+          }}
           disabled={!value.trim() || disabled}
           className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:from-gray-500 disabled:to-gray-600 disabled:opacity-50 text-white p-4 rounded-2xl transition-all disabled:cursor-not-allowed hover:scale-105"
         >
