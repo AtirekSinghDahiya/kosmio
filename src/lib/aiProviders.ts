@@ -410,6 +410,7 @@ async function callGrok(messages: AIMessage[], model: string): Promise<AIRespons
     });
 
     console.log('🔵 Groq Response status:', response.status);
+    console.log('🔵 Groq Response ok:', response.ok);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -419,10 +420,13 @@ async function callGrok(messages: AIMessage[], model: string): Promise<AIRespons
         errorData = JSON.parse(errorText);
       } catch {}
       const errorMessage = errorData.error?.message || `API error: ${response.status}`;
+      console.error('🔵 Throwing error:', errorMessage);
       throw new Error(`Groq: ${errorMessage}`);
     }
 
+    console.log('🔵 Groq response OK, parsing JSON...');
     const data = await response.json();
+    console.log('🔵 Groq data received:', data);
     console.log('🔵 Groq Success! Response length:', data.choices[0].message.content.length);
 
     return {
@@ -431,9 +435,16 @@ async function callGrok(messages: AIMessage[], model: string): Promise<AIRespons
       model: 'llama-3.3-70b',
     };
   } catch (error: any) {
+    console.error('🔵 Groq CATCH block triggered!');
+    console.error('🔵 Error type:', error.constructor.name);
+    console.error('🔵 Error message:', error.message);
+    console.error('🔵 Full error:', error);
+
     if (error.message.includes('Failed to fetch')) {
+      console.error('🔵 Network error detected');
       throw new Error('Groq: Network error - could not reach API. Check your internet connection.');
     }
+    console.error('🔵 Re-throwing error:', error.message);
     throw error;
   }
 }
