@@ -164,16 +164,26 @@ export const subscribeToMessages = (
   };
 };
 
-// Delete project
+// Delete project (with CASCADE, automatically deletes related data)
 export const deleteProject = async (projectId: string): Promise<void> => {
-  // Delete all messages first
-  await supabase.from('messages').delete().eq('project_id', projectId);
+  console.log('🗑️ Deleting project:', projectId);
 
-  // Delete project
-  const { error } = await supabase
-    .from('projects')
-    .delete()
-    .eq('id', projectId);
+  try {
+    // With CASCADE constraints, just delete the project
+    // All related messages, assets, video_jobs, and conversations will be deleted automatically
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId);
 
-  if (error) throw error;
+    if (error) {
+      console.error('❌ Delete failed:', error);
+      throw new Error(`Failed to delete project: ${error.message}`);
+    }
+
+    console.log('✅ Project and all related data deleted successfully');
+  } catch (error: any) {
+    console.error('❌ Delete error:', error);
+    throw error;
+  }
 };

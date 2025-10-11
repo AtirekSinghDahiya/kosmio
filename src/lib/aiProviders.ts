@@ -62,43 +62,86 @@ export const callAI = async (
         return await callOpenAI(messages, 'gpt-4o');
     }
   } catch (error: any) {
-    console.error(`❌ Error with ${config.provider}:`, error.message);
+    console.error(`❌ Primary provider (${config.provider}) failed:`, error.message);
 
-    // If primary fails and it's not already Groq, try Groq as fallback
-    if (modelId !== 'grok-2') {
+    // Define fallback chain (ordered by reliability and speed)
+    const fallbackChain = [
+      { provider: 'groq', model: 'llama-3.3-70b-versatile', name: 'Groq (Free & Fast)' },
+      { provider: 'gemini', model: 'gemini-1.5-flash-latest', name: 'Gemini Flash' },
+      { provider: 'deepseek', model: 'deepseek-chat', name: 'DeepSeek' },
+      { provider: 'claude', model: 'claude-3-haiku-20240307', name: 'Claude Haiku' },
+    ];
+
+    // Try fallback chain
+    for (const fallback of fallbackChain) {
+      // Skip if same as primary or if primary was already grok-2
+      if (fallback.provider === config.provider || (config.provider === 'groq' && fallback.provider === 'groq')) {
+        continue;
+      }
+
       try {
-        console.log(`🔄 Trying Groq fallback...`);
-        const result = await callGrok(messages, 'llama-3.3-70b-versatile');
-        console.log(`✅ Groq fallback succeeded`);
+        console.log(`🔄 Trying fallback: ${fallback.name}...`);
+        const result = await callProviderByName(fallback.provider, messages, fallback.model);
 
+        console.log(`✅ Fallback ${fallback.name} succeeded!`);
         return {
           ...result,
-          content: result.content + `\n\n_Note: Responded using Groq (${config.provider} unavailable)_`
+          content: result.content + `\n\n_Note: Responded using ${fallback.name} (primary provider unavailable)_`
         };
       } catch (fallbackError: any) {
-        console.error(`❌ Groq fallback failed:`, fallbackError.message);
+        console.warn(`⚠️ Fallback ${fallback.name} failed:`, fallbackError.message);
+        continue; // Try next fallback
       }
     }
 
-    // All fallbacks failed - return user-friendly error
+    // All providers failed - return user-friendly error
     const isQuotaError = error.message.includes('quota') ||
                         error.message.includes('exceeded') ||
                         error.message.includes('rate limit');
 
     if (isQuotaError) {
-      throw new Error(`AI service temporarily unavailable. ${config.provider}: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
-
-Please check:
-1. API key is configured in .env
-2. API key is valid
-3. Check browser console for details
-
-All fallback providers also failed. Please try again later or contact support.`);
+      throw new Error(
+        `All AI providers are currently unavailable.\n\n` +
+        `Primary provider (${config.provider}): Quota exceeded\n\n` +
+        `Please try:\n` +
+        `1. Select a different AI model from the dropdown\n` +
+        `2. Wait a few minutes and try again\n` +
+        `3. Check your API keys in the .env file`
+      );
     }
 
-    throw new Error(`AI service temporarily unavailable. ${error.message || 'Please try again later.'}`);
+    throw new Error(
+      `AI service temporarily unavailable: ${error.message}\n\n` +
+      `All fallback providers also failed. Please try again later.`
+    );
   }
 };
+
+/**
+ * Helper function to call provider by name
+ */
+async function callProviderByName(
+  provider: string,
+  messages: AIMessage[],
+  model: string
+): Promise<AIResponse> {
+  switch (provider) {
+    case 'openai':
+      return await callOpenAI(messages, model);
+    case 'claude':
+      return await callClaude(messages, model);
+    case 'gemini':
+      return await callGemini(messages, model);
+    case 'deepseek':
+      return await callDeepSeek(messages, model);
+    case 'groq':
+      return await callGrok(messages, model);
+    case 'kimi':
+      return await callKimi(messages, model);
+    default:
+      throw new Error(`Unknown provider: ${provider}`);
+  }
+}
 
 /**
  * Check if API key is valid
