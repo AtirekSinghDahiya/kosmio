@@ -84,41 +84,8 @@ export const MainChat: React.FC = () => {
         throw new Error('Keyword classification failed');
       }
 
-      if (keywordIntent.confidence >= 0.7) {
-        console.log('✅ Using keyword intent:', keywordIntent);
-        return keywordIntent;
-      }
-
-      try {
-        const prompt = `Classify this message into one category: "chat", "code", "design", "video", or "voice".
-
-Message: "${message}"
-
-Rules:
-- "code" = programming, websites, apps, software
-- "design" = logos, graphics, mockups, visuals
-- "video" = video editing, clips, reels
-- "voice" = voice generation, text-to-speech, audio, narration
-- "chat" = general conversation, anything else
-
-Respond with ONLY ONE WORD: chat, code, design, video, or voice`;
-
-        const response = await callAI([{ role: 'user', content: prompt }], selectedModel);
-
-        const aiIntent = response.content.trim().toLowerCase();
-
-        if (aiIntent === 'code' || aiIntent === 'design' || aiIntent === 'video' || aiIntent === 'voice') {
-          return {
-            intent: aiIntent as 'chat' | 'code' | 'design' | 'video' | 'voice',
-            confidence: 0.8,
-            suggestedStudio: `${aiIntent.charAt(0).toUpperCase() + aiIntent.slice(1)} Studio` as any,
-            reasoning: `AI classified as ${aiIntent}`,
-          };
-        }
-      } catch (error) {
-        console.warn('⚠️ AI intent classification failed, using keyword intent:', error);
-      }
-
+      // Always use keyword intent - skip AI classification to avoid extra API calls
+      console.log('✅ Using keyword intent:', keywordIntent);
       return keywordIntent;
     } catch (error) {
       console.error('❌ Intent classification completely failed:', error);
@@ -162,14 +129,23 @@ Respond with ONLY ONE WORD: chat, code, design, video, or voice`;
     try {
       console.log('📤 Sending:', textToSend);
 
-      // Classify intent
-      const intent = await classifyIntentWithAI(textToSend);
-
-      if (!intent) {
-        throw new Error('Failed to classify intent');
+      // Classify intent - use safe default if it fails
+      let intent;
+      try {
+        intent = await classifyIntentWithAI(textToSend);
+        if (!intent) {
+          throw new Error('No intent returned');
+        }
+        console.log('🎯 Intent classified:', intent.intent, intent.confidence);
+      } catch (error) {
+        console.warn('⚠️ Intent classification failed, defaulting to chat:', error);
+        intent = {
+          intent: 'chat',
+          confidence: 1.0,
+          suggestedStudio: 'Chat Studio',
+          reasoning: 'Intent classification failed, defaulting to chat'
+        };
       }
-
-      console.log('🎯 Intent:', intent.intent, intent.confidence);
 
       // Handle studio intents
       if ((intent.intent === 'code' || intent.intent === 'design' || intent.intent === 'video' || intent.intent === 'voice') && !activeProjectId) {

@@ -158,7 +158,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (confirm(`Delete "${project.name}"?`)) {
+                                const projectName = project.name || 'this project';
+                                const confirmed = window.confirm(`Delete "${projectName}"?\n\nThis action cannot be undone.`);
+                                if (confirmed) {
                                   onDeleteProject(project.id);
                                 }
                               }}
