@@ -14,33 +14,35 @@ interface AIResponse {
   model: string;
 }
 
+// Visual debug logger
+function log(type: 'info' | 'success' | 'error' | 'warning', message: string) {
+  console.log(`[${type}]`, message);
+  window.dispatchEvent(new CustomEvent('debugLog', { detail: { type, message } }));
+}
+
 /**
  * Call Groq API (Free, Fast, Reliable)
  */
 export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
   const apiKey = import.meta.env.VITE_GROK_API_KEY;
 
-  console.log('=================================');
-  console.log('🤖 SIMPLE AI SERVICE CALLED');
-  console.log('=================================');
-  console.log('API Key present:', !!apiKey);
-  console.log('API Key length:', apiKey?.length || 0);
-  console.log('API Key starts with:', apiKey?.substring(0, 10) || 'MISSING');
-  console.log('Messages to send:', messages.length);
-  console.log('First message:', messages[0]?.content?.substring(0, 50));
+  log('info', '🤖 AI SERVICE CALLED');
+  log('info', `API Key: ${apiKey ? `Present (${apiKey.length} chars, starts with ${apiKey.substring(0, 7)})` : 'MISSING'}`);
+  log('info', `Messages to send: ${messages.length}`);
+  log('info', `First message: ${messages[0]?.content?.substring(0, 30)}...`);
 
   if (!apiKey) {
-    console.error('❌ NO API KEY!');
+    log('error', 'NO API KEY FOUND!');
     throw new Error('API key is missing. Please check your .env file for VITE_GROK_API_KEY');
   }
 
   if (apiKey.includes('your-') || apiKey.length < 20) {
-    console.error('❌ INVALID API KEY!');
+    log('error', 'INVALID API KEY FORMAT!');
     throw new Error('API key appears to be invalid. Please check your .env file.');
   }
 
-  console.log('✅ API Key validated');
-  console.log('📡 Making API request...');
+  log('success', 'API Key validated ✓');
+  log('info', 'Making API request...');
 
   try {
     const requestBody = {
@@ -61,16 +63,13 @@ export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
       body: JSON.stringify(requestBody),
     });
 
-    console.log('📥 Response received!');
-    console.log('Status:', response.status);
-    console.log('Status Text:', response.statusText);
-    console.log('OK:', response.ok);
-    console.log('Headers:', Object.fromEntries(response.headers.entries()));
+    log('info', `Response received: Status ${response.status}`);
+    log('info', `Response OK: ${response.ok}`);
 
     if (!response.ok) {
-      console.error('❌ Response NOT OK!');
+      log('error', `API returned error status: ${response.status}`);
       const errorText = await response.text();
-      console.error('Error body:', errorText);
+      log('error', `Error details: ${errorText.substring(0, 100)}`);
 
       let errorMessage = `Groq API error (${response.status})`;
       try {
@@ -83,21 +82,17 @@ export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
       throw new Error(errorMessage);
     }
 
-    console.log('✅ Response OK! Parsing JSON...');
+    log('success', 'Response OK! Parsing data...');
     const data = await response.json();
-    console.log('Raw response data:', data);
 
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('❌ Invalid response structure!');
-      console.error('Data:', data);
+      log('error', 'Invalid response structure from API');
       throw new Error('Invalid response structure from Groq API');
     }
 
     const aiContent = data.choices[0].message.content;
-    console.log('✅ AI RESPONSE RECEIVED!');
-    console.log('Length:', aiContent.length);
-    console.log('First 100 chars:', aiContent.substring(0, 100));
-    console.log('=================================');
+    log('success', `✅ AI RESPONSE RECEIVED! (${aiContent.length} chars)`);
+    log('info', `Preview: ${aiContent.substring(0, 50)}...`);
 
     return {
       content: aiContent,
@@ -106,14 +101,11 @@ export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
     };
 
   } catch (error: any) {
-    console.error('=================================');
-    console.error('❌ ERROR IN GROQ API CALL');
-    console.error('=================================');
-    console.error('Error type:', error.constructor?.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
+    log('error', `EXCEPTION: ${error.message}`);
+    log('error', `Error type: ${error.constructor?.name}`);
 
     if (error.message.includes('Failed to fetch')) {
+      log('error', 'Network error detected');
       throw new Error('Network error: Cannot reach Groq API. Check your internet connection.');
     }
 
