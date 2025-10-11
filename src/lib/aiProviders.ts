@@ -63,57 +63,96 @@ export const callAI = async (
     }
   } catch (error: any) {
     console.error(`❌ Primary provider (${config.provider}) failed:`, error.message);
+    console.log(`🔄 Starting intelligent fallback system...`);
 
-    // Define fallback chain (ordered by reliability and speed)
-    const fallbackChain = [
-      { provider: 'groq', model: 'llama-3.3-70b-versatile', name: 'Groq (Free & Fast)' },
-      { provider: 'gemini', model: 'gemini-1.5-flash-latest', name: 'Gemini Flash' },
-      { provider: 'deepseek', model: 'deepseek-chat', name: 'DeepSeek' },
-      { provider: 'claude', model: 'claude-3-haiku-20240307', name: 'Claude Haiku' },
+    // UNIVERSAL FALLBACK: Try ALL available providers (ordered by speed & reliability)
+    const universalFallbackChain = [
+      { provider: 'groq', model: 'llama-3.3-70b-versatile', name: 'Groq (Llama 3.3)', speed: 'ultra-fast' },
+      { provider: 'gemini', model: 'gemini-1.5-flash-latest', name: 'Google Gemini Flash', speed: 'fast' },
+      { provider: 'deepseek', model: 'deepseek-chat', name: 'DeepSeek Chat', speed: 'fast' },
+      { provider: 'claude', model: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', speed: 'fast' },
+      { provider: 'gemini', model: 'gemini-1.5-pro', name: 'Google Gemini Pro', speed: 'medium' },
+      { provider: 'claude', model: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', speed: 'medium' },
+      { provider: 'kimi', model: 'moonshot-v1-8k', name: 'Kimi (Moonshot)', speed: 'medium' },
     ];
 
-    // Try fallback chain
-    for (const fallback of fallbackChain) {
-      // Skip if same as primary or if primary was already grok-2
-      if (fallback.provider === config.provider || (config.provider === 'groq' && fallback.provider === 'groq')) {
+    let attemptCount = 0;
+    const primaryProviderName = config.provider;
+
+    // Try each fallback provider
+    for (const fallback of universalFallbackChain) {
+      // Skip if this is the same provider that just failed
+      if (fallback.provider === primaryProviderName) {
+        console.log(`⏭️ Skipping ${fallback.name} (was primary provider)`);
         continue;
       }
 
+      attemptCount++;
+
       try {
-        console.log(`🔄 Trying fallback: ${fallback.name}...`);
+        console.log(`🔄 Attempt ${attemptCount}: Trying ${fallback.name} (${fallback.speed})...`);
+
         const result = await callProviderByName(fallback.provider, messages, fallback.model);
 
-        console.log(`✅ Fallback ${fallback.name} succeeded!`);
+        console.log(`✅ SUCCESS! ${fallback.name} responded!`);
+        console.log(`📊 Fallback Stats: Primary failed, succeeded on attempt ${attemptCount}/${universalFallbackChain.length}`);
+
+        // Add friendly note to user
         return {
           ...result,
-          content: result.content + `\n\n_Note: Responded using ${fallback.name} (primary provider unavailable)_`
+          content: result.content + `\n\n_✨ Responded using ${fallback.name} (${primaryProviderName} was unavailable)_`
         };
       } catch (fallbackError: any) {
-        console.warn(`⚠️ Fallback ${fallback.name} failed:`, fallbackError.message);
-        continue; // Try next fallback
+        console.warn(`⚠️ ${fallback.name} failed:`, fallbackError.message?.substring(0, 100));
+        // Continue to next provider
       }
     }
 
-    // All providers failed - return user-friendly error
+    // All providers failed - construct helpful error message
+    console.error(`❌ COMPLETE FAILURE: All ${attemptCount} fallback providers failed`);
+
     const isQuotaError = error.message.includes('quota') ||
                         error.message.includes('exceeded') ||
                         error.message.includes('rate limit');
 
+    const isNetworkError = error.message.includes('Failed to fetch') ||
+                          error.message.includes('Network') ||
+                          error.message.includes('CORS');
+
+    let errorMessage = `⚠️ Unable to get AI response after trying ${attemptCount + 1} providers.\n\n`;
+
     if (isQuotaError) {
-      throw new Error(
-        `All AI providers are currently unavailable.\n\n` +
-        `Primary provider (${config.provider}): Quota exceeded\n\n` +
-        `Please try:\n` +
-        `1. Select a different AI model from the dropdown\n` +
-        `2. Wait a few minutes and try again\n` +
-        `3. Check your API keys in the .env file`
-      );
+      errorMessage += `**Primary Issue:** ${primaryProviderName} quota/rate limit exceeded\n\n`;
+      errorMessage += `**What we tried:**\n`;
+      errorMessage += `- Groq (Free)\n`;
+      errorMessage += `- Google Gemini\n`;
+      errorMessage += `- DeepSeek\n`;
+      errorMessage += `- Claude\n`;
+      errorMessage += `- Kimi\n\n`;
+      errorMessage += `**Next Steps:**\n`;
+      errorMessage += `1. Wait 1-2 minutes and try again\n`;
+      errorMessage += `2. Check your API keys in .env file\n`;
+      errorMessage += `3. Get a free Groq key: console.groq.com\n`;
+      errorMessage += `4. Try refreshing the page`;
+    } else if (isNetworkError) {
+      errorMessage += `**Primary Issue:** Network/connection problem\n\n`;
+      errorMessage += `**Please check:**\n`;
+      errorMessage += `1. Internet connection is stable\n`;
+      errorMessage += `2. No firewall blocking API requests\n`;
+      errorMessage += `3. VPN is not causing issues\n`;
+      errorMessage += `4. Browser extensions (try disabling)\n`;
+      errorMessage += `5. Try incognito/private mode`;
+    } else {
+      errorMessage += `**Error:** ${error.message}\n\n`;
+      errorMessage += `**Tried:** Groq, Gemini, DeepSeek, Claude, Kimi\n\n`;
+      errorMessage += `**Check:**\n`;
+      errorMessage += `1. Browser console (F12) for detailed errors\n`;
+      errorMessage += `2. API keys are valid in .env file\n`;
+      errorMessage += `3. Try refreshing the page\n`;
+      errorMessage += `4. Contact support if issue persists`;
     }
 
-    throw new Error(
-      `AI service temporarily unavailable: ${error.message}\n\n` +
-      `All fallback providers also failed. Please try again later.`
-    );
+    throw new Error(errorMessage);
   }
 };
 
@@ -157,13 +196,12 @@ async function callOpenAI(messages: AIMessage[], model: string): Promise<AIRespo
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
   console.log('🔵 OpenAI API Key present:', !!apiKey);
-  console.log('🔵 OpenAI API Key length:', apiKey?.length || 0);
 
   if (!isValidApiKey(apiKey)) {
-    throw new Error('OpenAI API key not configured. Please add your API key in .env file.');
+    throw new Error('OpenAI: API key not configured');
   }
 
-  console.log('🔵 Calling OpenAI API with model:', model);
+  console.log('🔵 Calling OpenAI with model:', model);
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -180,21 +218,16 @@ async function callOpenAI(messages: AIMessage[], model: string): Promise<AIRespo
       }),
     });
 
-    console.log('🔵 OpenAI Response status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('🔵 OpenAI Error response:', errorText);
       let errorData: any = {};
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {}
-      const errorMessage = errorData.error?.message || `API error: ${response.status}`;
+      try { errorData = JSON.parse(errorText); } catch {}
+      const errorMessage = errorData.error?.message || `Status ${response.status}`;
       throw new Error(`OpenAI: ${errorMessage}`);
     }
 
     const data = await response.json();
-    console.log('🔵 OpenAI Success! Response length:', data.choices[0].message.content.length);
+    console.log('✅ OpenAI Success!');
 
     return {
       content: data.choices[0].message.content,
@@ -203,7 +236,7 @@ async function callOpenAI(messages: AIMessage[], model: string): Promise<AIRespo
     };
   } catch (error: any) {
     if (error.message.includes('Failed to fetch')) {
-      throw new Error('OpenAI: Network error - could not reach API. Check your internet connection.');
+      throw new Error('OpenAI: Network error');
     }
     throw error;
   }
@@ -349,37 +382,60 @@ async function callDeepSeek(messages: AIMessage[], model: string): Promise<AIRes
 async function callGrok(messages: AIMessage[], model: string): Promise<AIResponse> {
   const apiKey = import.meta.env.VITE_GROK_API_KEY;
 
+  console.log('🔵 Groq API Key present:', !!apiKey);
+  console.log('🔵 Groq API Key length:', apiKey?.length || 0);
+  console.log('🔵 Groq API Key starts with:', apiKey?.substring(0, 7));
+
   if (!isValidApiKey(apiKey)) {
-    throw new Error('Grok API key not configured. Please add your API key in .env file.');
+    throw new Error('Groq API key not configured. Please add VITE_GROK_API_KEY to your .env file.');
   }
 
-  // Groq uses their own endpoint (not x.ai)
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile', // Use Groq's model instead
-      messages,
-      temperature: 0.7,
-      max_tokens: 2000,
-    }),
-  });
+  console.log('🔵 Calling Groq API with model:', model);
+  console.log('🔵 Messages count:', messages.length);
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const errorMessage = errorData.error?.message || `API error: ${response.status}`;
-    throw new Error(`Groq ${errorMessage}`);
+  try {
+    // Groq uses their own endpoint (not x.ai)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile', // Use Groq's model
+        messages,
+        temperature: 0.7,
+        max_tokens: 2000,
+      }),
+    });
+
+    console.log('🔵 Groq Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('🔵 Groq Error response:', errorText);
+      let errorData: any = {};
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {}
+      const errorMessage = errorData.error?.message || `API error: ${response.status}`;
+      throw new Error(`Groq: ${errorMessage}`);
+    }
+
+    const data = await response.json();
+    console.log('🔵 Groq Success! Response length:', data.choices[0].message.content.length);
+
+    return {
+      content: data.choices[0].message.content,
+      provider: 'Groq',
+      model: 'llama-3.3-70b',
+    };
+  } catch (error: any) {
+    if (error.message.includes('Failed to fetch')) {
+      throw new Error('Groq: Network error - could not reach API. Check your internet connection.');
+    }
+    throw error;
   }
-
-  const data = await response.json();
-  return {
-    content: data.choices[0].message.content,
-    provider: 'Groq',
-    model: 'llama-3.3-70b',
-  };
 }
 
 /**
