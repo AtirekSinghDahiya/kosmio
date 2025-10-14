@@ -832,3 +832,18 @@ textarea:focus {
     transform: translateY(-8px);
   }
 }
+
+/* Custom dropdown styles for video generator */
+select option {
+  background-color: #1e293b;
+  color: white;
+  padding: 12px;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
