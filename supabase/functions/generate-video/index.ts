@@ -34,12 +34,15 @@ Deno.serve(async (req: Request) => {
     console.log("📥 Received request:", body);
 
     if (body.action === "generate") {
+      const aspectRatio = body.aspectRatio || "16:9";
+      const [width, height] = aspectRatio.split(":").map(Number);
+      const ratio = `${width * 80}:${height * 80}`;
+
       const payload = {
-        promptText: body.prompt || "",
+        prompt_text: body.prompt || "",
         model: "gen3a_turbo",
         duration: body.duration || 5,
-        ratio: body.aspectRatio || "16:9",
-        watermark: false,
+        ratio: ratio,
       };
 
       console.log("🎬 Generating video with payload:", payload);
