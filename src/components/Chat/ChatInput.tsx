@@ -68,21 +68,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 px-4 pb-4">
       {attachedFiles.length > 0 && (
         <div className="flex flex-wrap gap-2 animate-fade-in">
           {attachedFiles.map((file, index) => (
             <div
               key={index}
-              className="group relative flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-sm text-white transition-all duration-300"
+              className="group relative flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/20 hover:border-cyan-400/40 rounded-xl text-sm text-white transition-all duration-300 backdrop-blur-md shadow-lg hover:shadow-cyan-400/20"
             >
-              <Paperclip className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="max-w-[200px] truncate">{file.name}</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-cyan-400/10 to-cyan-400/0 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-500" />
+              <Paperclip className="w-4 h-4 text-cyan-400 relative z-10" />
+              <span className="max-w-[200px] truncate relative z-10">{file.name}</span>
               <button
                 onClick={() => removeFile(index)}
-                className="ml-1 p-0.5 hover:bg-red-500/20 rounded-full text-white/60 hover:text-red-400 transition-all duration-200"
+                className="ml-2 p-1 hover:bg-red-500/30 rounded-full text-white/60 hover:text-red-400 transition-all duration-200 relative z-10"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           ))}
@@ -90,9 +91,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       )}
 
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFF0]/20 via-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-        <div className="relative flex items-end gap-2">
-          <div className="flex flex-col gap-2">
+        <div className="absolute -inset-[2px] bg-gradient-to-r from-cyan-500/30 via-blue-500/30 to-teal-500/30 rounded-[28px] blur-xl opacity-0 group-focus-within:opacity-100 transition-all duration-700 animate-pulse" />
+        <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-400/40 via-blue-500/40 to-teal-400/40 rounded-[26px] opacity-0 group-focus-within:opacity-100 transition-all duration-500" />
+
+        <div className="relative flex items-end gap-3 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl p-4 border border-white/10 shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/5 via-transparent to-blue-500/5 rounded-3xl pointer-events-none" />
+
+          <div className="flex flex-col gap-2.5 relative z-10">
             <input
               ref={fileInputRef}
               type="file"
@@ -104,12 +109,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className="relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-400/50 text-white p-3.5 rounded-2xl transition-all duration-300 disabled:opacity-50 hover:scale-105 group/attach"
+              className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/20 hover:border-cyan-400/60 text-white p-3.5 rounded-2xl transition-all duration-300 disabled:opacity-40 hover:scale-110 active:scale-95 group/attach shadow-lg hover:shadow-cyan-400/30"
               title="Attach files"
             >
-              <Paperclip className="w-5 h-5 group-hover/attach:rotate-12 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/attach:translate-x-[100%] transition-transform duration-700" />
+              <Paperclip className="w-5 h-5 relative z-10 group-hover/attach:rotate-12 group-hover/attach:scale-110 transition-transform duration-300" />
               {attachedFiles.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-cyan-400 to-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-gradient-to-br from-cyan-400 to-blue-600 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-cyan-400/50 ring-2 ring-slate-900">
                   {attachedFiles.length}
                 </span>
               )}
@@ -117,17 +123,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={handleEnhancePrompt}
               disabled={!value.trim() || disabled || isEnhancing}
-              className="relative bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-400/50 text-white p-3.5 rounded-2xl transition-all duration-300 disabled:opacity-50 hover:scale-105 group/enhance"
+              className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/20 hover:border-teal-400/60 text-white p-3.5 rounded-2xl transition-all duration-300 disabled:opacity-40 hover:scale-110 active:scale-95 group/enhance shadow-lg hover:shadow-teal-400/30"
               title="Enhance prompt with AI"
             >
-              <Sparkles className={`w-5 h-5 transition-all duration-300 ${isEnhancing ? 'animate-spin' : 'group-hover/enhance:rotate-12'}`} />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/enhance:translate-x-[100%] transition-transform duration-700" />
+              <Sparkles className={`w-5 h-5 relative z-10 transition-all duration-300 ${isEnhancing ? 'animate-spin text-teal-300' : 'group-hover/enhance:rotate-12 group-hover/enhance:scale-110'}`} />
               {isEnhancing && (
-                <span className="absolute inset-0 bg-purple-400/20 rounded-2xl animate-pulse" />
+                <span className="absolute inset-0 bg-gradient-to-br from-teal-400/30 to-cyan-400/30 rounded-2xl animate-pulse" />
               )}
             </button>
           </div>
 
-          <div className="flex-1 relative">
+          <div className="flex-1 relative z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl pointer-events-none" />
             <textarea
               ref={inputRef}
               value={value}
@@ -139,7 +147,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               onKeyPress={onKeyPress}
               placeholder={placeholder}
               disabled={disabled}
-              className="w-full bg-white/5 border border-white/10 focus:border-cyan-400/50 rounded-2xl px-6 py-4 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 resize-none disabled:opacity-50 backdrop-blur-sm text-base transition-all duration-300"
+              className="w-full bg-gradient-to-br from-white/8 to-white/4 border border-white/20 focus:border-cyan-400/60 rounded-2xl px-5 py-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 resize-none disabled:opacity-50 backdrop-blur-sm text-base transition-all duration-300 shadow-inner"
               rows={3}
               style={{ minHeight: '90px', maxHeight: '200px' }}
             />
@@ -153,12 +161,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               onSend();
             }}
             disabled={!value.trim() || disabled}
-            className="relative bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:from-cyan-600 hover:via-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:opacity-50 text-white p-4 rounded-2xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 group/send"
+            className="relative overflow-hidden bg-gradient-to-br from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:via-teal-400 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 disabled:opacity-40 text-white p-4 rounded-2xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-110 active:scale-95 hover:shadow-2xl hover:shadow-cyan-400/50 group/send z-10"
           >
-            <Send className="w-5 h-5 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5 transition-transform duration-200" />
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover/send:opacity-100 rounded-2xl transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/send:translate-x-[100%] transition-transform duration-500" />
+            <Send className="w-5 h-5 relative z-10 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5 transition-transform duration-200 drop-shadow-lg" />
           </button>
         </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 text-white/30 text-xs">
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 animate-pulse" />
+        <span>Press Enter to send • Shift + Enter for new line</span>
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 animate-pulse" />
       </div>
     </div>
   );
