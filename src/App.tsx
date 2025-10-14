@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
+import { PublicLandingPage } from './components/Landing/PublicLandingPage';
 import { LoginPage } from './components/Auth/LoginPage';
 import { Sidebar } from './components/Layout/Sidebar';
 import { FloatingNavbar } from './components/Layout/FloatingNavbar';
@@ -21,9 +22,14 @@ import { Project } from './types';
 const MainApp: React.FC = () => {
   const { currentUser, userData } = useAuth();
   const { currentView, activeProject, navigateTo } = useNavigation();
+  const [showLogin, setShowLogin] = useState(false);
 
+  // Show public landing page for non-authenticated users
   if (!currentUser) {
-    return <LoginPage />;
+    if (showLogin) {
+      return <LoginPage />;
+    }
+    return <PublicLandingPage onGetStarted={() => setShowLogin(true)} />;
   }
 
   const handleOpenProject = (project: Project) => {
