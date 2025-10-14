@@ -59,7 +59,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   ];
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
+    <div className="relative w-full">
       {/* Animated Background Orbs */}
       <AnimatedGradientOrb className="top-20 left-10 w-96 h-96" />
       <AnimatedGradientOrb className="bottom-20 right-10 w-[500px] h-[500px]" />

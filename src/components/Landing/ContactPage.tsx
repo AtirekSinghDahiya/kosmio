@@ -54,7 +54,7 @@ export const ContactPage: React.FC = () => {
   ];
 
   return (
-    <div className="relative min-h-screen w-full overflow-y-auto overflow-x-hidden pb-20">
+    <div className="relative w-full pb-20">
       <AnimatedGradientOrb className="top-40 right-10 w-96 h-96" />
       <AnimatedGradientOrb className="bottom-40 left-10 w-[500px] h-[500px]" />
 

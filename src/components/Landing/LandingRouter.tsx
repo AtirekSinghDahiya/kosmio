@@ -35,11 +35,11 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
   };
 
   return (
-    <div className="relative min-h-screen gradient-background">
+    <div className="fixed inset-0 gradient-background overflow-y-auto overflow-x-hidden">
       <CosmicBackground />
       <FloatingElements />
 
-      <div className="relative z-10">
+      <div className="relative z-10 min-h-screen">
         <LandingNavbar
           currentPage={currentPage}
           onNavigate={handleNavigate}
