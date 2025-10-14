@@ -86,77 +86,36 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {suggestions.map((suggestion, index) => {
             const Icon = suggestion.icon;
             return (
-              <div
+              <button
                 key={index}
-                className={`floating-card-wrapper ${
-                  mounted ? '' : 'opacity-0'
-                } stagger-${index + 1}`}
-                style={{ animationDelay: `${index * 0.15}s` }}
+                onClick={() => onQuickAction(suggestion.prompt)}
+                className={`group relative glass-panel glass-panel-hover blur-transition rounded-2xl p-4 text-left ${
+                  mounted ? 'animate-fade-in-up' : 'opacity-0'
+                } stagger-${index + 1} button-press ${suggestion.borderColor} ${suggestion.glowColor}`}
               >
-                <button
-                  onClick={() => onQuickAction(suggestion.prompt)}
-                  className="floating-card-inner w-full group relative overflow-hidden rounded-3xl p-6 text-left transition-all duration-500"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                  }}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${suggestion.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${suggestion.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
-                    style={{
-                      background: 'radial-gradient(circle at 50% 50%, rgba(0,255,240,0.4), transparent 70%)',
-                    }}
-                  />
-
-                  <div className="relative z-10 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(0,255,240,0.2), rgba(138,43,226,0.2))',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255,255,255,0.2)',
-                          boxShadow: '0 8px 32px rgba(0,255,240,0.1)',
-                        }}
-                      >
-                        <Icon className="w-7 h-7 text-white drop-shadow-2xl" />
-                      </div>
-
-                      <div className="w-2 h-2 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-white group-hover:translate-x-1 transition-transform duration-500"
-                        style={{
-                          textShadow: '0 2px 10px rgba(0,255,240,0.3)',
-                        }}
-                      >
-                        {suggestion.title}
-                      </h3>
-                      <p className="text-sm text-white/70 group-hover:text-white/90 leading-relaxed transition-colors duration-500">
-                        {suggestion.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs text-cyan-400/80 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-500">
-                      <div className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
-                      <span>Click to start</span>
-                    </div>
+                <div className="relative z-10 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 border border-white/10 icon-spin-hover">
+                    <Icon className="w-5 h-5 text-white drop-shadow-lg" />
                   </div>
 
-                  <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-700"
-                    style={{
-                      background: 'radial-gradient(circle, rgba(0,255,240,0.4), transparent 70%)',
-                      filter: 'blur(20px)',
-                    }}
-                  />
-                </button>
-              </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h3 className="text-base font-semibold text-white group-hover:text-glow-teal transition-all">
+                      {suggestion.title}
+                    </h3>
+                    <p className="text-xs text-white/60 group-hover:text-white/80 transition-colors leading-relaxed">
+                      {suggestion.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#00FFF0] opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
+              </button>
             );
           })}
         </div>
