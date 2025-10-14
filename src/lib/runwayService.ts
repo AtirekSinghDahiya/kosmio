@@ -1,5 +1,5 @@
-const RUNWAY_API_KEY = import.meta.env.VITE_RUNWAY_API_KEY;
-const RUNWAY_API_BASE = 'https://api.runwayml.com/v1';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface RunwayVideoRequest {
   prompt: string;
@@ -16,106 +16,74 @@ export interface RunwayVideoResponse {
   error?: string;
 }
 
-export const generateVideo = async (request: RunwayVideoRequest): Promise<string> => {
-  if (!RUNWAY_API_KEY) {
-    throw new Error('Runway ML API key not configured. Please add VITE_RUNWAY_API_KEY to your .env file.');
+const callEdgeFunction = async (action: 'generate' | 'status', params: any) => {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-video`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ action, ...params })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Edge function error (${response.status}): ${errorText}`);
   }
 
-  console.log('🎬 Generating video with Runway ML:', {
+  return await response.json();
+};
+
+export const generateVideo = async (request: RunwayVideoRequest): Promise<string> => {
+  console.log('🎬 Generating video with Runway ML via Edge Function:', {
     prompt: request.prompt,
     duration: request.duration,
     aspectRatio: request.aspectRatio
   });
 
   try {
-    const payload = {
-      promptText: request.prompt,
-      model: request.model || 'gen3a_turbo',
+    const result = await callEdgeFunction('generate', {
+      prompt: request.prompt,
       duration: request.duration || 5,
-      ratio: request.aspectRatio || '16:9',
-      watermark: false
-    };
-
-    console.log('📤 Request payload:', payload);
-
-    const response = await fetch(`${RUNWAY_API_BASE}/image-to-video`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RUNWAY_API_KEY}`,
-        'Content-Type': 'application/json',
-        'X-Runway-Version': '2024-11-06'
-      },
-      body: JSON.stringify(payload)
+      aspectRatio: request.aspectRatio || '16:9'
     });
 
-    console.log('📥 Response status:', response.status);
+    console.log('✅ Edge function response:', result);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ API Error response:', errorText);
-
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        throw new Error(`Runway API error (${response.status}): ${errorText}`);
-      }
-
-      throw new Error(errorData.message || errorData.error || `Runway API error: ${response.status}`);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to generate video');
     }
 
-    const data = await response.json();
-    console.log('✅ Task created:', data);
-
-    if (!data.id) {
-      throw new Error('No task ID returned from Runway API');
+    if (!result.taskId) {
+      throw new Error('No task ID returned from video generation');
     }
 
-    return data.id;
+    return result.taskId;
   } catch (error: any) {
-    console.error('💥 Runway video generation error:', error);
+    console.error('💥 Video generation error:', error);
     throw new Error(`Failed to generate video: ${error.message}`);
   }
 };
 
 export const checkVideoStatus = async (taskId: string): Promise<RunwayVideoResponse> => {
-  if (!RUNWAY_API_KEY) {
-    throw new Error('Runway ML API key not configured');
-  }
-
   try {
-    const response = await fetch(`${RUNWAY_API_BASE}/tasks/${taskId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${RUNWAY_API_KEY}`,
-        'Content-Type': 'application/json',
-        'X-Runway-Version': '2024-11-06'
-      }
-    });
+    const result = await callEdgeFunction('status', { taskId });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Status check error:', errorText);
-      throw new Error(`Failed to check video status: ${response.status}`);
-    }
+    console.log('📊 Status check response:', result);
 
-    const data = await response.json();
-    console.log('📊 Task status:', data);
-
-    let videoUrl = null;
-    if (data.status === 'SUCCEEDED') {
-      videoUrl = data.output?.[0] || data.artifacts?.[0]?.url || data.output?.url || data.video?.url;
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to check video status');
     }
 
     return {
-      id: data.id,
-      status: data.status,
-      videoUrl,
-      progress: data.progress || (data.status === 'RUNNING' ? 50 : 0),
-      error: data.failure || data.failureReason || data.error
+      id: taskId,
+      status: result.status,
+      videoUrl: result.videoUrl,
+      progress: result.progress || 0,
+      error: result.error
     };
   } catch (error: any) {
-    console.error('💥 Runway status check error:', error);
+    console.error('💥 Status check error:', error);
     throw new Error(`Failed to check video status: ${error.message}`);
   }
 };
