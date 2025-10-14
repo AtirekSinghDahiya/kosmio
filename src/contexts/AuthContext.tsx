@@ -4,9 +4,6 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult,
   User
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
@@ -41,9 +38,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateUserProfile: (data: Partial<UserData>) => Promise<void>;
   refreshUserData: () => Promise<void>;
-  setupRecaptcha: (containerId: string) => void;
-  sendPhoneOTP: (phoneNumber: string) => Promise<void>;
-  verifyPhoneOTP: (otpCode: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -235,86 +229,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const setupRecaptcha = (containerId: string) => {
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        containerId,
-        {
-          size: 'invisible',
-          callback: () => {
-            console.log('✅ reCAPTCHA solved');
-          },
-          'expired-callback': () => {
-            console.warn('⚠️ reCAPTCHA expired');
-          }
-        }
-      );
-    }
-  };
-
-  const sendPhoneOTP = async (phoneNumber: string) => {
-    try {
-      console.log('📱 Sending OTP to:', phoneNumber);
-      setupRecaptcha('recaptcha-container');
-      const appVerifier = (window as any).recaptchaVerifier;
-
-      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-      (window as any).confirmationResult = confirmationResult;
-      console.log('✅ OTP sent successfully');
-    } catch (error: any) {
-      console.error('❌ Error sending OTP:', error);
-
-      if (error.code === 'auth/billing-not-enabled') {
-        throw new Error('Phone authentication is not enabled. Please enable it in Firebase Console: Authentication > Sign-in method > Phone');
-      } else if (error.code === 'auth/invalid-phone-number') {
-        throw new Error('Invalid phone number format. Please include country code (e.g., +1234567890)');
-      } else if (error.code === 'auth/missing-phone-number') {
-        throw new Error('Please enter a phone number');
-      } else if (error.code === 'auth/quota-exceeded') {
-        throw new Error('SMS quota exceeded. Please try again later');
-      } else if (error.code === 'auth/captcha-check-failed') {
-        throw new Error('reCAPTCHA verification failed. Please try again');
-      }
-
-      throw new Error(error.message || 'Failed to send OTP. Please try again.');
-    }
-  };
-
-  const verifyPhoneOTP = async (otpCode: string) => {
-    try {
-      console.log('🔐 Verifying OTP...');
-      const confirmationResult: ConfirmationResult = (window as any).confirmationResult;
-
-      if (!confirmationResult) {
-        throw new Error('Please request OTP first');
-      }
-
-      const result = await confirmationResult.confirm(otpCode);
-      const user = result.user;
-      console.log('✅ Phone verified! User:', user.uid);
-
-      await createSupabaseProfile(user.uid, user.phoneNumber || '', user.displayName || undefined);
-
-      const userDoc = await getDoc(doc(db, 'profiles', user.uid));
-      if (!userDoc.exists()) {
-        await createDefaultProfile(user.uid, user.phoneNumber || '', user.displayName || undefined);
-      }
-    } catch (error: any) {
-      console.error('❌ Error verifying OTP:', error);
-
-      if (error.code === 'auth/invalid-verification-code') {
-        throw new Error('Invalid verification code. Please check and try again');
-      } else if (error.code === 'auth/code-expired') {
-        throw new Error('Verification code has expired. Please request a new one');
-      } else if (error.code === 'auth/missing-verification-code') {
-        throw new Error('Please enter the verification code');
-      }
-
-      throw new Error(error.message || 'Invalid OTP. Please try again.');
-    }
-  };
-
   useEffect(() => {
     console.log('👂 Setting up auth state listener...');
 
@@ -345,10 +259,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateUserProfile,
-    refreshUserData,
-    setupRecaptcha,
-    sendPhoneOTP,
-    verifyPhoneOTP
+    refreshUserData
   };
 
   return (
