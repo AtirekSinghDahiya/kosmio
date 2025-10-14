@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
         promptText: body.prompt || "",
         model: "gen4_turbo",
         duration: body.duration || 5,
-        resolution: body.aspectRatio === "9:16" ? "720:1280" : body.aspectRatio === "1:1" ? "960:960" : "1280:720"
+        ratio: body.aspectRatio === "9:16" ? "720:1280" : body.aspectRatio === "1:1" ? "960:960" : "1280:720"
       };
 
       console.log(`[${rid}] Calling Runway:`, JSON.stringify(payload));
