@@ -15,6 +15,7 @@ import { FloatingNavbar } from '../Layout/FloatingNavbar';
 import { AIModelSelector } from './AIModelSelector';
 import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
+import { VideoGenerator } from './VideoGenerator';
 import {
   createProject,
   addMessage,
@@ -43,6 +44,8 @@ export const MainChat: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState('grok-2');
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [imagePrompt, setImagePrompt] = useState('');
+  const [showVideoGenerator, setShowVideoGenerator] = useState(false);
+  const [videoPrompt, setVideoPrompt] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -151,6 +154,24 @@ export const MainChat: React.FC = () => {
 
     if (!textToSend || isLoading) {
       console.warn('⚠️ BLOCKED: textToSend empty or already loading');
+      return;
+    }
+
+    // Auto-detect video generation requests
+    const videoKeywords = /\b(generate|create|make|show|render|produce)\b.*\b(video|clip|animation|footage|movie)\b/i;
+    const videoRequestPattern = /\b(video|clip|animation) (of|about|showing|with|depicting)\b/i;
+
+    if (videoKeywords.test(textToSend) || videoRequestPattern.test(textToSend)) {
+      console.log('🎬 Video generation detected!');
+      setInputValue('');
+
+      const cleanPrompt = textToSend
+        .replace(/^(generate|create|make|show|render|produce)\s+(a|an)?\s+(video|clip|animation|footage|movie)\s+(of|about|showing|with|depicting)?\s*/i, '')
+        .trim();
+
+      setVideoPrompt(cleanPrompt || textToSend);
+      setShowVideoGenerator(true);
+
       return;
     }
 
@@ -506,6 +527,16 @@ export const MainChat: React.FC = () => {
             console.log('Generated image:', image);
           }}
           initialPrompt={imagePrompt}
+        />
+      )}
+
+      {showVideoGenerator && (
+        <VideoGenerator
+          onClose={() => {
+            setShowVideoGenerator(false);
+            setVideoPrompt('');
+          }}
+          initialPrompt={videoPrompt}
         />
       )}
     </div>

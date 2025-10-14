@@ -32,7 +32,8 @@ const VIDEO_KEYWORDS = [
   'transition', 'effect', 'animation', 'movie', 'film', 'cinematic',
   'premiere', 'aftereffects', 'davinci', 'finalcut', 'editing',
   'cut', 'trim', 'splice', 'export', 'encode', 'mp4', 'mov',
-  'frame', 'fps', 'resolution', '4k', 'hd', 'video editing'
+  'frame', 'fps', 'resolution', '4k', 'hd', 'video editing',
+  'dancing', 'dance', 'moving', 'action', 'scene', 'sequence'
 ];
 
 const VOICE_KEYWORDS = [
@@ -59,7 +60,8 @@ const DESIGN_PHRASES = [
 const VIDEO_PHRASES = [
   'edit a video', 'create a video', 'make a video', 'edit this clip',
   'video editing', 'create montage', 'edit footage', 'make a movie',
-  'cut the video', 'add transitions', 'render video'
+  'cut the video', 'add transitions', 'render video', 'generate a video',
+  'video of', 'show me a video', 'dancing', 'moving'
 ];
 
 const VOICE_PHRASES = [
