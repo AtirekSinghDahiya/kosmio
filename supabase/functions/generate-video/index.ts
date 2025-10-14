@@ -40,13 +40,14 @@ Deno.serve(async (req: Request) => {
 
       const payload = {
         promptText: body.prompt || "",
-        model: "gen3a_turbo",
+        model: "gen4_turbo",
         duration: body.duration || 5,
         ratio: ratio,
       };
 
       console.log("🎬 Generating video with payload:", payload);
       console.log("🔑 Using API base:", RUNWAY_API_BASE);
+      console.log("ℹ️ Gen4 Turbo will auto-generate an image first, then create video");
 
       const response = await fetch(`${RUNWAY_API_BASE}/text_to_video`, {
         method: "POST",
