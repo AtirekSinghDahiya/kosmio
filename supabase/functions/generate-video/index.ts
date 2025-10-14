@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const RUNWAY_API_KEY = Deno.env.get("RUNWAY_API_KEY");
-const RUNWAY_API_BASE = "https://api.runwayml.com/v1";
+const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
 
 interface GenerateVideoRequest {
   action: "generate" | "status";
@@ -43,6 +43,7 @@ Deno.serve(async (req: Request) => {
       };
 
       console.log("🎬 Generating video with payload:", payload);
+      console.log("🔑 Using API base:", RUNWAY_API_BASE);
 
       const response = await fetch(`${RUNWAY_API_BASE}/image-to-video`, {
         method: "POST",
