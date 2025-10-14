@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const RUNWAY_API_KEY = Deno.env.get("VITE_RUNWAY_API_KEY");
+const RUNWAY_API_KEY = Deno.env.get("RUNWAY_API_KEY");
 const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
 
 interface GenerateVideoRequest {
@@ -40,8 +40,60 @@ Deno.serve(async (req: Request) => {
 
     console.log("✅ API key configured (length:", RUNWAY_API_KEY.length, ")");
 
-    const body: GenerateVideoRequest = await req.json();
-    console.log("📥 Received request:", JSON.stringify(body, null, 2));
+    console.log("🔍 Checking request body state...");
+    console.log("🔍 Body already consumed?", req.bodyUsed);
+    console.log("🔍 Content-Type:", req.headers.get("Content-Type"));
+
+    if (req.bodyUsed) {
+      throw new Error("Request body was already consumed by middleware");
+    }
+
+    const contentType = req.headers.get("Content-Type");
+    if (contentType && !contentType.includes("application/json")) {
+      throw new Error(`Invalid Content-Type: ${contentType}. Expected application/json`);
+    }
+
+    let rawBody: string;
+    try {
+      console.log("📄 Reading request body as text...");
+      rawBody = await req.text();
+      console.log("📄 Raw body received (length:", rawBody.length, ")");
+      console.log("📄 Raw body content:", rawBody);
+
+      if (!rawBody || rawBody.trim() === "") {
+        throw new Error("Request body is empty");
+      }
+    } catch (error: any) {
+      console.error("❌ Failed to read request body:", error.message);
+      throw new Error(`Failed to read request body: ${error.message}`);
+    }
+
+    let body: GenerateVideoRequest;
+    try {
+      console.log("🔄 Parsing JSON...");
+      body = JSON.parse(rawBody);
+      console.log("✅ JSON parsed successfully:", JSON.stringify(body, null, 2));
+    } catch (error: any) {
+      console.error("❌ JSON parsing failed:", error.message);
+      console.error("❌ Raw body that failed:", rawBody.substring(0, 200));
+      throw new Error(`Invalid JSON: ${error.message}`);
+    }
+
+    console.log("🔍 Validating request structure...");
+    if (!body || typeof body !== "object") {
+      throw new Error("Request body must be an object");
+    }
+
+    if (!body.action) {
+      throw new Error("Missing required field: action");
+    }
+
+    if (!["generate", "status"].includes(body.action)) {
+      throw new Error(`Invalid action: ${body.action}. Must be 'generate' or 'status'`);
+    }
+
+    console.log("✅ Request validation passed for action:", body.action);
+    console.log("📥 Validated request:", JSON.stringify(body, null, 2));
 
     if (body.action === "generate") {
       console.log("🎬 Starting video generation...");

@@ -19,39 +19,61 @@ export interface RunwayVideoResponse {
 // Import debug helper
 import { addDebugLog } from '../components/Debug/DebugPanel';
 
+const activeRequests = new Map<string, Promise<any>>();
+
 const callEdgeFunction = async (action: 'generate' | 'status', params: any) => {
-  const requestBody = { action, ...params };
+  const requestKey = `${action}-${JSON.stringify(params)}`;
 
-  addDebugLog('info', `📤 Calling Edge Function: ${action}`);
-  addDebugLog('info', `Payload: ${JSON.stringify(requestBody, null, 2)}`);
-
-  console.log('📤 Sending to Edge Function:', {
-    url: `${SUPABASE_URL}/functions/v1/generate-video`,
-    body: requestBody
-  });
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-video`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody)
-  });
-
-  console.log('📥 Edge Function response status:', response.status);
-  addDebugLog('info', `📥 Response Status: ${response.status}`);
-
-  const responseText = await response.text();
-  console.log('📥 Edge Function raw response:', responseText);
-  addDebugLog('info', `Response: ${responseText.substring(0, 200)}...`);
-
-  if (!response.ok) {
-    addDebugLog('error', `Edge function failed: ${responseText}`);
-    throw new Error(`Edge function error (${response.status}): ${responseText}`);
+  if (activeRequests.has(requestKey)) {
+    console.log('\ud83d\udeab Duplicate request detected, reusing existing request:', requestKey);
+    addDebugLog('warning', '\u26a0\ufe0f Duplicate request blocked - reusing existing');
+    return activeRequests.get(requestKey)!;
   }
 
-  return JSON.parse(responseText);
+  console.log('\u2705 New request started:', requestKey);
+
+  const requestPromise = (async () => {
+    try {
+      const requestBody = { action, ...params };
+
+      addDebugLog('info', `📤 Calling Edge Function: ${action}`);
+      addDebugLog('info', `Payload: ${JSON.stringify(requestBody, null, 2)}`);
+
+      console.log('📤 Sending to Edge Function:', {
+        url: `${SUPABASE_URL}/functions/v1/generate-video`,
+        body: requestBody
+      });
+
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-video`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('📥 Edge Function response status:', response.status);
+      addDebugLog('info', `📥 Response Status: ${response.status}`);
+
+      const responseText = await response.text();
+      console.log('📥 Edge Function raw response:', responseText);
+      addDebugLog('info', `Response: ${responseText.substring(0, 200)}...`);
+
+      if (!response.ok) {
+        addDebugLog('error', `Edge function failed: ${responseText}`);
+        throw new Error(`Edge function error (${response.status}): ${responseText}`);
+      }
+
+      return JSON.parse(responseText);
+    } finally {
+      activeRequests.delete(requestKey);
+      console.log('🧹 Request cleanup complete:', requestKey);
+    }
+  })();
+
+  activeRequests.set(requestKey, requestPromise);
+  return requestPromise;
 };
 
 export const generateVideo = async (request: RunwayVideoRequest): Promise<string> => {
