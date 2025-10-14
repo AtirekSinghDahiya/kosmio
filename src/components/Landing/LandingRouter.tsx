@@ -50,7 +50,6 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
 
       <div
         ref={scrollContainerRef}
-        data-scroll-container
         className="h-full w-full overflow-y-auto overflow-x-hidden relative z-10"
         style={{ scrollBehavior: 'smooth' }}
       >

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Heart, Users, Zap, Code2, Brain, Briefcase, Lightbulb, Rocket } from 'lucide-react';
-import { AnimatedGradientOrb } from './FloatingElements';
+import { Target, Eye, Heart, Users, Award, Zap, Globe, Shield } from 'lucide-react';
+import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
 
 export const AboutPage: React.FC = () => {
   const [mounted, setMounted] = useState(false);
@@ -9,54 +9,65 @@ export const AboutPage: React.FC = () => {
     setMounted(true);
   }, []);
 
-  const team = [
-    {
-      name: 'Atirek Singh',
-      role: 'CTO & Founder',
-      department: 'Design and Implementation',
-      bio: 'The visionary founder who conceived Kosmio in grade 9. Atirek brought together his father and friend to transform his idea into reality, leading the design and technical implementation.',
-      icon: Code2,
-      gradient: 'from-cyan-500 to-blue-600'
-    },
-    {
-      name: 'Jitender Singh Dahiya',
-      role: 'CEO & Co-Founder',
-      department: 'Business & Marketing',
-      bio: 'Father of Atirek and the strategic mind behind Kosmio. As CEO, he leads all business operations, marketing initiatives, and drives the company\'s growth strategy.',
-      icon: Briefcase,
-      gradient: 'from-blue-500 to-indigo-600'
-    },
-    {
-      name: 'Aditya Narayan Uniyal',
-      role: 'Co-CTO & Co-Founder',
-      department: 'AI Systems & Backend',
-      bio: 'Atirek\'s classmate and friend from grade 9. Aditya built the sophisticated AI systems and robust backend infrastructure that powers Kosmio alongside Atirek.',
-      icon: Brain,
-      gradient: 'from-indigo-500 to-purple-600'
-    }
-  ];
-
   const values = [
     {
-      icon: Lightbulb,
+      icon: Target,
       title: 'Innovation First',
-      description: 'Pushing the boundaries of AI technology to create tools that empower creators worldwide.'
+      description: 'We push the boundaries of what\'s possible with AI, constantly evolving our platform with cutting-edge technology.',
+      color: 'from-cyan-500 to-blue-600'
     },
     {
       icon: Heart,
-      title: 'User-Centric',
-      description: 'Every feature is designed with our users in mind, ensuring intuitive and powerful experiences.'
+      title: 'User-Centric Design',
+      description: 'Every feature is crafted with our users in mind, ensuring an intuitive and delightful experience.',
+      color: 'from-pink-500 to-rose-600'
     },
     {
-      icon: Users,
-      title: 'Collaboration',
-      description: 'Built by a team that values partnership, creativity, and shared vision for the future.'
+      icon: Shield,
+      title: 'Security & Privacy',
+      description: 'Your data security is paramount. We employ enterprise-grade encryption and never share your information.',
+      color: 'from-purple-500 to-indigo-600'
     },
     {
-      icon: Rocket,
-      title: 'Rapid Growth',
-      description: 'From a grade 9 idea to a platform serving thousands of creators globally.'
+      icon: Globe,
+      title: 'Global Accessibility',
+      description: 'Making powerful AI tools accessible to creators worldwide, regardless of technical expertise.',
+      color: 'from-emerald-500 to-teal-600'
     }
+  ];
+
+  const team = [
+    {
+      name: 'Dr. Sarah Chen',
+      role: 'CEO & Co-Founder',
+      bio: 'Former AI Research Lead at OpenAI, PhD in Machine Learning from Stanford',
+      image: 'from-cyan-500 to-blue-600'
+    },
+    {
+      name: 'Marcus Rodriguez',
+      role: 'CTO & Co-Founder',
+      bio: 'Ex-Google Brain Engineer, Pioneer in multimodal AI systems',
+      image: 'from-purple-500 to-pink-600'
+    },
+    {
+      name: 'Emily Watson',
+      role: 'Head of Design',
+      bio: 'Award-winning UX designer, previously led design at Figma',
+      image: 'from-pink-500 to-rose-600'
+    },
+    {
+      name: 'David Kim',
+      role: 'Head of Engineering',
+      bio: 'Built scalable systems at Amazon and Netflix for 10+ years',
+      image: 'from-blue-500 to-indigo-600'
+    }
+  ];
+
+  const milestones = [
+    { year: '2023', event: 'Founded with vision to democratize AI', icon: Zap },
+    { year: '2024', event: 'Reached 100K active users', icon: Users },
+    { year: '2024', event: 'Launched Code & Design Studios', icon: Award },
+    { year: '2025', event: 'Serving 500K+ creators globally', icon: Globe }
   ];
 
   return (
@@ -65,123 +76,152 @@ export const AboutPage: React.FC = () => {
       <AnimatedGradientOrb className="bottom-40 left-10 w-[500px] h-[500px]" />
 
       {/* Hero Section */}
-      <section className={`relative pt-32 pb-20 px-4 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+      <section className={`relative pt-40 pb-20 px-4 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
         <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 glass-panel rounded-full mb-8 border border-white/10">
-            <Zap className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm font-medium text-slate-300">About Kosmio</span>
+          <div className="inline-block px-6 py-3 glass-panel rounded-full border border-white/20 mb-8">
+            <span className="text-[#00FFF0] text-sm font-bold tracking-wider">ABOUT KOSMIO</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-6xl md:text-7xl font-bold text-white mb-8 leading-tight">
             Building the Future of{' '}
-            <span className="text-gradient">AI-Powered Creation</span>
+            <span className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+              AI-Powered Creation
+            </span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-300 leading-relaxed max-w-3xl mx-auto font-light">
-            Born from a vision in grade 9, Kosmio has grown into a platform that empowers creators with cutting-edge AI tools. Our journey is a testament to young innovation and collaborative spirit.
+          <p className="text-2xl text-white/70 leading-relaxed max-w-3xl mx-auto">
+            We believe that powerful AI tools should be accessible to everyone. Kosmio empowers creators, developers, and businesses to harness the full potential of artificial intelligence without complexity.
           </p>
         </div>
       </section>
 
-      {/* Origin Story */}
-      <section className="relative py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="glass-panel-strong rounded-2xl p-8 md:p-12 border border-white/10">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                <Lightbulb className="w-6 h-6 text-white" />
+      {/* Mission & Vision */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Floating3DCard delay={0}>
+            <div className="glass-panel rounded-3xl p-10 border border-white/20 hover:border-[#00FFF0]/50 transition-all duration-500 h-full">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center mb-6">
+                <Target className="w-8 h-8 text-[#00FFF0]" />
               </div>
-              <h2 className="text-3xl font-bold text-white">Our Story</h2>
+              <h2 className="text-3xl font-bold text-white mb-6">Our Mission</h2>
+              <p className="text-white/70 text-lg leading-relaxed">
+                To democratize AI technology by providing an intuitive, unified platform that empowers anyone to create, innovate, and build extraordinary things—regardless of their technical background or resources.
+              </p>
             </div>
-            <p className="text-lg text-slate-300 leading-relaxed">
-              Kosmio began with a spark of inspiration when <strong className="text-white">Atirek Singh</strong>,
-              then in grade 9, envisioned a platform that would democratize access to AI technology.
-              Understanding the power of collaboration, he brought together his father, <strong className="text-white">Jitender Singh Dahiya</strong>,
-              and his classmate and friend, <strong className="text-white">Aditya Narayan Uniyal</strong>.
-              Together, this trio of co-founders combined their unique strengths—technical innovation, business acumen,
-              and AI expertise—to build Kosmio from the ground up.
-            </p>
-          </div>
+          </Floating3DCard>
+
+          <Floating3DCard delay={150}>
+            <div className="glass-panel rounded-3xl p-10 border border-white/20 hover:border-[#8A2BE2]/50 transition-all duration-500 h-full">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8A2BE2]/20 to-[#00FFF0]/20 flex items-center justify-center mb-6">
+                <Eye className="w-8 h-8 text-[#8A2BE2]" />
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-6">Our Vision</h2>
+              <p className="text-white/70 text-lg leading-relaxed">
+                A world where every individual and organization can leverage AI to amplify their creativity, accelerate innovation, and solve complex problems—making the impossible, possible.
+              </p>
+            </div>
+          </Floating3DCard>
         </div>
       </section>
 
-      {/* Values */}
-      <section className="relative py-16 px-4">
+      {/* Core Values */}
+      <section className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Our Values</h2>
-            <p className="text-xl text-slate-300">The principles that guide everything we do</p>
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-white mb-6">Our Core Values</h2>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              The principles that guide everything we do
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {values.map((value, idx) => {
               const Icon = value.icon;
               return (
-                <div
-                  key={idx}
-                  className="glass-panel rounded-2xl p-6 card-hover border border-white/5"
-                  style={{ animationDelay: `${idx * 100}ms` }}
-                >
-                  <Icon className="w-10 h-10 text-cyan-400 mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">{value.title}</h3>
-                  <p className="text-slate-300 text-sm leading-relaxed">{value.description}</p>
-                </div>
+                <Floating3DCard key={idx} delay={idx * 100}>
+                  <div className="glass-panel rounded-2xl p-8 border border-white/20 hover:border-white/40 transition-all duration-500 h-full group">
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${value.color} opacity-20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <Icon className="w-7 h-7 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
+                    <p className="text-white/70 leading-relaxed">{value.description}</p>
+                  </div>
+                </Floating3DCard>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Journey Timeline */}
+      <section className="relative py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-white mb-6">Our Journey</h2>
+            <p className="text-xl text-white/70">From inception to innovation</p>
+          </div>
+
+          <div className="relative">
+            {/* Timeline Line */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#00FFF0] via-[#8A2BE2] to-[#00FFF0] transform -translate-x-1/2" />
+
+            <div className="space-y-16">
+              {milestones.map((milestone, idx) => {
+                const Icon = milestone.icon;
+                const isLeft = idx % 2 === 0;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}
+                  >
+                    <div className={`w-5/12 ${isLeft ? 'text-right pr-8' : 'text-left pl-8'}`}>
+                      <Floating3DCard delay={idx * 100}>
+                        <div className="glass-panel rounded-2xl p-6 border border-white/20 hover:border-[#00FFF0]/50 transition-all duration-500">
+                          <div className={`inline-flex items-center gap-3 mb-3 ${isLeft ? 'flex-row-reverse' : ''}`}>
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center">
+                              <Icon className="w-5 h-5 text-[#00FFF0]" />
+                            </div>
+                            <span className="text-2xl font-bold text-[#00FFF0]">{milestone.year}</span>
+                          </div>
+                          <p className="text-white/80 text-lg">{milestone.event}</p>
+                        </div>
+                      </Floating3DCard>
+                    </div>
+
+                    {/* Center Dot */}
+                    <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] border-4 border-slate-900 z-10" />
+
+                    <div className="w-5/12" />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Team Section */}
-      <section className="relative py-16 px-4">
+      <section className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">Meet the Founders</h2>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              Three visionaries who came together to make AI accessible to everyone
+            <h2 className="text-5xl font-bold text-white mb-6">Meet Our Team</h2>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              Passionate innovators dedicated to pushing the boundaries of AI
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {team.map((member, idx) => {
-              const Icon = member.icon;
-              return (
-                <div
-                  key={idx}
-                  className="group glass-panel rounded-3xl p-8 card-hover border border-white/5 hover:border-white/20 transition-all"
-                  style={{ animationDelay: `${idx * 150}ms` }}
-                >
-                  <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${member.gradient} opacity-90 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform mx-auto`}>
-                    <Icon className="w-10 h-10 text-white" />
-                  </div>
-
-                  <div className="text-center mb-4">
-                    <h3 className="text-2xl font-bold text-white mb-1">{member.name}</h3>
-                    <div className="text-cyan-400 font-semibold text-sm mb-1">{member.role}</div>
-                    <div className="text-slate-400 text-sm">{member.department}</div>
-                  </div>
-
-                  <p className="text-slate-300 leading-relaxed text-center text-sm">
-                    {member.bio}
-                  </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {team.map((member, idx) => (
+              <Floating3DCard key={idx} delay={idx * 100}>
+                <div className="glass-panel rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-500 text-center group">
+                  <div className={`w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br ${member.image} mb-6 group-hover:scale-105 transition-transform duration-300`} />
+                  <h3 className="text-xl font-bold text-white mb-2">{member.name}</h3>
+                  <p className="text-[#00FFF0] text-sm font-semibold mb-4">{member.role}</p>
+                  <p className="text-white/60 text-sm leading-relaxed">{member.bio}</p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Statement */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="glass-panel-strong rounded-3xl p-12 md:p-16 text-center border border-white/10">
-            <Target className="w-16 h-16 text-cyan-400 mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Our Mission</h2>
-            <p className="text-xl text-slate-300 leading-relaxed">
-              To empower creators, developers, and businesses worldwide with accessible, powerful AI tools
-              that transform ideas into reality. We believe that innovation knows no age, and that the future
-              of technology is built by those brave enough to dream big and work together.
-            </p>
+              </Floating3DCard>
+            ))}
           </div>
         </div>
       </section>

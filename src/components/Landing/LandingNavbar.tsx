@@ -12,15 +12,12 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const container = document.querySelector('[data-scroll-container]');
-    if (!container) return;
-
     const handleScroll = () => {
-      setIsScrolled(container.scrollTop > 50);
+      setIsScrolled(window.scrollY > 50);
     };
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const navItems = [
@@ -31,63 +28,72 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 px-4 transition-all duration-300 ${
-      isScrolled ? 'py-3' : 'py-4'
+    <nav className={`fixed top-0 left-0 right-0 z-50 px-4 py-4 transition-all duration-500 ${
+      isScrolled ? 'py-3' : 'py-5'
     }`}>
       <div className="max-w-7xl mx-auto">
-        <div className={`glass-panel rounded-2xl px-6 md:px-8 py-3 border transition-all duration-300 ${
-          isScrolled ? 'border-white/10 bg-slate-900/95' : 'border-white/5 bg-slate-900/60'
-        }`}>
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => onNavigate('home')}
-              className="flex items-center gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center p-1.5 group-hover:scale-105 transition-transform">
-                <img
-                  src="/logo.svg"
-                  alt="Kosmio"
-                  className="w-full h-full object-contain"
-                />
+        <div className="relative group">
+          <div className={`absolute inset-0 bg-gradient-to-r from-[#00FFF0]/20 via-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-full blur-xl transition-opacity duration-500 ${
+            isScrolled ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          }`} />
+          <div className={`relative glass-panel rounded-full px-6 md:px-8 py-3 shadow-2xl border border-white/20 backdrop-blur-2xl transition-all duration-300 ${
+            isScrolled ? 'bg-slate-900/90' : 'bg-slate-900/40'
+          }`}>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => onNavigate('home')}
+                className="flex items-center gap-3 group/logo"
+              >
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2 group-hover/logo:scale-110 transition-transform duration-300">
+                  <img
+                    src="/logo.svg"
+                    alt="Kosmio"
+                    className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
+                  />
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                  Kosmio
+                </span>
+              </button>
+
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex items-center gap-8">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onNavigate(item.id as any)}
+                    className={`relative text-sm font-medium transition-all duration-300 group/nav ${
+                      currentPage === item.id
+                        ? 'text-white'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                  >
+                    {item.label}
+                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] transition-all duration-300 ${
+                      currentPage === item.id
+                        ? 'w-full'
+                        : 'w-0 group-hover/nav:w-full'
+                    }`} />
+                  </button>
+                ))}
               </div>
-              <span className="text-lg font-bold text-white">Kosmio</span>
-            </button>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
-              {navItems.map((item) => (
+              <div className="flex items-center gap-4">
                 <button
-                  key={item.id}
-                  onClick={() => onNavigate(item.id as any)}
-                  className={`relative text-sm font-medium transition-colors ${
-                    currentPage === item.id
-                      ? 'text-white'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  onClick={onGetStarted}
+                  className="hidden sm:block bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-6 py-2.5 rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-[#00FFF0]/30 transition-all duration-300 hover:scale-105"
                 >
-                  {item.label}
-                  {currentPage === item.id && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full" />
-                  )}
+                  Get Started
                 </button>
-              ))}
-            </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={onGetStarted}
-                className="hidden sm:block btn-primary px-6 py-2 rounded-lg text-sm"
-              >
-                Get Started
-              </button>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden text-white p-2"
-              >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="md:hidden text-white p-2"
+                >
+                  {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -95,9 +101,9 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-4 top-20 z-40 animate-scale-in">
-          <div className="glass-panel-strong rounded-2xl p-6 border border-white/10">
-            <div className="flex flex-col gap-3">
+        <div className="md:hidden fixed inset-x-4 top-20 z-40 animate-fade-in">
+          <div className="glass-panel rounded-2xl p-6 border border-white/20 backdrop-blur-2xl">
+            <div className="flex flex-col gap-4">
               {navItems.map((item) => (
                 <button
                   key={item.id}
@@ -105,10 +111,10 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
                     onNavigate(item.id as any);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`text-left py-3 px-4 rounded-xl transition-all ${
+                  className={`text-left py-3 px-4 rounded-xl transition-all duration-300 ${
                     currentPage === item.id
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white border border-cyan-500/30'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      ? 'bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 text-white border border-[#00FFF0]/30'
+                      : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   {item.label}
@@ -119,7 +125,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
                   onGetStarted();
                   setIsMobileMenuOpen(false);
                 }}
-                className="btn-primary py-3 px-4 rounded-xl text-center mt-2"
+                className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#00FFF0]/30 transition-all duration-300"
               >
                 Get Started
               </button>
