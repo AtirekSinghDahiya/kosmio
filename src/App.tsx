@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
-import { PublicLandingPage } from './components/Landing/PublicLandingPage';
+import { LandingRouter } from './components/Landing/LandingRouter';
 import { LoginPage } from './components/Auth/LoginPage';
 import { Sidebar } from './components/Layout/Sidebar';
 import { FloatingNavbar } from './components/Layout/FloatingNavbar';
@@ -29,7 +29,7 @@ const MainApp: React.FC = () => {
     if (showLogin) {
       return <LoginPage />;
     }
-    return <PublicLandingPage onGetStarted={() => setShowLogin(true)} />;
+    return <LandingRouter onGetStarted={() => setShowLogin(true)} />;
   }
 
   const handleOpenProject = (project: Project) => {
