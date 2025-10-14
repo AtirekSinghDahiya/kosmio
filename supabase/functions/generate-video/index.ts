@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
       console.log("🎬 Generating video with payload:", payload);
       console.log("🔑 Using API base:", RUNWAY_API_BASE);
 
-      const response = await fetch(`${RUNWAY_API_BASE}/image-to-video`, {
+      const response = await fetch(`${RUNWAY_API_BASE}/text_to_video`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${RUNWAY_API_KEY}`,
