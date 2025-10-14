@@ -98,35 +98,3 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
         <div className="md:hidden fixed inset-x-4 top-20 z-40 animate-scale-in">
           <div className="glass-panel-strong rounded-2xl p-6 border border-white/10">
             <div className="flex flex-col gap-3">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onNavigate(item.id as any);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`text-left py-3 px-4 rounded-xl transition-all ${
-                    currentPage === item.id
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white border border-cyan-500/30'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-              <button
-                onClick={() => {
-                  onGetStarted();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="btn-primary py-3 px-4 rounded-xl text-center mt-2"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </nav>
-  );
-};
