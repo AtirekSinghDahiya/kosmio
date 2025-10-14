@@ -92,10 +92,13 @@ export const FloatingElements: React.FC = () => {
 export const Floating3DCard: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
   return (
     <div
-      className="perspective-1000"
-      style={{ animationDelay: `${delay}ms` }}
+      className="floating-card-wrapper"
+      style={{
+        animationDelay: `${delay}ms`,
+        opacity: 0
+      }}
     >
-      <div className="relative transform-gpu transition-all duration-500 hover:scale-105 hover:-translate-y-2 animate-fade-in-up">
+      <div className="floating-card-inner">
         {children}
       </div>
     </div>

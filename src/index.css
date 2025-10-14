@@ -712,3 +712,53 @@ textarea:focus {
   -moz-user-select: none;
   -ms-user-select: none;
 }
+
+/* Smooth Floating Card Animations */
+@keyframes smoothFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating-card-wrapper {
+  animation: smoothFloatIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.floating-card-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: gentleFloat 6s ease-in-out infinite;
+}
+
+.floating-card-inner:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-card-wrapper {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .floating-card-inner {
+    animation: none;
+  }
+
+  .floating-card-inner:hover {
+    transform: translateY(-4px);
+  }
+}
