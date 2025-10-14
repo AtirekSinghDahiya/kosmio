@@ -6,30 +6,108 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const RUNWAY_API_KEY = Deno.env.get("RUNWAY_API_KEY");
+const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
+
 Deno.serve(async (req: Request) => {
   const rid = crypto.randomUUID().slice(0, 8);
-  console.log(`[${rid}] ===ULTRA-SIMPLE TEST v3===`);
+  console.log(`[${rid}] v4-FULL | ${req.method} ${req.url}`);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    console.log(`[${rid}] Reading body...`);
-    const text = await req.text();
-    console.log(`[${rid}] Body text:`, text);
-    
-    const json = JSON.parse(text);
-    console.log(`[${rid}] Parsed:`, JSON.stringify(json));
+    if (!RUNWAY_API_KEY) {
+      throw new Error("RUNWAY_API_KEY not configured");
+    }
 
-    return new Response(
-      JSON.stringify({ success: true, test: "v3-ultra-simple", got: json }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const text = await req.text();
+    console.log(`[${rid}] Body:`, text);
+    
+    const body = JSON.parse(text);
+    console.log(`[${rid}] Parsed:`, JSON.stringify(body));
+
+    if (body.action === "generate") {
+      const payload = {
+        promptText: body.prompt || "",
+        model: "gen4_turbo",
+        duration: body.duration || 5,
+        resolution: body.aspectRatio === "9:16" ? "720:1280" : body.aspectRatio === "1:1" ? "960:960" : "1280:720"
+      };
+
+      console.log(`[${rid}] Calling Runway:`, JSON.stringify(payload));
+
+      const res = await fetch(`${RUNWAY_API_BASE}/text_to_video`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${RUNWAY_API_KEY}`,
+          "Content-Type": "application/json",
+          "X-Runway-Version": "2024-11-06"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const resText = await res.text();
+      console.log(`[${rid}] Runway response (${res.status}):`, resText);
+
+      if (!res.ok) {
+        throw new Error(`Runway API error (${res.status}): ${resText}`);
+      }
+
+      const data = JSON.parse(resText);
+      return new Response(
+        JSON.stringify({ success: true, taskId: data.id, data }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } else if (body.action === "status") {
+      if (!body.taskId) {
+        throw new Error("taskId required for status check");
+      }
+
+      console.log(`[${rid}] Checking status:`, body.taskId);
+
+      const res = await fetch(`${RUNWAY_API_BASE}/tasks/${body.taskId}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${RUNWAY_API_KEY}`,
+          "Content-Type": "application/json",
+          "X-Runway-Version": "2024-11-06"
+        }
+      });
+
+      const resText = await res.text();
+      console.log(`[${rid}] Status response (${res.status}):`, resText);
+
+      if (!res.ok) {
+        throw new Error(`Status check failed (${res.status}): ${resText}`);
+      }
+
+      const data = JSON.parse(resText);
+      let videoUrl = null;
+      
+      if (data.status === "SUCCEEDED") {
+        videoUrl = data.output?.[0] || data.artifacts?.[0]?.url || data.output?.url || data.video?.url || data.outputUrl;
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          status: data.status,
+          videoUrl,
+          progress: data.progress || (data.status === "RUNNING" ? 50 : 0),
+          error: data.failure || data.failureReason || data.error,
+          rawData: data
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } else {
+      throw new Error(`Invalid action: ${body.action}`);
+    }
   } catch (err: any) {
-    console.error(`[${rid}] ERROR:`, err.message, err.stack);
+    console.error(`[${rid}] ERROR:`, err.message);
     return new Response(
-      JSON.stringify({ success: false, error: err.message, test: "v3-ultra-simple", stack: err.stack }),
+      JSON.stringify({ success: false, error: err.message, version: "v4-full" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
