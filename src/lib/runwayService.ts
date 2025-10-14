@@ -100,7 +100,12 @@ export const checkVideoStatus = async (taskId: string): Promise<RunwayVideoRespo
     console.log('📊 Status check response:', result);
 
     if (!result.success) {
+      addDebugLog('error', `Status check failed: ${result.error}`);
       throw new Error(result.error || 'Failed to check video status');
+    }
+
+    if (result.rawData) {
+      addDebugLog('info', `Raw API response: ${JSON.stringify(result.rawData).substring(0, 150)}...`);
     }
 
     return {
@@ -112,6 +117,7 @@ export const checkVideoStatus = async (taskId: string): Promise<RunwayVideoRespo
     };
   } catch (error: any) {
     console.error('💥 Status check error:', error);
+    addDebugLog('error', `Status check error: ${error.message}`);
     throw new Error(`Failed to check video status: ${error.message}`);
   }
 };

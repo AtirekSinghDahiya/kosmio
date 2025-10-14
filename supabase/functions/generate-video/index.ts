@@ -26,59 +26,90 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    console.log("🔐 Checking API key configuration...");
+
     if (!RUNWAY_API_KEY) {
+      console.error("❌ RUNWAY_API_KEY environment variable is not set");
       throw new Error("Runway API key not configured");
     }
 
+    if (RUNWAY_API_KEY.length < 20) {
+      console.error("❌ RUNWAY_API_KEY appears to be invalid (too short)");
+      throw new Error("Invalid Runway API key configuration");
+    }
+
+    console.log("✅ API key configured (length:", RUNWAY_API_KEY.length, ")");
+
     const body: GenerateVideoRequest = await req.json();
-    console.log("📥 Received request:", body);
+    console.log("📥 Received request:", JSON.stringify(body, null, 2));
 
     if (body.action === "generate") {
+      console.log("🎬 Starting video generation...");
+
       const aspectRatio = body.aspectRatio || "16:9";
-      const [width, height] = aspectRatio.split(":").map(Number);
-      const ratio = `${width * 80}:${height * 80}`;
+      const duration = body.duration || 5;
+
+      const resolutionMap: Record<string, string> = {
+        "16:9": "1280:720",
+        "9:16": "720:1280",
+        "1:1": "960:960",
+      };
+
+      const resolution = resolutionMap[aspectRatio] || "1280:720";
 
       const payload = {
         promptText: body.prompt || "",
         model: "gen4_turbo",
-        duration: body.duration || 5,
-        ratio: ratio,
+        duration: duration,
+        resolution: resolution,
       };
 
-      console.log("🎬 Generating video with payload:", payload);
-      console.log("🔑 Using API base:", RUNWAY_API_BASE);
-      console.log("ℹ️ Gen4 Turbo will auto-generate an image first, then create video");
+      console.log("📦 Request payload:", JSON.stringify(payload, null, 2));
+      console.log("🌐 API endpoint:", `${RUNWAY_API_BASE}/text_to_video`);
+
+      const requestHeaders = {
+        Authorization: `Bearer ${RUNWAY_API_KEY}`,
+        "Content-Type": "application/json",
+        "X-Runway-Version": "2024-11-06",
+      };
+
+      console.log("📋 Request headers:", {
+        Authorization: `Bearer ${RUNWAY_API_KEY.substring(0, 10)}...`,
+        "Content-Type": "application/json",
+        "X-Runway-Version": "2024-11-06",
+      });
 
       const response = await fetch(`${RUNWAY_API_BASE}/text_to_video`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${RUNWAY_API_KEY}`,
-          "Content-Type": "application/json",
-          "X-Runway-Version": "2024-11-06",
-        },
+        headers: requestHeaders,
         body: JSON.stringify(payload),
       });
 
+      console.log("📊 Response status:", response.status);
+      console.log("📊 Response headers:", Object.fromEntries(response.headers.entries()));
+
       const responseText = await response.text();
-      console.log("📤 Runway API response:", response.status, responseText);
+      console.log("📄 Response body:", responseText);
 
       if (!response.ok) {
         let errorData;
         try {
           errorData = JSON.parse(responseText);
+          console.error("❌ Parsed error:", JSON.stringify(errorData, null, 2));
         } catch {
+          console.error("❌ Raw error:", responseText);
           throw new Error(
             `Runway API error (${response.status}): ${responseText}`
           );
         }
-        throw new Error(
-          errorData.message || errorData.error ||
-            `Runway API error: ${response.status}`
-        );
+
+        const errorMessage = errorData.message || errorData.error || errorData.detail ||
+                           `Runway API error: ${response.status}`;
+        throw new Error(errorMessage);
       }
 
       const data = JSON.parse(responseText);
-      console.log("✅ Task created:", data);
+      console.log("✅ Task created successfully:", JSON.stringify(data, null, 2));
 
       return new Response(
         JSON.stringify({ success: true, taskId: data.id, data }),
@@ -109,7 +140,7 @@ Deno.serve(async (req: Request) => {
       );
 
       const responseText = await response.text();
-      console.log("📤 Status response:", response.status, responseText);
+      console.log("📄 Status response:", response.status, responseText);
 
       if (!response.ok) {
         throw new Error(
@@ -118,11 +149,16 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = JSON.parse(responseText);
+      console.log("✅ Status data:", JSON.stringify(data, null, 2));
 
       let videoUrl = null;
       if (data.status === "SUCCEEDED") {
-        videoUrl = data.output?.[0] || data.artifacts?.[0]?.url ||
-          data.output?.url || data.video?.url;
+        videoUrl = data.output?.[0] ||
+                  data.artifacts?.[0]?.url ||
+                  data.output?.url ||
+                  data.video?.url ||
+                  data.outputUrl;
+        console.log("🎥 Video URL found:", videoUrl);
       }
 
       return new Response(
@@ -132,6 +168,7 @@ Deno.serve(async (req: Request) => {
           videoUrl,
           progress: data.progress || (data.status === "RUNNING" ? 50 : 0),
           error: data.failure || data.failureReason || data.error,
+          rawData: data,
         }),
         {
           headers: {
@@ -141,15 +178,17 @@ Deno.serve(async (req: Request) => {
         }
       );
     } else {
-      throw new Error("Invalid action");
+      throw new Error("Invalid action. Must be 'generate' or 'status'");
     }
   } catch (error: any) {
-    console.error("💥 Error:", error);
+    console.error("💥 Error occurred:", error);
+    console.error("💥 Error stack:", error.stack);
 
     return new Response(
       JSON.stringify({
         success: false,
         error: error.message || "An error occurred",
+        details: error.stack,
       }),
       {
         status: 400,
