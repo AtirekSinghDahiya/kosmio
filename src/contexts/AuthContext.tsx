@@ -264,6 +264,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('✅ OTP sent successfully');
     } catch (error: any) {
       console.error('❌ Error sending OTP:', error);
+
+      if (error.code === 'auth/billing-not-enabled') {
+        throw new Error('Phone authentication is not enabled. Please enable it in Firebase Console: Authentication > Sign-in method > Phone');
+      } else if (error.code === 'auth/invalid-phone-number') {
+        throw new Error('Invalid phone number format. Please include country code (e.g., +1234567890)');
+      } else if (error.code === 'auth/missing-phone-number') {
+        throw new Error('Please enter a phone number');
+      } else if (error.code === 'auth/quota-exceeded') {
+        throw new Error('SMS quota exceeded. Please try again later');
+      } else if (error.code === 'auth/captcha-check-failed') {
+        throw new Error('reCAPTCHA verification failed. Please try again');
+      }
+
       throw new Error(error.message || 'Failed to send OTP. Please try again.');
     }
   };
@@ -289,6 +302,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('❌ Error verifying OTP:', error);
+
+      if (error.code === 'auth/invalid-verification-code') {
+        throw new Error('Invalid verification code. Please check and try again');
+      } else if (error.code === 'auth/code-expired') {
+        throw new Error('Verification code has expired. Please request a new one');
+      } else if (error.code === 'auth/missing-verification-code') {
+        throw new Error('Please enter the verification code');
+      }
+
       throw new Error(error.message || 'Invalid OTP. Please try again.');
     }
   };
