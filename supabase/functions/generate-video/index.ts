@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const RUNWAY_API_KEY = Deno.env.get("RUNWAY_API_KEY");
+const RUNWAY_API_KEY = Deno.env.get("VITE_RUNWAY_API_KEY");
 const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
 
 interface GenerateVideoRequest {
