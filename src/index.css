@@ -713,66 +713,102 @@ textarea:focus {
   -ms-user-select: none;
 }
 
-/* Elegant Reveal Animation */
-@keyframes elegantReveal {
+/* Particle Materialization Animation */
+@keyframes particleMaterialize {
   0% {
     opacity: 0;
-    transform: scale(0.92) rotateX(8deg);
-    filter: blur(8px);
+    transform: scale(0.3);
+    filter: blur(20px) brightness(2);
+    clip-path: polygon(
+      50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%
+    );
   }
-  60% {
-    opacity: 0.8;
-    filter: blur(2px);
+  40% {
+    opacity: 0.6;
+    filter: blur(10px) brightness(1.5);
+    transform: scale(0.8) rotate(5deg);
+  }
+  70% {
+    opacity: 0.9;
+    filter: blur(2px) brightness(1.1);
   }
   100% {
     opacity: 1;
-    transform: scale(1) rotateX(0deg);
-    filter: blur(0px);
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px) brightness(1);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
 }
 
-@keyframes subtleBreathing {
+@keyframes cosmicLevitate {
   0%, 100% {
-    transform: scale(1);
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6px) rotate(0.5deg);
   }
   50% {
-    transform: scale(1.01);
+    transform: translateY(-3px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-6px) rotate(-0.5deg);
   }
 }
 
-@keyframes gentleSway {
+@keyframes energyPulse {
   0%, 100% {
-    transform: translateX(0) translateY(0);
+    box-shadow:
+      0 0 20px rgba(0, 255, 240, 0.1),
+      0 10px 40px rgba(0, 0, 0, 0.3);
   }
-  33% {
-    transform: translateX(2px) translateY(-3px);
-  }
-  66% {
-    transform: translateX(-2px) translateY(3px);
+  50% {
+    box-shadow:
+      0 0 30px rgba(0, 255, 240, 0.2),
+      0 0 60px rgba(0, 255, 240, 0.1),
+      0 15px 50px rgba(0, 0, 0, 0.4);
   }
 }
 
 .floating-card-wrapper {
-  perspective: 1200px;
-  animation: elegantReveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  will-change: opacity, transform;
+  perspective: 1500px;
+  animation: particleMaterialize 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: opacity, transform, filter;
 }
 
 .floating-card-inner {
   position: relative;
   transform-style: preserve-3d;
-  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-  animation: subtleBreathing 8s ease-in-out infinite, gentleSway 12s ease-in-out infinite;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation:
+    cosmicLevitate 5s ease-in-out infinite,
+    energyPulse 4s ease-in-out infinite;
+  border-radius: 24px;
+}
+
+.floating-card-inner::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(0, 255, 240, 0.3), transparent, rgba(138, 43, 226, 0.3));
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: -1;
+  filter: blur(10px);
 }
 
 .floating-card-inner:hover {
-  transform: translateY(-12px) rotateX(2deg) rotateY(-2deg) scale(1.03);
-  filter: drop-shadow(0 20px 40px rgba(0, 255, 240, 0.2));
+  transform: translateY(-15px) rotateX(5deg) scale(1.04);
+  animation-play-state: paused;
+}
+
+.floating-card-inner:hover::before {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .floating-card-wrapper {
-    animation: fadeIn 0.4s ease-out forwards;
+    animation: fadeIn 0.5s ease-out forwards;
   }
 
   .floating-card-inner {
@@ -780,6 +816,6 @@ textarea:focus {
   }
 
   .floating-card-inner:hover {
-    transform: translateY(-6px);
+    transform: translateY(-8px);
   }
 }
