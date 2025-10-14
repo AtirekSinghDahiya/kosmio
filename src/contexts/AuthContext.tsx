@@ -4,6 +4,9 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
   User
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
@@ -38,6 +41,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateUserProfile: (data: Partial<UserData>) => Promise<void>;
   refreshUserData: () => Promise<void>;
+  setupRecaptcha: (containerId: string) => void;
+  sendPhoneOTP: (phoneNumber: string) => Promise<void>;
+  verifyPhoneOTP: (otpCode: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -229,6 +235,64 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setupRecaptcha = (containerId: string) => {
+    if (!(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        containerId,
+        {
+          size: 'invisible',
+          callback: () => {
+            console.log('✅ reCAPTCHA solved');
+          },
+          'expired-callback': () => {
+            console.warn('⚠️ reCAPTCHA expired');
+          }
+        }
+      );
+    }
+  };
+
+  const sendPhoneOTP = async (phoneNumber: string) => {
+    try {
+      console.log('📱 Sending OTP to:', phoneNumber);
+      setupRecaptcha('recaptcha-container');
+      const appVerifier = (window as any).recaptchaVerifier;
+
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+      (window as any).confirmationResult = confirmationResult;
+      console.log('✅ OTP sent successfully');
+    } catch (error: any) {
+      console.error('❌ Error sending OTP:', error);
+      throw new Error(error.message || 'Failed to send OTP. Please try again.');
+    }
+  };
+
+  const verifyPhoneOTP = async (otpCode: string) => {
+    try {
+      console.log('🔐 Verifying OTP...');
+      const confirmationResult: ConfirmationResult = (window as any).confirmationResult;
+
+      if (!confirmationResult) {
+        throw new Error('Please request OTP first');
+      }
+
+      const result = await confirmationResult.confirm(otpCode);
+      const user = result.user;
+      console.log('✅ Phone verified! User:', user.uid);
+
+      await createSupabaseProfile(user.uid, user.phoneNumber || '', user.displayName || undefined);
+
+      const userDoc = await getDoc(doc(db, 'profiles', user.uid));
+      if (!userDoc.exists()) {
+        await createDefaultProfile(user.uid, user.phoneNumber || '', user.displayName || undefined);
+      }
+    } catch (error: any) {
+      console.error('❌ Error verifying OTP:', error);
+      throw new Error(error.message || 'Invalid OTP. Please try again.');
+    }
+  };
+
   useEffect(() => {
     console.log('👂 Setting up auth state listener...');
 
@@ -259,7 +323,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateUserProfile,
-    refreshUserData
+    refreshUserData,
+    setupRecaptcha,
+    sendPhoneOTP,
+    verifyPhoneOTP
   };
 
   return (
