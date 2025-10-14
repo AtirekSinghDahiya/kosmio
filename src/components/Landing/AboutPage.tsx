@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Eye, Heart, Users, Award, Zap, Globe, Shield } from 'lucide-react';
+import { Target, Eye, Heart, Users, Award, Zap, Globe, Shield, Lightbulb, Code, Brain } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
 
 export const AboutPage: React.FC = () => {
@@ -38,28 +38,25 @@ export const AboutPage: React.FC = () => {
 
   const team = [
     {
-      name: 'Dr. Sarah Chen',
+      name: 'Atirek Singh',
+      role: 'CTO & Founder',
+      bio: 'The visionary behind Kosmio. Started working on this groundbreaking idea in grade 9, bringing together his father and friend to turn a dream into reality. Leads design and implementation.',
+      image: 'from-cyan-500 to-blue-600',
+      icon: Lightbulb
+    },
+    {
+      name: 'Jitender Singh Dahiya',
       role: 'CEO & Co-Founder',
-      bio: 'Former AI Research Lead at OpenAI, PhD in Machine Learning from Stanford',
-      image: 'from-cyan-500 to-blue-600'
+      bio: 'Father of Atirek Singh and the strategic mastermind behind Kosmio\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
+      image: 'from-emerald-500 to-teal-600',
+      icon: Globe
     },
     {
-      name: 'Marcus Rodriguez',
-      role: 'CTO & Co-Founder',
-      bio: 'Ex-Google Brain Engineer, Pioneer in multimodal AI systems',
-      image: 'from-purple-500 to-pink-600'
-    },
-    {
-      name: 'Emily Watson',
-      role: 'Head of Design',
-      bio: 'Award-winning UX designer, previously led design at Figma',
-      image: 'from-pink-500 to-rose-600'
-    },
-    {
-      name: 'David Kim',
-      role: 'Head of Engineering',
-      bio: 'Built scalable systems at Amazon and Netflix for 10+ years',
-      image: 'from-blue-500 to-indigo-600'
+      name: 'Aditya Narayan Uniyal',
+      role: 'Co-CTO & Co-Founder',
+      bio: 'Atirek\'s grade 9 classmate and friend. Engineered the AI systems and backend architecture alongside Atirek, bringing technical excellence to every layer of the platform.',
+      image: 'from-blue-500 to-cyan-600',
+      icon: Brain
     }
   ];
 
@@ -82,14 +79,14 @@ export const AboutPage: React.FC = () => {
             <span className="text-[#00FFF0] text-sm font-bold tracking-wider">ABOUT KOSMIO</span>
           </div>
 
-          <h1 className="text-6xl md:text-7xl font-bold text-white mb-8 leading-tight">
+          <h1 className="text-6xl md:text-8xl font-black text-white mb-8 leading-[1.1] tracking-tight">
             Building the Future of{' '}
-            <span className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#00FFF0] via-[#00D4FF] to-[#0099FF] bg-clip-text text-transparent">
               AI-Powered Creation
             </span>
           </h1>
 
-          <p className="text-2xl text-white/70 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-white/80 leading-relaxed max-w-4xl mx-auto font-light">
             We believe that powerful AI tools should be accessible to everyone. Kosmio empowers creators, developers, and businesses to harness the full potential of artificial intelligence without complexity.
           </p>
         </div>
@@ -103,8 +100,8 @@ export const AboutPage: React.FC = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center mb-6">
                 <Target className="w-8 h-8 text-[#00FFF0]" />
               </div>
-              <h2 className="text-3xl font-bold text-white mb-6">Our Mission</h2>
-              <p className="text-white/70 text-lg leading-relaxed">
+              <h2 className="text-4xl font-black text-white mb-6 tracking-tight">Our Mission</h2>
+              <p className="text-white/80 text-lg leading-relaxed font-light">
                 To democratize AI technology by providing an intuitive, unified platform that empowers anyone to create, innovate, and build extraordinary things—regardless of their technical background or resources.
               </p>
             </div>
@@ -115,8 +112,8 @@ export const AboutPage: React.FC = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8A2BE2]/20 to-[#00FFF0]/20 flex items-center justify-center mb-6">
                 <Eye className="w-8 h-8 text-[#8A2BE2]" />
               </div>
-              <h2 className="text-3xl font-bold text-white mb-6">Our Vision</h2>
-              <p className="text-white/70 text-lg leading-relaxed">
+              <h2 className="text-4xl font-black text-white mb-6 tracking-tight">Our Vision</h2>
+              <p className="text-white/80 text-lg leading-relaxed font-light">
                 A world where every individual and organization can leverage AI to amplify their creativity, accelerate innovation, and solve complex problems—making the impossible, possible.
               </p>
             </div>
@@ -128,8 +125,8 @@ export const AboutPage: React.FC = () => {
       <section className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-6">Our Core Values</h2>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">Our Core Values</h2>
+            <p className="text-xl text-white/80 max-w-2xl mx-auto font-light">
               The principles that guide everything we do
             </p>
           </div>
@@ -143,8 +140,8 @@ export const AboutPage: React.FC = () => {
                     <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${value.color} opacity-20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
                       <Icon className="w-7 h-7 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-4">{value.title}</h3>
-                    <p className="text-white/70 leading-relaxed">{value.description}</p>
+                    <h3 className="text-xl font-bold text-white mb-4 tracking-tight">{value.title}</h3>
+                    <p className="text-white/80 leading-relaxed font-light text-sm">{value.description}</p>
                   </div>
                 </Floating3DCard>
               );
@@ -157,8 +154,8 @@ export const AboutPage: React.FC = () => {
       <section className="relative py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-6">Our Journey</h2>
-            <p className="text-xl text-white/70">From inception to innovation</p>
+            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">Our Journey</h2>
+            <p className="text-xl text-white/80 font-light">From inception to innovation</p>
           </div>
 
           <div className="relative">
@@ -205,23 +202,31 @@ export const AboutPage: React.FC = () => {
       <section className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-6">Meet Our Team</h2>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto">
-              Passionate innovators dedicated to pushing the boundaries of AI
+            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight">Meet Our Team</h2>
+            <p className="text-xl text-white/80 max-w-3xl mx-auto font-light">
+              Three visionaries who started with a dream in grade 9 and built the future of AI-powered creation
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {team.map((member, idx) => (
-              <Floating3DCard key={idx} delay={idx * 100}>
-                <div className="glass-panel rounded-2xl p-6 border border-white/20 hover:border-white/40 transition-all duration-500 text-center group">
-                  <div className={`w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br ${member.image} mb-6 group-hover:scale-105 transition-transform duration-300`} />
-                  <h3 className="text-xl font-bold text-white mb-2">{member.name}</h3>
-                  <p className="text-[#00FFF0] text-sm font-semibold mb-4">{member.role}</p>
-                  <p className="text-white/60 text-sm leading-relaxed">{member.bio}</p>
-                </div>
-              </Floating3DCard>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {team.map((member, idx) => {
+              const Icon = member.icon;
+              return (
+                <Floating3DCard key={idx} delay={idx * 100}>
+                  <div className="glass-panel rounded-3xl p-8 border border-white/20 hover:border-[#00FFF0]/50 transition-all duration-500 text-center group h-full">
+                    <div className={`w-36 h-36 mx-auto rounded-2xl bg-gradient-to-br ${member.image} mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden`}>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <Icon className="w-16 h-16 text-white/90 relative z-10" />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-2 tracking-tight">{member.name}</h3>
+                    <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-[#00FFF0]/20 to-[#0099FF]/20 border border-[#00FFF0]/30 mb-5">
+                      <p className="text-[#00FFF0] text-sm font-bold">{member.role}</p>
+                    </div>
+                    <p className="text-white/70 text-sm leading-relaxed font-light">{member.bio}</p>
+                  </div>
+                </Floating3DCard>
+              );
+            })}
           </div>
         </div>
       </section>
