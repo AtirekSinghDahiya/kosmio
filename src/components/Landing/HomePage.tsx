@@ -109,7 +109,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             </button>
 
             <button
-              onClick={() => document.getElementById('features-showcase')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                const element = document.getElementById('features-showcase');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
               className="glass-panel border-2 border-white/30 text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-white/10 transition-all duration-300 hover:scale-105 hover:border-[#00FFF0]/50"
             >
               Explore Features

@@ -27,7 +27,7 @@
 body {
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Custom Scrollbar Styles */
@@ -110,7 +110,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   pointer-events: none;
   z-index: 0;
 }
@@ -512,9 +512,6 @@ textarea:focus {
 }
 
 /* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
 
 /* Enhanced fade-in animations with delays */
 @keyframes fadeInUp {

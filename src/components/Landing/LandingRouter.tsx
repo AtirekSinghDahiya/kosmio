@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { LandingNavbar } from './LandingNavbar';
 import { HomePage } from './HomePage';
 import { AboutPage } from './AboutPage';
@@ -13,11 +13,20 @@ interface LandingRouterProps {
 
 export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
   const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact'>('home');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact') => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo(0, 0);
+    }
+  }, [currentPage]);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -35,11 +44,15 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
   };
 
   return (
-    <div className="fixed inset-0 gradient-background overflow-y-auto overflow-x-hidden">
+    <div className="h-screen w-screen overflow-hidden gradient-background">
       <CosmicBackground />
       <FloatingElements />
 
-      <div className="relative z-10 min-h-screen">
+      <div
+        ref={scrollContainerRef}
+        className="h-full w-full overflow-y-auto overflow-x-hidden relative z-10"
+        style={{ scrollBehavior: 'smooth' }}
+      >
         <LandingNavbar
           currentPage={currentPage}
           onNavigate={handleNavigate}
