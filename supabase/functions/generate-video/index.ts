@@ -39,8 +39,8 @@ Deno.serve(async (req: Request) => {
       const ratio = `${width * 80}:${height * 80}`;
 
       const payload = {
-        prompt_text: body.prompt || "",
-        model: "gen3a_turbo",
+        promptText: body.prompt || "",
+        model: "gen4_turbo",
         duration: body.duration || 5,
         ratio: ratio,
       };

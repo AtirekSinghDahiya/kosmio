@@ -17,21 +17,32 @@ export interface RunwayVideoResponse {
 }
 
 const callEdgeFunction = async (action: 'generate' | 'status', params: any) => {
+  const requestBody = { action, ...params };
+
+  console.log('📤 Sending to Edge Function:', {
+    url: `${SUPABASE_URL}/functions/v1/generate-video`,
+    body: requestBody
+  });
+
   const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-video`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ action, ...params })
+    body: JSON.stringify(requestBody)
   });
 
+  console.log('📥 Edge Function response status:', response.status);
+
+  const responseText = await response.text();
+  console.log('📥 Edge Function raw response:', responseText);
+
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Edge function error (${response.status}): ${errorText}`);
+    throw new Error(`Edge function error (${response.status}): ${responseText}`);
   }
 
-  return await response.json();
+  return JSON.parse(responseText);
 };
 
 export const generateVideo = async (request: RunwayVideoRequest): Promise<string> => {
