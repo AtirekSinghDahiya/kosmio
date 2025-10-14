@@ -97,8 +97,15 @@ export const generateVideo = async (request: RunwayVideoRequest): Promise<string
     console.log('✅ Edge function response:', result);
 
     if (!result.success) {
-      addDebugLog('error', `Generation failed: ${result.error}`);
-      throw new Error(result.error || 'Failed to generate video');
+      addDebugLog('warning', `Edge function failed, trying direct API...`);
+      console.log('⚠️ Edge function failed, falling back to direct API');
+
+      const { generateVideoWithRunway } = await import('./directAPIService');
+      return await generateVideoWithRunway({
+        prompt: request.prompt,
+        duration: request.duration || 5,
+        aspectRatio: request.aspectRatio || '16:9'
+      });
     }
 
     if (!result.taskId) {
@@ -110,8 +117,19 @@ export const generateVideo = async (request: RunwayVideoRequest): Promise<string
     return result.taskId;
   } catch (error: any) {
     console.error('💥 Video generation error:', error);
-    addDebugLog('error', `Error: ${error.message}`);
-    throw new Error(`Failed to generate video: ${error.message}`);
+    addDebugLog('warning', `Edge function error, trying direct API...`);
+
+    try {
+      const { generateVideoWithRunway } = await import('./directAPIService');
+      return await generateVideoWithRunway({
+        prompt: request.prompt,
+        duration: request.duration || 5,
+        aspectRatio: request.aspectRatio || '16:9'
+      });
+    } catch (directError: any) {
+      addDebugLog('error', `Both methods failed: ${directError.message}`);
+      throw new Error(`Failed to generate video: ${directError.message}`);
+    }
   }
 };
 
@@ -122,8 +140,16 @@ export const checkVideoStatus = async (taskId: string): Promise<RunwayVideoRespo
     console.log('📊 Status check response:', result);
 
     if (!result.success) {
-      addDebugLog('error', `Status check failed: ${result.error}`);
-      throw new Error(result.error || 'Failed to check video status');
+      console.log('⚠️ Edge function status check failed, trying direct API');
+      const { checkRunwayVideoStatus } = await import('./directAPIService');
+      const directResult = await checkRunwayVideoStatus(taskId);
+      return {
+        id: taskId,
+        status: directResult.status,
+        videoUrl: directResult.videoUrl,
+        progress: directResult.progress || 0,
+        error: directResult.error
+      };
     }
 
     if (result.rawData) {
@@ -139,8 +165,21 @@ export const checkVideoStatus = async (taskId: string): Promise<RunwayVideoRespo
     };
   } catch (error: any) {
     console.error('💥 Status check error:', error);
-    addDebugLog('error', `Status check error: ${error.message}`);
-    throw new Error(`Failed to check video status: ${error.message}`);
+
+    try {
+      const { checkRunwayVideoStatus } = await import('./directAPIService');
+      const directResult = await checkRunwayVideoStatus(taskId);
+      return {
+        id: taskId,
+        status: directResult.status,
+        videoUrl: directResult.videoUrl,
+        progress: directResult.progress || 0,
+        error: directResult.error
+      };
+    } catch (directError: any) {
+      addDebugLog('error', `Both status check methods failed: ${directError.message}`);
+      throw new Error(`Failed to check video status: ${directError.message}`);
+    }
   }
 };
 
