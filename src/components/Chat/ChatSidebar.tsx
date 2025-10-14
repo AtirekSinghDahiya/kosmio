@@ -63,8 +63,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`h-screen glass-panel border-r border-white/10 flex flex-col transition-all duration-300 ${
-        isHovered ? 'w-64' : 'w-16'
+      className={`h-screen glass-panel border-r border-white/10 flex flex-col transition-all duration-500 ease-out ${
+        isHovered ? 'w-72 shadow-2xl shadow-[#00FFF0]/5' : 'w-16'
       }`}
     >
       <div className="p-3 border-b border-white/10 flex items-center justify-between">
@@ -87,13 +87,14 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-3">
         <button
           onClick={onNewChat}
-          className={`w-full flex items-center gap-2 bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 hover:from-[#00FFF0]/30 hover:to-[#8A2BE2]/30 rounded-xl text-white text-sm font-medium transition-all border border-white/10 hover:border-[#00FFF0]/50 button-press ${
-            isHovered ? 'px-3 py-2.5 justify-start' : 'p-2.5 justify-center'
+          className={`relative w-full flex items-center gap-2 bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 hover:from-[#00FFF0]/30 hover:to-[#8A2BE2]/30 rounded-xl text-white text-sm font-semibold transition-all duration-300 border border-white/10 hover:border-[#00FFF0]/50 hover:shadow-lg hover:shadow-[#00FFF0]/20 group ${
+            isHovered ? 'px-4 py-3 justify-start' : 'p-3 justify-center'
           }`}
           title={!isHovered ? 'New Chat' : ''}
         >
-          <Plus className="w-5 h-5 flex-shrink-0" />
+          <Plus className="w-5 h-5 flex-shrink-0 transition-transform group-hover:rotate-90 duration-300" />
           {isHovered && <span className="animate-fade-in">New Chat</span>}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/0 via-[#00FFF0]/10 to-[#00FFF0]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
         </button>
       </div>
 
@@ -143,20 +144,23 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         <div key={project.id} className="relative group/item">
                           <button
                             onClick={() => onSelectProject(project.id)}
-                            className={`w-full flex items-start gap-2 rounded-lg transition-all group text-left button-press border ${
+                            className={`relative w-full flex items-start gap-2.5 rounded-lg transition-all duration-300 group text-left border overflow-hidden ${
                               isActive
-                                ? 'bg-white/10 text-white border-[#00FFF0]/30'
+                                ? 'bg-white/10 text-white border-[#00FFF0]/40 shadow-lg shadow-[#00FFF0]/10'
                                 : 'text-white/70 hover:bg-white/10 hover:text-white border-transparent hover:border-white/10'
-                            } ${isHovered ? 'px-3 py-2 pr-20' : 'p-2 justify-center'}`}
+                            } ${isHovered ? 'px-3 py-2.5 pr-20' : 'p-2.5 justify-center'}`}
                             title={!isHovered ? project.name : ''}
                           >
-                            <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 transition-colors ${
-                              isActive ? 'text-[#00FFF0]' : 'group-hover:text-[#00FFF0]'
+                            {isActive && (
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#00FFF0] to-[#8A2BE2]" />
+                            )}
+                            <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 transition-all duration-300 ${
+                              isActive ? 'text-[#00FFF0] scale-110' : 'group-hover:text-[#00FFF0] group-hover:scale-110'
                             }`} />
                             {isHovered && (
                               <div className="flex-1 min-w-0 animate-fade-in">
-                                <p className="text-xs font-medium truncate">{project.name}</p>
-                                <p className="text-[10px] text-white/40 mt-0.5 capitalize">{project.type} Project</p>
+                                <p className="text-xs font-semibold truncate">{project.name}</p>
+                                <p className="text-[10px] text-white/50 mt-0.5 capitalize tracking-wide">{project.type} Project</p>
                               </div>
                             )}
                           </button>
