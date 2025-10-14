@@ -57,12 +57,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
               <span className="text-sm font-medium text-slate-300">AI-Powered Creative Platform</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-6xl md:text-8xl font-extrabold text-white mb-6 leading-tight tracking-tight">
               Everything You Need,{' '}
               <span className="text-gradient">All in One Place</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-slate-300 mb-10 max-w-3xl mx-auto font-light">
+            <p className="text-xl md:text-2xl text-slate-300 mb-10 max-w-3xl mx-auto font-normal leading-relaxed">
               Four specialized studios powered by cutting-edge AI models, designed to transform your creative workflow.
             </p>
           </div>
@@ -126,10 +126,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       <section className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-4 tracking-tight">
               Four Powerful Studios
             </h2>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto font-normal">
               Each studio is designed to excel at specific creative tasks
             </p>
           </div>
