@@ -40,7 +40,7 @@ Deno.serve(async (req: Request) => {
 
       const payload = {
         promptText: body.prompt || "",
-        model: "gen4_turbo",
+        model: "gen3a_turbo",
         duration: body.duration || 5,
         ratio: ratio,
       };
