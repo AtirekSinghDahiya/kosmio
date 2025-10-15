@@ -65,8 +65,27 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = JSON.parse(resText);
+      console.log(`[${rid}] Pixverse parsed data:`, JSON.stringify(data));
+
+      let videoId = null;
+      if (data.Resp && data.Resp.video_id) {
+        videoId = data.Resp.video_id;
+      } else if (data.video_id) {
+        videoId = data.video_id;
+      } else if (data.id) {
+        videoId = data.id;
+      }
+
+      if (!videoId && data.ErrCode !== 0) {
+        throw new Error(data.ErrMsg || `Pixverse API error: ${data.ErrCode}`);
+      }
+
+      if (!videoId) {
+        throw new Error(`No video_id in response. Full response: ${resText}`);
+      }
+
       return new Response(
-        JSON.stringify({ success: true, taskId: data.video_id || data.id, data }),
+        JSON.stringify({ success: true, taskId: videoId, data }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (body.action === "status" && provider === "pixverse") {
@@ -92,15 +111,18 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = JSON.parse(resText);
+      console.log(`[${rid}] Pixverse parsed status:`, JSON.stringify(data));
+
       let videoUrl = null;
       let status = "processing";
+      let statusCode = data.status || data.code || (data.Resp && data.Resp.status);
 
-      if (data.code === 1) {
+      if (statusCode === 1 || data.Resp?.status === 1) {
         status = "completed";
-        videoUrl = data.video_url || data.data?.video_url;
-      } else if (data.code === 5) {
+        videoUrl = data.url || data.video_url || data.Resp?.url || data.Resp?.video_url;
+      } else if (statusCode === 5 || data.Resp?.status === 5) {
         status = "processing";
-      } else if (data.code === 7 || data.code === 8) {
+      } else if (statusCode === 7 || statusCode === 8 || data.Resp?.status === 7 || data.Resp?.status === 8) {
         status = "failed";
       }
 
@@ -109,8 +131,8 @@ Deno.serve(async (req: Request) => {
           success: true,
           status,
           videoUrl,
-          progress: data.code === 1 ? 100 : data.code === 5 ? 50 : 0,
-          error: data.code === 7 ? "Content moderation failure" : data.code === 8 ? "Generation failed" : null,
+          progress: statusCode === 1 ? 100 : statusCode === 5 ? 50 : 0,
+          error: statusCode === 7 ? "Content moderation failure" : statusCode === 8 ? "Generation failed" : null,
           rawData: data
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
