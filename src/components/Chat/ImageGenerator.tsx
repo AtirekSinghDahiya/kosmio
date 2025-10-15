@@ -19,6 +19,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<GeneratedImage | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
 
   useEffect(() => {
     if (initialPrompt) {
@@ -33,11 +34,12 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     }
 
     setIsGenerating(true);
+    setImageLoading(true);
 
     try {
       const image = await generateImageFree(prompt);
       setGeneratedImage(image);
-      showToast('success', 'Success!', 'Your image has been generated');
+      showToast('success', 'Success!', 'Your image is ready');
 
       if (onImageGenerated) {
         onImageGenerated(image);
@@ -45,6 +47,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     } catch (error: any) {
       console.error('Image generation error:', error);
       showToast('error', 'Generation failed', error.message || 'Could not generate image');
+      setImageLoading(false);
     } finally {
       setIsGenerating(false);
     }
@@ -166,13 +169,23 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
               {generatedImage ? (
                 <div className="space-y-4">
                   <div className="relative rounded-xl overflow-hidden border-2 border-white/20 group shadow-2xl">
+                    {imageLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-10">
+                        <div className="text-center space-y-3">
+                          <Loader className="w-8 h-8 text-purple-400 animate-spin mx-auto" />
+                          <p className="text-white text-sm">Loading image...</p>
+                        </div>
+                      </div>
+                    )}
                     <img
                       src={generatedImage.url}
                       alt={generatedImage.prompt}
                       className="w-full h-auto"
                       crossOrigin="anonymous"
+                      onLoad={() => setImageLoading(false)}
                       onError={() => {
                         console.error('Image load error');
+                        setImageLoading(false);
                         showToast('error', 'Load failed', 'Could not display image');
                       }}
                     />
