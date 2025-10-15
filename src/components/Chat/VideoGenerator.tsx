@@ -88,7 +88,8 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       throw new Error('Video generation timed out');
     } catch (error: any) {
       console.error('Video generation error:', error);
-      showToast('error', 'Generation Failed', error.message || 'Unable to generate video. Please try again.');
+      const errorMessage = error?.message || error?.error || (typeof error === 'string' ? error : 'Unable to generate video. Please try again.');
+      showToast('error', 'Generation Failed', errorMessage);
       setIsGenerating(false);
     } finally {
       setIsGenerating(false);

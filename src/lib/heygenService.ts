@@ -41,13 +41,21 @@ export async function generateHeyGenVideo(request: HeyGenVideoRequest): Promise<
     console.log('📥 HeyGen edge function response:', responseText);
 
     if (!response.ok) {
-      throw new Error(`HeyGen API error (${response.status}): ${responseText}`);
+      let errorMsg = responseText;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMsg = errorData.error || errorData.message || responseText;
+      } catch (e) {
+        // responseText is not JSON, use as-is
+      }
+      throw new Error(`HeyGen API error: ${errorMsg}`);
     }
 
     const data = JSON.parse(responseText);
 
     if (data.error) {
-      throw new Error(data.error.message || data.error || 'HeyGen API error');
+      const errorMsg = typeof data.error === 'string' ? data.error : data.error.message || 'HeyGen API error';
+      throw new Error(errorMsg);
     }
 
     const videoId = data.data?.video_id;
@@ -87,13 +95,21 @@ export async function pollHeyGenStatus(videoId: string): Promise<HeyGenVideoResp
     console.log('📊 HeyGen status response:', responseText);
 
     if (!response.ok) {
-      throw new Error(`Failed to check status (${response.status}): ${responseText}`);
+      let errorMsg = responseText;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMsg = errorData.error || errorData.message || responseText;
+      } catch (e) {
+        // responseText is not JSON, use as-is
+      }
+      throw new Error(`Failed to check status: ${errorMsg}`);
     }
 
     const data = JSON.parse(responseText);
 
     if (data.error) {
-      throw new Error(data.error.message || data.error || 'Failed to check video status');
+      const errorMsg = typeof data.error === 'string' ? data.error : data.error.message || 'Failed to check video status';
+      throw new Error(errorMsg);
     }
 
     const videoData = data.data;
