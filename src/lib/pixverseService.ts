@@ -1,12 +1,11 @@
-const PIXVERSE_API_KEY = import.meta.env.VITE_PIXVERSE_API_KEY;
-const PIXVERSE_API_URL = 'https://api.pixverse.ai/v1';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/generate-video`;
 
 export interface PixverseVideoRequest {
   prompt: string;
-  model?: 'v2' | 'v3';
   aspect_ratio?: '16:9' | '9:16' | '1:1';
   duration?: number;
-  motion_strength?: number;
 }
 
 export interface PixverseVideoResponse {
@@ -18,41 +17,38 @@ export interface PixverseVideoResponse {
 }
 
 export async function generatePixverseVideo(request: PixverseVideoRequest): Promise<PixverseVideoResponse> {
-  if (!PIXVERSE_API_KEY) {
-    throw new Error('Pixverse API key not configured');
-  }
-
   console.log('🎬 Generating video with Pixverse:', request);
 
   try {
-    const response = await fetch(`${PIXVERSE_API_URL}/generate`, {
+    const response = await fetch(EDGE_FUNCTION_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PIXVERSE_API_KEY}`,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        action: 'generate',
+        provider: 'pixverse',
         prompt: request.prompt,
-        model: request.model || 'v3',
-        aspect_ratio: request.aspect_ratio || '16:9',
-        duration: request.duration || 5,
-        motion_strength: request.motion_strength || 5,
+        aspectRatio: request.aspect_ratio || '16:9',
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Pixverse API error: ${response.status}`);
+      throw new Error(errorData.error || `Pixverse API error: ${response.status}`);
     }
 
     const data = await response.json();
     console.log('✅ Pixverse generation started:', data);
 
+    if (!data.success || !data.taskId) {
+      throw new Error('Invalid response from Pixverse API');
+    }
+
     return {
-      id: data.id || data.task_id,
+      id: data.taskId,
       status: 'processing',
-      video_url: data.video_url,
-      thumbnail_url: data.thumbnail_url,
     };
   } catch (error: any) {
     console.error('❌ Pixverse generation error:', error);
@@ -61,32 +57,41 @@ export async function generatePixverseVideo(request: PixverseVideoRequest): Prom
 }
 
 export async function pollPixverseStatus(taskId: string): Promise<PixverseVideoResponse> {
-  if (!PIXVERSE_API_KEY) {
-    throw new Error('Pixverse API key not configured');
-  }
-
   try {
-    const response = await fetch(`${PIXVERSE_API_URL}/tasks/${taskId}`, {
-      method: 'GET',
+    const response = await fetch(EDGE_FUNCTION_URL, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PIXVERSE_API_KEY}`,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        action: 'status',
+        provider: 'pixverse',
+        taskId,
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Failed to check status: ${response.status}`);
+      throw new Error(errorData.error || `Failed to check status: ${response.status}`);
     }
 
     const data = await response.json();
     console.log('📊 Pixverse status:', data);
 
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to check video status');
+    }
+
+    let status: 'pending' | 'processing' | 'completed' | 'failed' = 'processing';
+    if (data.status === 'completed') status = 'completed';
+    else if (data.status === 'failed' || data.status === 'error') status = 'failed';
+    else if (data.status === 'pending' || data.status === 'queued') status = 'pending';
+
     return {
       id: taskId,
-      status: data.status,
-      video_url: data.video_url || data.output?.video_url,
-      thumbnail_url: data.thumbnail_url || data.output?.thumbnail_url,
+      status,
+      video_url: data.videoUrl,
       error: data.error,
     };
   } catch (error: any) {
@@ -96,5 +101,5 @@ export async function pollPixverseStatus(taskId: string): Promise<PixverseVideoR
 }
 
 export function isPixverseAvailable(): boolean {
-  return Boolean(PIXVERSE_API_KEY);
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
