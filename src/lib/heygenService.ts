@@ -1,5 +1,5 @@
-const HEYGEN_API_KEY = import.meta.env.VITE_HEYGEN_API_KEY;
-const HEYGEN_API_BASE = 'https://api.heygen.com/v2';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export interface HeyGenVideoRequest {
   script: string;
@@ -19,46 +19,26 @@ export interface HeyGenVideoResponse {
 export async function generateHeyGenVideo(request: HeyGenVideoRequest): Promise<HeyGenVideoResponse> {
   console.log('🎬 Generating AI avatar video with HeyGen:', request);
 
-  if (!HEYGEN_API_KEY) {
-    throw new Error('HeyGen API key not configured');
-  }
-
   try {
-    const payload = {
-      video_inputs: [
-        {
-          character: {
-            type: 'avatar',
-            avatar_id: request.avatarId || 'Angela-inblackskirt-20220820',
-            avatar_style: 'normal'
-          },
-          voice: {
-            type: 'text',
-            input_text: request.script,
-            voice_id: request.voiceId || '1bd001e7e50f421d891986aad5158bc8',
-          }
-        }
-      ],
-      dimension: {
-        width: request.aspectRatio === '9:16' ? 720 : request.aspectRatio === '1:1' ? 1080 : 1920,
-        height: request.aspectRatio === '9:16' ? 1280 : request.aspectRatio === '1:1' ? 1080 : 1080
-      },
-      test: false
-    };
+    const apiUrl = `${SUPABASE_URL}/functions/v1/generate-heygen-video`;
 
-    console.log('📤 HeyGen payload:', payload);
-
-    const response = await fetch(`${HEYGEN_API_BASE}/video/generate`, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'X-Api-Key': HEYGEN_API_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        action: 'generate',
+        script: request.script,
+        avatarId: request.avatarId,
+        voiceId: request.voiceId,
+        aspectRatio: request.aspectRatio,
+      }),
     });
 
     const responseText = await response.text();
-    console.log('📥 HeyGen raw response:', responseText);
+    console.log('📥 HeyGen edge function response:', responseText);
 
     if (!response.ok) {
       throw new Error(`HeyGen API error (${response.status}): ${responseText}`);
@@ -67,7 +47,7 @@ export async function generateHeyGenVideo(request: HeyGenVideoRequest): Promise<
     const data = JSON.parse(responseText);
 
     if (data.error) {
-      throw new Error(data.error.message || 'HeyGen API error');
+      throw new Error(data.error.message || data.error || 'HeyGen API error');
     }
 
     const videoId = data.data?.video_id;
@@ -88,16 +68,19 @@ export async function generateHeyGenVideo(request: HeyGenVideoRequest): Promise<
 }
 
 export async function pollHeyGenStatus(videoId: string): Promise<HeyGenVideoResponse> {
-  if (!HEYGEN_API_KEY) {
-    throw new Error('HeyGen API key not configured');
-  }
-
   try {
-    const response = await fetch(`${HEYGEN_API_BASE}/video_status.get?video_id=${videoId}`, {
-      method: 'GET',
+    const apiUrl = `${SUPABASE_URL}/functions/v1/generate-heygen-video`;
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
       headers: {
-        'X-Api-Key': HEYGEN_API_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        action: 'status',
+        videoId,
+      }),
     });
 
     const responseText = await response.text();
@@ -110,7 +93,7 @@ export async function pollHeyGenStatus(videoId: string): Promise<HeyGenVideoResp
     const data = JSON.parse(responseText);
 
     if (data.error) {
-      throw new Error(data.error.message || 'Failed to check video status');
+      throw new Error(data.error.message || data.error || 'Failed to check video status');
     }
 
     const videoData = data.data;
@@ -140,5 +123,5 @@ export async function pollHeyGenStatus(videoId: string): Promise<HeyGenVideoResp
 }
 
 export function isHeyGenAvailable(): boolean {
-  return Boolean(HEYGEN_API_KEY);
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }
