@@ -380,14 +380,14 @@ async function callDeepSeek(messages: AIMessage[], model: string): Promise<AIRes
  * Grok API calls (via Groq API - they use similar format)
  */
 async function callGrok(messages: AIMessage[], model: string): Promise<AIResponse> {
-  const apiKey = import.meta.env.VITE_GROK_API_KEY;
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 
   console.log('🔵 Groq API Key present:', !!apiKey);
   console.log('🔵 Groq API Key length:', apiKey?.length || 0);
   console.log('🔵 Groq API Key starts with:', apiKey?.substring(0, 7));
 
   if (!isValidApiKey(apiKey)) {
-    throw new Error('Groq API key not configured. Please add VITE_GROK_API_KEY to your .env file.');
+    throw new Error('Groq API key not configured. Please add VITE_GROQ_API_KEY to your .env file.');
   }
 
   console.log('🔵 Calling Groq API with model:', model);

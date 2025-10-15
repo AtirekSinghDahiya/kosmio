@@ -24,7 +24,7 @@ function log(type: 'info' | 'success' | 'error' | 'warning', message: string) {
  * Call Groq API (Free, Fast, Reliable)
  */
 export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
-  const apiKey = import.meta.env.VITE_GROK_API_KEY;
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
 
   log('info', '🤖 AI SERVICE CALLED');
   log('info', `API Key: ${apiKey ? `Present (${apiKey.length} chars, starts with ${apiKey.substring(0, 7)})` : 'MISSING'}`);
@@ -33,7 +33,7 @@ export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
 
   if (!apiKey) {
     log('error', 'NO API KEY FOUND!');
-    throw new Error('API key is missing. Please check your .env file for VITE_GROK_API_KEY');
+    throw new Error('API key is missing. Please check your .env file for VITE_GROQ_API_KEY');
   }
 
   if (apiKey.includes('your-') || apiKey.length < 20) {
