@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
         throw new Error('Video ID is required for status check');
       }
 
-      const response = await fetch(`${HEYGEN_API_BASE}/video_status.get?video_id=${body.videoId}`, {
+      const response = await fetch(`${HEYGEN_API_BASE}/video/${body.videoId}`, {
         method: 'GET',
         headers: {
           'X-Api-Key': HEYGEN_API_KEY,
