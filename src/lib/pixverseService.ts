@@ -1,6 +1,8 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/generate-video`;
+const PIXVERSE_API_KEY = import.meta.env.VITE_PIXVERSE_API_KEY;
+const PIXVERSE_API_BASE = "https://app-api.pixverse.ai/openapi/v2";
 
 export interface PixverseVideoRequest {
   prompt: string;
@@ -20,41 +22,57 @@ export async function generatePixverseVideo(request: PixverseVideoRequest): Prom
   console.log('🎬 Generating video with Pixverse:', request);
 
   try {
-    const response = await fetch(EDGE_FUNCTION_URL, {
+    const traceId = crypto.randomUUID();
+    const payload = {
+      prompt: request.prompt,
+      aspect_ratio: request.aspect_ratio || '16:9',
+      duration: request.duration || 5,
+      model: 'v4.5',
+      motion_mode: 'normal',
+      quality: '540p',
+      seed: Math.floor(Math.random() * 1000000),
+      water_mark: false
+    };
+
+    const response = await fetch(`${PIXVERSE_API_BASE}/video/text/generate`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'API-KEY': PIXVERSE_API_KEY,
+        'Ai-trace-id': traceId,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        action: 'generate',
-        provider: 'pixverse',
-        prompt: request.prompt,
-        aspectRatio: request.aspect_ratio || '16:9',
-        duration: request.duration || 5,
-      }),
+      body: JSON.stringify(payload),
     });
 
+    const responseText = await response.text();
+    console.log('Raw Pixverse response:', responseText);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Pixverse API error: ${response.status}`);
+      throw new Error(`Pixverse API error (${response.status}): ${responseText}`);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     console.log('✅ Pixverse generation started:', data);
 
-    if (!data.success) {
-      console.error('❌ Pixverse API returned error:', data);
-      throw new Error(data.error || 'Invalid response from Pixverse API');
+    let videoId = null;
+    if (data.Resp && data.Resp.video_id) {
+      videoId = data.Resp.video_id;
+    } else if (data.video_id) {
+      videoId = data.video_id;
+    } else if (data.id) {
+      videoId = data.id;
     }
 
-    if (!data.taskId) {
-      console.error('❌ No taskId in response:', data);
-      throw new Error('No video ID returned from Pixverse API');
+    if (!videoId && data.ErrCode !== 0) {
+      throw new Error(data.ErrMsg || `Pixverse API error: ${data.ErrCode}`);
+    }
+
+    if (!videoId) {
+      throw new Error(`No video_id in response. Full response: ${responseText}`);
     }
 
     return {
-      id: data.taskId,
+      id: videoId,
       status: 'processing',
     };
   } catch (error: any) {
@@ -65,41 +83,42 @@ export async function generatePixverseVideo(request: PixverseVideoRequest): Prom
 
 export async function pollPixverseStatus(taskId: string): Promise<PixverseVideoResponse> {
   try {
-    const response = await fetch(EDGE_FUNCTION_URL, {
-      method: 'POST',
+    const response = await fetch(`${PIXVERSE_API_BASE}/video/result/${taskId}`, {
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'API-KEY': PIXVERSE_API_KEY,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        action: 'status',
-        provider: 'pixverse',
-        taskId,
-      }),
     });
 
+    const responseText = await response.text();
+    console.log('Raw Pixverse status response:', responseText);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to check status: ${response.status}`);
+      throw new Error(`Failed to check status (${response.status}): ${responseText}`);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     console.log('📊 Pixverse status:', data);
 
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to check video status');
-    }
-
+    let videoUrl = null;
     let status: 'pending' | 'processing' | 'completed' | 'failed' = 'processing';
-    if (data.status === 'completed') status = 'completed';
-    else if (data.status === 'failed' || data.status === 'error') status = 'failed';
-    else if (data.status === 'pending' || data.status === 'queued') status = 'pending';
+    let statusCode = data.status || data.code || (data.Resp && data.Resp.status);
+
+    if (statusCode === 1 || data.Resp?.status === 1) {
+      status = 'completed';
+      videoUrl = data.url || data.video_url || data.Resp?.url || data.Resp?.video_url;
+    } else if (statusCode === 5 || data.Resp?.status === 5) {
+      status = 'processing';
+    } else if (statusCode === 7 || statusCode === 8 || data.Resp?.status === 7 || data.Resp?.status === 8) {
+      status = 'failed';
+    }
 
     return {
       id: taskId,
       status,
-      video_url: data.videoUrl,
-      error: data.error,
+      video_url: videoUrl,
+      error: statusCode === 7 ? 'Content moderation failure' : statusCode === 8 ? 'Generation failed' : undefined,
     };
   } catch (error: any) {
     console.error('❌ Pixverse status check error:', error);
@@ -108,5 +127,5 @@ export async function pollPixverseStatus(taskId: string): Promise<PixverseVideoR
 }
 
 export function isPixverseAvailable(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  return Boolean(PIXVERSE_API_KEY);
 }
