@@ -9,7 +9,7 @@ const corsHeaders = {
 const RUNWAY_API_KEY = Deno.env.get("RUNWAY_API_KEY") || "key_cff628ee8fed37b71af389ddf8d0d5fcca392c33e0822e4959e2f7c47161397fb25ad7dd8bf297f0fadd9ee34bd2bd1a7ce643c05177e799d2a3d98e";
 const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
 const PIXVERSE_API_KEY = Deno.env.get("PIXVERSE_API_KEY") || "sk-02a32a4f8964c44ade58cb1f396146dd";
-const PIXVERSE_API_BASE = "https://api.pixverse.ai/v2";
+const PIXVERSE_API_BASE = "https://app-api.pixverse.ai/openapi/v2";
 
 Deno.serve(async (req: Request) => {
   const rid = crypto.randomUUID().slice(0, 8);
@@ -33,18 +33,25 @@ Deno.serve(async (req: Request) => {
         throw new Error("PIXVERSE_API_KEY not configured");
       }
 
+      const traceId = crypto.randomUUID();
       const payload = {
         prompt: body.prompt || "",
         aspect_ratio: body.aspectRatio || "16:9",
-        seed: body.seed || Math.floor(Math.random() * 1000000)
+        duration: body.duration || 5,
+        model: "v4.5",
+        motion_mode: "normal",
+        quality: "540p",
+        seed: body.seed || Math.floor(Math.random() * 1000000),
+        water_mark: false
       };
 
       console.log(`[${rid}] Calling Pixverse:`, JSON.stringify(payload));
 
-      const res = await fetch(`${PIXVERSE_API_BASE}/video/generate`, {
+      const res = await fetch(`${PIXVERSE_API_BASE}/video/text/generate`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${PIXVERSE_API_KEY}`,
+          "API-KEY": PIXVERSE_API_KEY,
+          "Ai-trace-id": traceId,
           "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
@@ -59,7 +66,7 @@ Deno.serve(async (req: Request) => {
 
       const data = JSON.parse(resText);
       return new Response(
-        JSON.stringify({ success: true, taskId: data.id || data.task_id, data }),
+        JSON.stringify({ success: true, taskId: data.video_id || data.id, data }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else if (body.action === "status" && provider === "pixverse") {
@@ -69,10 +76,10 @@ Deno.serve(async (req: Request) => {
 
       console.log(`[${rid}] Checking Pixverse status:`, body.taskId);
 
-      const res = await fetch(`${PIXVERSE_API_BASE}/video/status/${body.taskId}`, {
+      const res = await fetch(`${PIXVERSE_API_BASE}/video/result/${body.taskId}`, {
         method: "GET",
         headers: {
-          "Authorization": `Bearer ${PIXVERSE_API_KEY}`,
+          "API-KEY": PIXVERSE_API_KEY,
           "Content-Type": "application/json"
         }
       });
@@ -86,18 +93,24 @@ Deno.serve(async (req: Request) => {
 
       const data = JSON.parse(resText);
       let videoUrl = null;
+      let status = "processing";
 
-      if (data.status === "completed" || data.state === "completed") {
-        videoUrl = data.video_url || data.output?.video_url || data.video?.url;
+      if (data.code === 1) {
+        status = "completed";
+        videoUrl = data.video_url || data.data?.video_url;
+      } else if (data.code === 5) {
+        status = "processing";
+      } else if (data.code === 7 || data.code === 8) {
+        status = "failed";
       }
 
       return new Response(
         JSON.stringify({
           success: true,
-          status: data.status || data.state,
+          status,
           videoUrl,
-          progress: data.progress || (data.status === "processing" ? 50 : 0),
-          error: data.error || data.failure_reason,
+          progress: data.code === 1 ? 100 : data.code === 5 ? 50 : 0,
+          error: data.code === 7 ? "Content moderation failure" : data.code === 8 ? "Generation failed" : null,
           rawData: data
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
