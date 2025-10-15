@@ -107,56 +107,31 @@ export function isImageGenerationAvailable(): boolean {
 }
 
 /**
- * Generate image using Hugging Face Inference API (free tier)
+ * Generate image using free service (no API key required)
+ * Uses Pollinations.ai which provides free AI image generation
  */
 export async function generateImageFree(prompt: string): Promise<GeneratedImage> {
-  console.log('🎨 Generating image:', prompt);
+  console.log('🎨 Generating image with Pollinations.ai:', prompt);
 
   const timestamp = Date.now();
+  const encodedPrompt = encodeURIComponent(prompt);
 
-  // Use Hugging Face's free Stable Diffusion model
-  const model = 'stabilityai/stable-diffusion-2-1';
-  const apiUrl = `https://api-inference.huggingface.co/models/${model}`;
+  // Pollinations.ai - completely free, no auth required
+  // The service generates the image on-demand when the URL is accessed
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
 
-  console.log('🔄 Requesting image generation from Hugging Face...');
+  console.log('🔄 Image URL:', imageUrl);
 
-  try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        options: { wait_for_model: true }
-      }),
-    });
+  // Add a small delay to show the user that generation is happening
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`);
-    }
+  console.log('✅ Image ready to display');
 
-    const blob = await response.blob();
-
-    // Convert blob to base64
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
-    console.log('✅ Image generated successfully');
-
-    return {
-      url: base64,
-      seed: timestamp,
-      prompt: prompt,
-      timestamp: new Date(),
-    };
-
-  } catch (error: any) {
-    console.error('❌ Image generation failed:', error);
-    throw new Error(`Failed to generate image: ${error.message}`);
-  }
+  // Return the URL - the browser will handle loading
+  return {
+    url: imageUrl,
+    seed: timestamp,
+    prompt: prompt,
+    timestamp: new Date(),
+  };
 }

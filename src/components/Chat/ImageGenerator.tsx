@@ -181,12 +181,14 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
                       src={generatedImage.url}
                       alt={generatedImage.prompt}
                       className="w-full h-auto"
-                      crossOrigin="anonymous"
-                      onLoad={() => setImageLoading(false)}
-                      onError={() => {
-                        console.error('Image load error');
+                      onLoad={() => {
+                        console.log('✅ Image loaded successfully');
                         setImageLoading(false);
-                        showToast('error', 'Load failed', 'Could not display image');
+                      }}
+                      onError={(e) => {
+                        console.error('❌ Image load error:', e);
+                        setImageLoading(false);
+                        showToast('error', 'Load failed', 'Could not display image. The service might be temporarily unavailable.');
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
