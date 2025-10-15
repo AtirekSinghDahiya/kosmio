@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Video, Download, Wand2, X, Loader, Sparkles, Play, Clock, Maximize } from 'lucide-react';
-import { generateVideo, pollVideoStatus } from '../../lib/runwayService';
+import { generateHeyGenVideo, pollHeyGenStatus, isHeyGenAvailable } from '../../lib/heygenService';
 import { useToast } from '../../contexts/ToastContext';
 
 interface VideoGeneratorProps {
@@ -47,24 +47,45 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
     setGeneratedVideoUrl(null);
 
     try {
-      showToast('info', 'Starting Generation', 'Creating your video with Runway ML gen4_turbo...');
+      if (!isHeyGenAvailable()) {
+        throw new Error('HeyGen API key not configured');
+      }
 
-      const taskId = await generateVideo({
-        prompt: promptToUse,
-        duration,
-        aspectRatio
+      showToast('info', 'Starting Generation', 'Creating your AI avatar video with HeyGen...');
+      setProgress(10);
+
+      const result = await generateHeyGenVideo({
+        script: promptToUse,
+        aspectRatio,
       });
 
-      const videoUrl = await pollVideoStatus(
-        taskId,
-        (currentProgress) => {
-          setProgress(currentProgress);
-        }
-      );
+      setProgress(30);
 
-      setGeneratedVideoUrl(videoUrl);
-      setProgress(100);
-      showToast('success', 'Video Ready!', 'Your video has been generated successfully');
+      let attempts = 0;
+      const maxAttempts = 120;
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        const status = await pollHeyGenStatus(result.id);
+        const progressPercent = 30 + (attempts / maxAttempts) * 60;
+        setProgress(Math.min(progressPercent, 90));
+
+        if (status.status === 'completed' && status.video_url) {
+          setGeneratedVideoUrl(status.video_url);
+          setProgress(100);
+          showToast('success', 'Video Ready!', 'Your AI avatar video has been generated successfully');
+          return;
+        }
+
+        if (status.status === 'failed') {
+          throw new Error(status.error || 'Video generation failed');
+        }
+
+        attempts++;
+      }
+
+      throw new Error('Video generation timed out');
     } catch (error: any) {
       console.error('Video generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Unable to generate video. Please try again.');
@@ -108,7 +129,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                     AI Video Studio
                     <Sparkles className="w-5 h-5 text-orange-400 animate-pulse" />
                   </h2>
-                  <p className="text-sm text-orange-300/80 mt-0.5">Powered by Pixverse AI</p>
+                  <p className="text-sm text-orange-300/80 mt-0.5">Powered by HeyGen AI Avatars</p>
                 </div>
               </div>
               <button
@@ -137,7 +158,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                     <textarea
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
-                      placeholder="Describe your video... e.g., 'A monkey dancing in a tropical rainforest'"
+                      placeholder="Enter your script... e.g., 'Welcome to our AI-powered video studio!'"
                       className="w-full h-40 px-5 py-4 bg-white/5 border-2 border-white/10 focus:border-orange-400/60 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-none transition-all text-base backdrop-blur-sm"
                       disabled={isGenerating}
                     />
