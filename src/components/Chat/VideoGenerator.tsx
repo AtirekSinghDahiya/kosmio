@@ -52,8 +52,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       const taskId = await generateVideo({
         prompt: promptToUse,
         duration,
-        aspectRatio,
-        model: 'gen3a_turbo'
+        aspectRatio
       });
 
       const videoUrl = await pollVideoStatus(
