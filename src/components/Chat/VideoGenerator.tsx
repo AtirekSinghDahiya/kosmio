@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Video, Download, Wand2, X, Loader, Sparkles, Play, Clock, Maximize } from 'lucide-react';
+import { generatePixverseVideo, pollPixverseStatus, isPixverseAvailable } from '../../lib/pixverseService';
 import { generateVideo, pollVideoStatus } from '../../lib/runwayService';
 import { generateVideoWithHF, isHFVideoAvailable } from '../../lib/hfVideoService';
 import { useToast } from '../../contexts/ToastContext';
@@ -48,7 +49,44 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
     setGeneratedVideoUrl(null);
 
     try {
-      if (isHFVideoAvailable()) {
+      if (isPixverseAvailable()) {
+        showToast('info', 'Starting Generation', 'Creating your video with Pixverse AI...');
+        setProgress(10);
+
+        const result = await generatePixverseVideo({
+          prompt: promptToUse,
+          aspect_ratio: aspectRatio,
+          duration,
+        });
+
+        setProgress(30);
+
+        let attempts = 0;
+        const maxAttempts = 60;
+
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+          const status = await pollPixverseStatus(result.id);
+          const progressPercent = 30 + (attempts / maxAttempts) * 60;
+          setProgress(Math.min(progressPercent, 90));
+
+          if (status.status === 'completed' && status.video_url) {
+            setGeneratedVideoUrl(status.video_url);
+            setProgress(100);
+            showToast('success', 'Video Ready!', 'Your video has been generated successfully');
+            return;
+          }
+
+          if (status.status === 'failed') {
+            throw new Error(status.error || 'Video generation failed');
+          }
+
+          attempts++;
+        }
+
+        throw new Error('Video generation timed out');
+      } else if (isHFVideoAvailable()) {
         showToast('info', 'Starting Generation', 'Creating your video with Hugging Face...');
         setProgress(10);
 
@@ -123,7 +161,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                     AI Video Studio
                     <Sparkles className="w-5 h-5 text-orange-400 animate-pulse" />
                   </h2>
-                  <p className="text-sm text-orange-300/80 mt-0.5">Powered by Runway ML Gen-3 Turbo</p>
+                  <p className="text-sm text-orange-300/80 mt-0.5">Powered by Pixverse AI</p>
                 </div>
               </div>
               <button
