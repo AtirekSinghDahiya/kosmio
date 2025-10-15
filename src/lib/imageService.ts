@@ -122,9 +122,7 @@ export async function generateImageFree(prompt: string): Promise<GeneratedImage>
   if (!hfToken) {
     console.log('⚠️ No HF token, using Pollinations.ai fallback');
     const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
 
     return {
       url: imageUrl,
@@ -169,9 +167,7 @@ export async function generateImageFree(prompt: string): Promise<GeneratedImage>
 
     // Fallback to Pollinations.ai on error
     const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
 
     return {
       url: imageUrl,

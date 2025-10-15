@@ -31,6 +31,7 @@ export async function generatePixverseVideo(request: PixverseVideoRequest): Prom
         provider: 'pixverse',
         prompt: request.prompt,
         aspectRatio: request.aspect_ratio || '16:9',
+        duration: request.duration || 5,
       }),
     });
 
@@ -42,8 +43,14 @@ export async function generatePixverseVideo(request: PixverseVideoRequest): Prom
     const data = await response.json();
     console.log('✅ Pixverse generation started:', data);
 
-    if (!data.success || !data.taskId) {
-      throw new Error('Invalid response from Pixverse API');
+    if (!data.success) {
+      console.error('❌ Pixverse API returned error:', data);
+      throw new Error(data.error || 'Invalid response from Pixverse API');
+    }
+
+    if (!data.taskId) {
+      console.error('❌ No taskId in response:', data);
+      throw new Error('No video ID returned from Pixverse API');
     }
 
     return {
