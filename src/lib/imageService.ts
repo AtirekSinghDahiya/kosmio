@@ -107,30 +107,56 @@ export function isImageGenerationAvailable(): boolean {
 }
 
 /**
- * Generate image using alternative free service (Pollinations.ai)
+ * Generate image using Hugging Face Inference API (free tier)
  */
 export async function generateImageFree(prompt: string): Promise<GeneratedImage> {
-  console.log('🎨 Generating image with free service:', prompt);
+  console.log('🎨 Generating image:', prompt);
+
+  const timestamp = Date.now();
+
+  // Use Hugging Face's free Stable Diffusion model
+  const model = 'stabilityai/stable-diffusion-2-1';
+  const apiUrl = `https://api-inference.huggingface.co/models/${model}`;
+
+  console.log('🔄 Requesting image generation from Hugging Face...');
 
   try {
-    const encodedPrompt = encodeURIComponent(prompt);
-    const timestamp = Date.now();
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        options: { wait_for_model: true }
+      }),
+    });
 
-    // Use Pollinations.ai direct URL - the image loads directly without pre-fetching
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
 
-    console.log('✅ Image URL generated:', imageUrl);
+    const blob = await response.blob();
 
-    // Return immediately - the browser will load the image
+    // Convert blob to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    console.log('✅ Image generated successfully');
+
     return {
-      url: imageUrl,
+      url: base64,
       seed: timestamp,
       prompt: prompt,
       timestamp: new Date(),
     };
 
   } catch (error: any) {
-    console.error('❌ Free image generation error:', error);
-    throw new Error(error.message || 'Failed to generate image');
+    console.error('❌ Image generation failed:', error);
+    throw new Error(`Failed to generate image: ${error.message}`);
   }
 }
