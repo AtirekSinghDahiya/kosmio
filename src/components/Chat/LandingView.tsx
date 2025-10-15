@@ -59,16 +59,16 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
   ];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 overflow-y-auto relative">
+    <div className="flex-1 flex flex-col items-center justify-start p-4 md:p-6 overflow-y-auto relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="orbit-ring" style={{ width: '300px', height: '300px', top: '20%', left: '10%' }} />
         <div className="orbit-ring" style={{ width: '450px', height: '450px', top: '40%', right: '5%' }} />
         <div className="orbit-ring" style={{ width: '200px', height: '200px', bottom: '15%', left: '60%' }} />
       </div>
 
-      <div className="max-w-4xl w-full space-y-8 relative z-10">
-        <div className={`text-center space-y-4 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-          <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-4 animate-pulse-glow">
+      <div className="max-w-4xl w-full space-y-4 relative z-10 pt-8">
+        <div className={`text-center space-y-3 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-3 animate-pulse-glow">
             <img
               src="/logo.svg"
               alt="Kosmio"
@@ -76,17 +76,17 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
             />
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
-              Welcome to <span className="animated-gradient-text text-5xl md:text-6xl" data-text="Kosmio">Kosmio</span>
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+              Welcome to <span className="animated-gradient-text text-4xl md:text-5xl" data-text="Kosmio">Kosmio</span>
             </h1>
-            <p className="text-sm md:text-base text-white/70 max-w-2xl mx-auto font-light">
+            <p className="text-xs md:text-sm text-white/70 max-w-2xl mx-auto font-light">
               Creating at cosmic scale
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {suggestions.map((suggestion, index) => {
             const Icon = suggestion.icon;
             return (
@@ -99,7 +99,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
               >
                 <button
                   onClick={() => onQuickAction(suggestion.prompt)}
-                  className="floating-card-inner w-full group relative overflow-hidden rounded-3xl p-6 text-left transition-all duration-500"
+                  className="floating-card-inner w-full group relative overflow-hidden rounded-2xl p-4 text-left transition-all duration-500"
                   style={{
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
                     backdropFilter: 'blur(20px)',
@@ -114,9 +114,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                     }}
                   />
 
-                  <div className="relative z-10 space-y-4">
+                  <div className="relative z-10 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
                         style={{
                           background: 'linear-gradient(135deg, rgba(0,255,240,0.2), rgba(138,43,226,0.2))',
                           backdropFilter: 'blur(10px)',
@@ -124,14 +124,14 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                           boxShadow: '0 8px 32px rgba(0,255,240,0.1)',
                         }}
                       >
-                        <Icon className="w-7 h-7 text-white drop-shadow-2xl" />
+                        <Icon className="w-6 h-6 text-white drop-shadow-2xl" />
                       </div>
 
                       <div className="w-2 h-2 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
                     </div>
 
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-white group-hover:translate-x-1 transition-transform duration-500"
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-white group-hover:translate-x-1 transition-transform duration-500"
                         style={{
                           textShadow: '0 2px 10px rgba(0,255,240,0.3)',
                         }}
@@ -161,7 +161,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           })}
         </div>
 
-        <div className={`text-center space-y-2 mb-6 ${mounted ? 'animate-fade-in-up stagger-4' : 'opacity-0'}`}>
+        <div className={`text-center space-y-2 mb-3 ${mounted ? 'animate-fade-in-up stagger-4' : 'opacity-0'}`}>
           <div className="inline-flex items-center gap-2 px-4 py-2 glass-panel rounded-full">
             <div className="flex items-center gap-1.5">
               <kbd className="px-2 py-1 bg-white/10 rounded text-white/80 text-xs font-medium border border-white/20">
@@ -180,7 +180,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         </div>
       </div>
 
-      <div className="max-w-5xl w-full mx-auto px-4 pb-6 mt-4">
+      <div className="max-w-5xl w-full mx-auto px-4 pb-4 mt-2">
         <form onSubmit={(e) => {
           e.preventDefault();
           if (input.trim()) {
@@ -188,9 +188,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
             setInput('');
           }
         }} className={mounted ? 'animate-fade-in-up stagger-5' : 'opacity-0'}>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {onModelChange && (
-              <div className="mb-3">
+              <div className="mb-2">
                 <AIModelSelector
                   selectedModel={selectedModel}
                   onModelChange={onModelChange}
