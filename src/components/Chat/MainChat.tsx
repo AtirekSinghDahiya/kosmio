@@ -436,17 +436,18 @@ export const MainChat: React.FC = () => {
         onRenameProject={handleRenameProject}
       />
 
-      <div className="flex-1 flex flex-col ml-16 pt-20">
-        {showLanding ? (
-          <LandingView
-            onQuickAction={(text) => handleSendMessage(text)}
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-          />
-        ) : (
-          <>
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 pb-32">
+      <div className="flex-1 flex flex-col pt-20">
+        <div className="flex-1 ml-16">
+          {showLanding ? (
+            <LandingView
+              onQuickAction={(text) => handleSendMessage(text)}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
+          ) : (
+            <>
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 pb-32">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -508,29 +509,32 @@ export const MainChat: React.FC = () => {
 
               <div ref={messagesEndRef} />
             </div>
+            </>
+          )}
+        </div>
 
-            {/* Input Area */}
-            <div className="border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
-              <div className="max-w-4xl mx-auto">
-                <div className="mb-4">
-                  <AIModelSelector
-                    selectedModel={selectedModel}
-                    onModelChange={setSelectedModel}
-                    category="chat"
-                  />
-                </div>
-                <ChatInput
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onSend={() => handleSendMessage()}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask Kosmio anything..."
-                  disabled={isLoading}
+        {/* Input Area - Full Width */}
+        {!showLanding && (
+          <div className="border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-4">
+                <AIModelSelector
                   selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                  category="chat"
                 />
               </div>
+              <ChatInput
+                value={inputValue}
+                onChange={setInputValue}
+                onSend={() => handleSendMessage()}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask Kosmio anything..."
+                disabled={isLoading}
+                selectedModel={selectedModel}
+              />
             </div>
-          </>
+          </div>
         )}
       </div>
 
