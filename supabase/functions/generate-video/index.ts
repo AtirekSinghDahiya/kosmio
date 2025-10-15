@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const RUNWAY_API_KEY = Deno.env.get("RUNWAY_API_KEY") || "key_cff628ee8fed37b71af389ddf8d0d5fcca392c33e0822e4959e2f7c47161397fb25ad7dd8bf297f0fadd9ee34bd2bd1a7ce643c05177e799d2a3d98e";
 const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
-const PIXVERSE_API_KEY = Deno.env.get("PIXVERSE_API_KEY") || "sk-02a32a4f8964c44ade58cb1f396146dd";
+const PIXVERSE_API_KEY = Deno.env.get("PIXVERSE_API_KEY") || "sk-723e401446b054e8a936def17ecee576";
 const PIXVERSE_API_BASE = "https://app-api.pixverse.ai/openapi/v2";
 
 Deno.serve(async (req: Request) => {
