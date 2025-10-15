@@ -50,7 +50,7 @@ export const generateVideoWithRunway = async (
 
     const payload = {
       promptText: request.prompt,
-      model: 'gen4_turbo',
+      model: 'gen3',
       duration: request.duration || 5,
       ratio: ratio
     };

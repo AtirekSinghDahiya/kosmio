@@ -11,7 +11,7 @@ const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
 
 Deno.serve(async (req: Request) => {
   const rid = crypto.randomUUID().slice(0, 8);
-  console.log(`[${rid}] gen4_turbo | ${req.method} ${req.url}`);
+  console.log(`[${rid}] gen3a | ${req.method} ${req.url}`);
 
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
     if (body.action === "generate") {
       const payload = {
         promptText: body.prompt || "",
-        model: "gen4_turbo",
+        model: "gen3a",
         duration: body.duration || 5,
         ratio: body.aspectRatio === "9:16" ? "720:1280" : body.aspectRatio === "1:1" ? "960:960" : "1280:720"
       };
@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
   } catch (err: any) {
     console.error(`[${rid}] ERROR:`, err.message);
     return new Response(
-      JSON.stringify({ success: false, error: err.message, version: "gen4_turbo" }),
+      JSON.stringify({ success: false, error: err.message, version: "gen3a" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
