@@ -118,10 +118,26 @@ export async function generateImageFree(prompt: string): Promise<GeneratedImage>
     const timestamp = Date.now();
     const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
 
-    console.log('✅ Image URL generated:', imageUrl);
+    console.log('🔄 Fetching image from Pollinations.ai...');
+
+    // Fetch the image and convert to base64 to avoid CORS issues
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    console.log('✅ Image generated and converted to base64');
 
     return {
-      url: imageUrl,
+      url: base64,
       seed: timestamp,
       prompt: prompt,
       timestamp: new Date(),

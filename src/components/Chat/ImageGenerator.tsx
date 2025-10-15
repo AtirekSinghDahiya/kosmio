@@ -170,7 +170,8 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
                       src={generatedImage.url}
                       alt={generatedImage.prompt}
                       className="w-full h-auto"
-                      onError={(e) => {
+                      crossOrigin="anonymous"
+                      onError={() => {
                         console.error('Image load error');
                         showToast('error', 'Load failed', 'Could not display image');
                       }}
