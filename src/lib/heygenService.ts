@@ -35,7 +35,7 @@ export async function generateHeyGenVideo(request: HeyGenVideoRequest): Promise<
           voice: {
             type: 'text',
             input_text: request.script,
-            voice_id: request.voiceId || 'en-US-AriaNeural',
+            voice_id: request.voiceId || '1bd001e7e50f421d891986aad5158bc8',
           }
         }
       ],
