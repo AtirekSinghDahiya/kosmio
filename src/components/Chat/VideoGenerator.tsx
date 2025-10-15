@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Video, Download, Wand2, X, Loader, Sparkles, Play, Clock, Maximize } from 'lucide-react';
 import { generateVideo, pollVideoStatus } from '../../lib/runwayService';
+import { generateVideoWithHF, isHFVideoAvailable } from '../../lib/hfVideoService';
 import { useToast } from '../../contexts/ToastContext';
 
 interface VideoGeneratorProps {
@@ -47,24 +48,38 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
     setGeneratedVideoUrl(null);
 
     try {
-      showToast('info', 'Starting Generation', 'Creating your video with Runway ML...');
+      if (isHFVideoAvailable()) {
+        showToast('info', 'Starting Generation', 'Creating your video with Hugging Face...');
+        setProgress(10);
 
-      const taskId = await generateVideo({
-        prompt: promptToUse,
-        duration,
-        aspectRatio
-      });
+        const result = await generateVideoWithHF({
+          prompt: promptToUse
+        });
 
-      const videoUrl = await pollVideoStatus(
-        taskId,
-        (currentProgress) => {
-          setProgress(currentProgress);
-        }
-      );
+        setProgress(90);
+        setGeneratedVideoUrl(result.videoUrl);
+        setProgress(100);
+        showToast('success', 'Video Ready!', 'Your video has been generated successfully');
+      } else {
+        showToast('info', 'Starting Generation', 'Creating your video with Runway ML...');
 
-      setGeneratedVideoUrl(videoUrl);
-      setProgress(100);
-      showToast('success', 'Video Ready!', 'Your video has been generated successfully');
+        const taskId = await generateVideo({
+          prompt: promptToUse,
+          duration,
+          aspectRatio
+        });
+
+        const videoUrl = await pollVideoStatus(
+          taskId,
+          (currentProgress) => {
+            setProgress(currentProgress);
+          }
+        );
+
+        setGeneratedVideoUrl(videoUrl);
+        setProgress(100);
+        showToast('success', 'Video Ready!', 'Your video has been generated successfully');
+      }
     } catch (error: any) {
       console.error('Video generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Unable to generate video. Please try again.');

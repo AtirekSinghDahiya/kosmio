@@ -1,7 +1,9 @@
 /**
  * Image Generation Service
- * Uses Stability AI / Stable Diffusion for image generation
+ * Uses Hugging Face Inference API for image generation
  */
+
+import { InferenceClient } from '@huggingface/inference';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -107,31 +109,75 @@ export function isImageGenerationAvailable(): boolean {
 }
 
 /**
- * Generate image using free service (no API key required)
- * Uses Pollinations.ai which provides free AI image generation
+ * Generate image using Hugging Face Inference API
+ * Uses fal-ai provider with HunyuanImage model
  */
 export async function generateImageFree(prompt: string): Promise<GeneratedImage> {
-  console.log('🎨 Generating image with Pollinations.ai:', prompt);
+  console.log('🎨 Generating image with Hugging Face:', prompt);
 
+  const hfToken = import.meta.env.VITE_HF_TOKEN;
   const timestamp = Date.now();
-  const encodedPrompt = encodeURIComponent(prompt);
 
-  // Pollinations.ai - completely free, no auth required
-  // The service generates the image on-demand when the URL is accessed
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
+  // Fallback to Pollinations.ai if no HF token
+  if (!hfToken) {
+    console.log('⚠️ No HF token, using Pollinations.ai fallback');
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
 
-  console.log('🔄 Image URL:', imageUrl);
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
-  // Add a small delay to show the user that generation is happening
-  await new Promise(resolve => setTimeout(resolve, 1500));
+    return {
+      url: imageUrl,
+      seed: timestamp,
+      prompt: prompt,
+      timestamp: new Date(),
+    };
+  }
 
-  console.log('✅ Image ready to display');
+  try {
+    const client = new InferenceClient(hfToken);
 
-  // Return the URL - the browser will handle loading
-  return {
-    url: imageUrl,
-    seed: timestamp,
-    prompt: prompt,
-    timestamp: new Date(),
-  };
+    console.log('🔄 Requesting image from Hugging Face...');
+
+    const blob = await client.textToImage({
+      provider: 'fal-ai',
+      model: 'tencent/HunyuanImage-3.0',
+      inputs: prompt,
+      parameters: { num_inference_steps: 5 },
+    });
+
+    // Convert blob to base64 data URL
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    console.log('✅ Image generated successfully');
+
+    return {
+      url: base64,
+      seed: timestamp,
+      prompt: prompt,
+      timestamp: new Date(),
+    };
+
+  } catch (error: any) {
+    console.error('❌ Hugging Face generation failed:', error);
+    console.log('⚠️ Falling back to Pollinations.ai');
+
+    // Fallback to Pollinations.ai on error
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true`;
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    return {
+      url: imageUrl,
+      seed: timestamp,
+      prompt: prompt,
+      timestamp: new Date(),
+    };
+  }
 }
