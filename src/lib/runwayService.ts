@@ -97,10 +97,6 @@ export const generateVideo = async (request: RunwayVideoRequest): Promise<string
     console.log('✅ Edge function response:', result);
 
     if (!result.success) {
-      if (result.error && result.error.includes('is not available')) {
-        throw new Error('Your Runway API key does not have access to video generation models. Please upgrade your Runway account or contact Runway support to enable API access.');
-      }
-
       addDebugLog('warning', `Edge function failed, trying direct API...`);
       console.log('⚠️ Edge function failed, falling back to direct API');
 
@@ -121,12 +117,6 @@ export const generateVideo = async (request: RunwayVideoRequest): Promise<string
     return result.taskId;
   } catch (error: any) {
     console.error('💥 Video generation error:', error);
-
-    if (error.message.includes('Runway API key does not have access')) {
-      addDebugLog('error', error.message);
-      throw error;
-    }
-
     addDebugLog('warning', `Edge function error, trying direct API...`);
 
     try {
@@ -138,11 +128,6 @@ export const generateVideo = async (request: RunwayVideoRequest): Promise<string
       });
     } catch (directError: any) {
       addDebugLog('error', `Both methods failed: ${directError.message}`);
-
-      if (directError.message === 'Failed to fetch') {
-        throw new Error('Your Runway API key does not have access to video generation models. Please upgrade your Runway account or contact Runway support to enable API access.');
-      }
-
       throw new Error(`Failed to generate video: ${directError.message}`);
     }
   }
