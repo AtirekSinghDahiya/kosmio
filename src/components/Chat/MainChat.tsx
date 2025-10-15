@@ -16,7 +16,6 @@ import { AIModelSelector } from './AIModelSelector';
 import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
-import { VoiceoverGenerator } from './VoiceoverGenerator';
 import {
   createProject,
   addMessage,
@@ -47,8 +46,6 @@ export const MainChat: React.FC = () => {
   const [imagePrompt, setImagePrompt] = useState('');
   const [showVideoGenerator, setShowVideoGenerator] = useState(false);
   const [videoPrompt, setVideoPrompt] = useState('');
-  const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
-  const [voiceoverText, setVoiceoverText] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -157,33 +154,6 @@ export const MainChat: React.FC = () => {
 
     if (!textToSend || isLoading) {
       console.warn('⚠️ BLOCKED: textToSend empty or already loading');
-      return;
-    }
-
-    // Auto-detect voiceover generation requests
-    const voiceKeywords = /\b(generate|create|make|produce|convert)\b.*\b(voice|voiceover|speech|audio|narration|speak|say)\b/i;
-    const voiceRequestPattern = /\b(voice|voiceover|speech|audio|narration) (of|for|saying|speaking)\b/i;
-    const sayPattern = /\b(say|speak|narrate)\b.*["\'](.+)["\']/i;
-
-    if (voiceKeywords.test(textToSend) || voiceRequestPattern.test(textToSend) || sayPattern.test(textToSend)) {
-      console.log('🎤 Voiceover generation detected!');
-      setInputValue('');
-
-      let cleanText = textToSend;
-
-      const sayMatch = textToSend.match(/\b(say|speak|narrate)\b.*["\'](.+)["\']/i);
-      if (sayMatch && sayMatch[2]) {
-        cleanText = sayMatch[2];
-      } else {
-        cleanText = textToSend
-          .replace(/^(generate|create|make|produce|convert)\s+(a|an)?\s+(voice|voiceover|speech|audio|narration)\s+(of|for|saying|speaking)?\s*/i, '')
-          .replace(/\b(that says?|speaking|saying)\b\s*/i, '')
-          .trim();
-      }
-
-      setVoiceoverText(cleanText || textToSend);
-      setShowVoiceoverGenerator(true);
-
       return;
     }
 
@@ -567,16 +537,6 @@ export const MainChat: React.FC = () => {
             setVideoPrompt('');
           }}
           initialPrompt={videoPrompt}
-        />
-      )}
-
-      {showVoiceoverGenerator && (
-        <VoiceoverGenerator
-          onClose={() => {
-            setShowVoiceoverGenerator(false);
-            setVoiceoverText('');
-          }}
-          initialText={voiceoverText}
         />
       )}
     </div>
