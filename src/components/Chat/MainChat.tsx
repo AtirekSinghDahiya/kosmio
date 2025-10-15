@@ -436,8 +436,8 @@ export const MainChat: React.FC = () => {
         onRenameProject={handleRenameProject}
       />
 
-      <div className="flex-1 flex flex-col pt-20">
-        <div className="flex-1 ml-16">
+      <div className="flex-1 flex flex-col pt-20 overflow-hidden">
+        <div className="flex-1 ml-16 overflow-y-auto">
           {showLanding ? (
             <LandingView
               onQuickAction={(text) => handleSendMessage(text)}
@@ -447,7 +447,7 @@ export const MainChat: React.FC = () => {
           ) : (
             <>
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto px-6 py-8 space-y-6 pb-32">
+              <div className="px-6 py-8 space-y-6 pb-32">
               {messages.map((message) => (
                 <div
                   key={message.id}
