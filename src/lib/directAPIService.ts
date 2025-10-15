@@ -34,7 +34,7 @@ export interface VoiceGenerationRequest {
 export const generateVideoWithRunway = async (
   request: VideoGenerationRequest
 ): Promise<string> => {
-  addDebugLog('info', '🎬 Calling Runway ML API directly...');
+  addDebugLog('info', '🎬 Calling Runway ML API directly (gen4_turbo)...');
   console.log('🎬 Direct Runway API call:', request);
 
   if (!RUNWAY_API_KEY) {
@@ -52,12 +52,13 @@ export const generateVideoWithRunway = async (
       promptText: request.prompt,
       model: 'gen4_turbo',
       duration: request.duration || 5,
-      ratio: ratio
+      ratio: ratio,
+      watermark: false
     };
 
     addDebugLog('info', `Payload: ${JSON.stringify(payload)}`);
 
-    const response = await fetch('https://api.dev.runwayml.com/v1/text_to_video', {
+    const response = await fetch('https://api.runwayml.com/v1/text_to_video', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${RUNWAY_API_KEY}`,
@@ -75,6 +76,11 @@ export const generateVideoWithRunway = async (
     }
 
     const data = JSON.parse(responseText);
+
+    if (!data.id) {
+      throw new Error('No task ID returned from Runway API');
+    }
+
     addDebugLog('success', `✅ Task created: ${data.id}`);
 
     return data.id;
@@ -93,7 +99,7 @@ export const checkRunwayVideoStatus = async (
   }
 
   try {
-    const response = await fetch(`https://api.dev.runwayml.com/v1/tasks/${taskId}`, {
+    const response = await fetch(`https://api.runwayml.com/v1/tasks/${taskId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${RUNWAY_API_KEY}`,
@@ -109,6 +115,7 @@ export const checkRunwayVideoStatus = async (
     }
 
     const data = JSON.parse(responseText);
+    console.log('Runway status response:', data);
 
     let videoUrl = null;
     if (data.status === 'SUCCEEDED') {

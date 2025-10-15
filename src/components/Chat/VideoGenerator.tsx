@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Video, Download, Wand2, X, Loader, Sparkles, Play, Clock, Maximize } from 'lucide-react';
-import { generatePixverseVideo, pollPixverseStatus, isPixverseAvailable } from '../../lib/pixverseService';
 import { generateVideo, pollVideoStatus } from '../../lib/runwayService';
-import { generateVideoWithHF, isHFVideoAvailable } from '../../lib/hfVideoService';
 import { useToast } from '../../contexts/ToastContext';
 
 interface VideoGeneratorProps {
@@ -49,75 +47,24 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
     setGeneratedVideoUrl(null);
 
     try {
-      if (isPixverseAvailable()) {
-        showToast('info', 'Starting Generation', 'Creating your video with Pixverse AI...');
-        setProgress(10);
+      showToast('info', 'Starting Generation', 'Creating your video with Runway ML gen4_turbo...');
 
-        const result = await generatePixverseVideo({
-          prompt: promptToUse,
-          aspect_ratio: aspectRatio,
-          duration,
-        });
+      const taskId = await generateVideo({
+        prompt: promptToUse,
+        duration,
+        aspectRatio
+      });
 
-        setProgress(30);
-
-        let attempts = 0;
-        const maxAttempts = 60;
-
-        while (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 3000));
-
-          const status = await pollPixverseStatus(result.id);
-          const progressPercent = 30 + (attempts / maxAttempts) * 60;
-          setProgress(Math.min(progressPercent, 90));
-
-          if (status.status === 'completed' && status.video_url) {
-            setGeneratedVideoUrl(status.video_url);
-            setProgress(100);
-            showToast('success', 'Video Ready!', 'Your video has been generated successfully');
-            return;
-          }
-
-          if (status.status === 'failed') {
-            throw new Error(status.error || 'Video generation failed');
-          }
-
-          attempts++;
+      const videoUrl = await pollVideoStatus(
+        taskId,
+        (currentProgress) => {
+          setProgress(currentProgress);
         }
+      );
 
-        throw new Error('Video generation timed out');
-      } else if (isHFVideoAvailable()) {
-        showToast('info', 'Starting Generation', 'Creating your video with Hugging Face...');
-        setProgress(10);
-
-        const result = await generateVideoWithHF({
-          prompt: promptToUse
-        });
-
-        setProgress(90);
-        setGeneratedVideoUrl(result.videoUrl);
-        setProgress(100);
-        showToast('success', 'Video Ready!', 'Your video has been generated successfully');
-      } else {
-        showToast('info', 'Starting Generation', 'Creating your video with Runway ML...');
-
-        const taskId = await generateVideo({
-          prompt: promptToUse,
-          duration,
-          aspectRatio
-        });
-
-        const videoUrl = await pollVideoStatus(
-          taskId,
-          (currentProgress) => {
-            setProgress(currentProgress);
-          }
-        );
-
-        setGeneratedVideoUrl(videoUrl);
-        setProgress(100);
-        showToast('success', 'Video Ready!', 'Your video has been generated successfully');
-      }
+      setGeneratedVideoUrl(videoUrl);
+      setProgress(100);
+      showToast('success', 'Video Ready!', 'Your video has been generated successfully');
     } catch (error: any) {
       console.error('Video generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Unable to generate video. Please try again.');
