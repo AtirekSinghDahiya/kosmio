@@ -25,7 +25,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
       icon: Mail,
       title: 'Email Support',
       description: 'Send us an email and we\'ll respond within 24 hours',
-      action: 'support@kosmio.ai',
+      action: 'support@kroniq.ai',
       gradient: 'from-purple-500 to-pink-600',
     },
     {

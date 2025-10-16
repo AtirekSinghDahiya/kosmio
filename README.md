@@ -1,4 +1,4 @@
-# Kosmio AI - Multi-Studio Creative Platform
+# Kroniq AI - Multi-Studio Creative Platform
 
 ## ✅ ALL ISSUES FIXED - Latest Update!
 

@@ -58,7 +58,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
 
     const link = document.createElement('a');
     link.href = generatedImage.url;
-    link.download = `kosmio-${Date.now()}.png`;
+    link.download = `kroniq-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

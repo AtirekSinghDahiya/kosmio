@@ -71,14 +71,14 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-2 md:p-3 animate-pulse-glow">
             <img
               src="/logo.svg"
-              alt="Kosmio"
+              alt="Kroniq"
               className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,255,240,0.6)]"
             />
           </div>
 
           <div className="space-y-0.5">
             <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
-              Welcome to <span className="animated-gradient-text text-3xl md:text-4xl" data-text="Kosmio">Kosmio</span>
+              Welcome to <span className="animated-gradient-text text-3xl md:text-4xl" data-text="Kroniq">Kroniq</span>
             </h1>
             <p className="text-[10px] md:text-xs text-white/70 max-w-2xl mx-auto font-light">
               Creating at cosmic scale
@@ -211,7 +211,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                     }
                   }
                 }}
-                placeholder="Ask Kosmio anything..."
+                placeholder="Ask Kroniq anything..."
                 className="w-full bg-transparent px-4 py-3 text-white text-sm placeholder-white/50 focus:outline-none resize-none min-h-[50px] max-h-[150px]"
                 rows={1}
                 style={{ height: 'auto' }}
@@ -316,7 +316,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
       </div>
 
       <footer className={`text-center text-white/40 text-xs py-4 ${mounted ? 'animate-fade-in-up stagger-6' : 'opacity-0'}`}>
-        <p>Kosmio © 2025 — Crafted with intelligence</p>
+        <p>Kroniq © 2025 — Crafted with intelligence</p>
       </footer>
     </div>
   );

@@ -36,7 +36,7 @@ const getSystemPrompt = (preferences: AIPreferences): string => {
 
   const personality = personalityMap[preferences.personality] || personalityMap.balanced;
 
-  return `You are Kosmio AI, a helpful assistant. ${personality} Provide helpful, accurate information.`;
+  return `You are Kroniq AI, a helpful assistant. ${personality} Provide helpful, accurate information.`;
 };
 
 async function callOpenAI(messages: AIMessage[], preferences: AIPreferences): Promise<string> {
