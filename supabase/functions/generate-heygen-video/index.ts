@@ -1,12 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const HEYGEN_API_KEY = Deno.env.get('HEYGEN_API_KEY');
 const HEYGEN_API_BASE = 'https://api.heygen.com/v2';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Heygen-Key",
 };
 
 interface GenerateRequest {
@@ -16,6 +15,7 @@ interface GenerateRequest {
   voiceId?: string;
   aspectRatio?: '16:9' | '9:16' | '1:1';
   videoId?: string;
+  apiKey?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -27,11 +27,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    if (!HEYGEN_API_KEY) {
-      throw new Error('HeyGen API key not configured');
-    }
-
     const body: GenerateRequest = await req.json();
+
+    const apiKey = body.apiKey || Deno.env.get('HEYGEN_API_KEY') || req.headers.get('X-Heygen-Key');
+
+    if (!apiKey) {
+      throw new Error('HeyGen API key not provided. Please configure HEYGEN_API_KEY in Supabase secrets or pass it in the request.');
+    }
 
     if (body.action === 'generate') {
       const payload = {
@@ -61,7 +63,7 @@ Deno.serve(async (req: Request) => {
       const response = await fetch(`${HEYGEN_API_BASE}/video/generate`, {
         method: 'POST',
         headers: {
-          'X-Api-Key': HEYGEN_API_KEY,
+          'X-Api-Key': apiKey,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -95,7 +97,7 @@ Deno.serve(async (req: Request) => {
       const response = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${body.videoId}`, {
         method: 'GET',
         headers: {
-          'X-Api-Key': HEYGEN_API_KEY,
+          'X-Api-Key': apiKey,
         },
       });
 
