@@ -109,7 +109,7 @@ export const generateSystemPrompt = (preferences: UserPreferences): string => {
     expert: 'Use technical language freely. Focus on advanced concepts and nuances. Be direct and efficient.',
   };
 
-  return `You are Kosmio AI, an intelligent and helpful assistant.
+  return `You are Kroniq AI, an intelligent and helpful assistant.
 
 **Tone**: ${toneInstructions[preferences.ai_tone]}
 

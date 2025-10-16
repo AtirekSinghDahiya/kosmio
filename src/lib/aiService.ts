@@ -47,7 +47,7 @@ const getSystemPrompt = (preferences: AIPreferences): string => {
   const creativity = creativityMap[preferences.creativityLevel] || creativityMap[5];
   const length = lengthMap[preferences.responseLength] || lengthMap.medium;
 
-  return `You are Kosmio AI, a helpful coding and design assistant.
+  return `You are Kroniq AI, a helpful coding and design assistant.
 
 Personality: ${personality}
 

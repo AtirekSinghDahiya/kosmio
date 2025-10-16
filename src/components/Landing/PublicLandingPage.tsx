@@ -79,7 +79,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
 
   const testimonials = [
     {
-      quote: "Kosmio transformed how we build prototypes. What used to take days now takes hours.",
+      quote: "Kroniq transformed how we build prototypes. What used to take days now takes hours.",
       author: "Sarah Chen",
       role: "Product Designer",
       company: "TechCorp"
@@ -113,12 +113,12 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2">
                     <img
                       src="/logo.svg"
-                      alt="Kosmio"
+                      alt="Kroniq"
                       className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                     />
                   </div>
                   <span className="text-xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-                    Kosmio
+                    Kroniq
                   </span>
                 </div>
 
@@ -158,7 +158,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
           <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-4 mb-8 animate-pulse-glow">
             <img
               src="/logo.svg"
-              alt="Kosmio"
+              alt="Kroniq"
               className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,255,240,0.6)]"
             />
           </div>
@@ -308,7 +308,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
               Loved by Creators Worldwide
             </h2>
             <p className="text-xl text-white/70 max-w-2xl mx-auto">
-              Join thousands of developers, designers, and creators who trust Kosmio for their projects.
+              Join thousands of developers, designers, and creators who trust Kroniq for their projects.
             </p>
           </div>
 
@@ -345,7 +345,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
         <div className="max-w-4xl mx-auto text-center">
           <div className="glass-panel rounded-3xl p-16 border border-white/20 backdrop-blur-2xl">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Start Creating with Kosmio Today
+              Start Creating with Kroniq Today
             </h2>
             <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto">
               Join the next generation of creators using AI to build faster, smarter, and more creatively.
@@ -380,9 +380,9 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-1.5">
-                  <img src="/logo.svg" alt="Kosmio" className="w-full h-full object-contain" />
+                  <img src="/logo.svg" alt="Kroniq" className="w-full h-full object-contain" />
                 </div>
-                <span className="text-lg font-bold text-white">Kosmio</span>
+                <span className="text-lg font-bold text-white">Kroniq</span>
               </div>
               <p className="text-white/60 text-sm">Crafted with intelligence</p>
             </div>
@@ -416,7 +416,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
           </div>
 
           <div className="pt-8 border-t border-white/10 text-center text-white/60 text-sm">
-            <p>Kosmio © 2025 — All rights reserved</p>
+            <p>Kroniq © 2025 — All rights reserved</p>
           </div>
         </div>
       </footer>

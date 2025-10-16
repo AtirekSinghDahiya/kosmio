@@ -40,14 +40,14 @@ export const AboutPage: React.FC = () => {
     {
       name: 'Atirek Singh',
       role: 'CTO & Founder',
-      bio: 'The visionary behind Kosmio. Started working on this groundbreaking idea in grade 9, bringing together his father and friend to turn a dream into reality. Leads design and implementation.',
+      bio: 'The visionary behind Kroniq. Started working on this groundbreaking idea in grade 9, bringing together his father and friend to turn a dream into reality. Leads design and implementation.',
       image: 'from-cyan-500 to-blue-600',
       icon: Lightbulb
     },
     {
       name: 'Jitender Singh Dahiya',
       role: 'CEO & Co-Founder',
-      bio: 'Father of Atirek Singh and the strategic mastermind behind Kosmio\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
+      bio: 'Father of Atirek Singh and the strategic mastermind behind Kroniq\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
       image: 'from-emerald-500 to-teal-600',
       icon: Globe
     },
@@ -76,7 +76,7 @@ export const AboutPage: React.FC = () => {
       <section className={`relative pt-40 pb-20 px-4 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-block px-6 py-3 glass-panel rounded-full border border-white/20 mb-8">
-            <span className="text-[#00FFF0] text-sm font-bold tracking-wider">ABOUT KOSMIO</span>
+            <span className="text-[#00FFF0] text-sm font-bold tracking-wider">ABOUT KRONIQ</span>
           </div>
 
           <h1 className="text-6xl md:text-8xl font-black text-white mb-8 leading-[1.1] tracking-tight">
@@ -87,7 +87,7 @@ export const AboutPage: React.FC = () => {
           </h1>
 
           <p className="text-xl md:text-2xl text-white/80 leading-relaxed max-w-4xl mx-auto font-light">
-            We believe that powerful AI tools should be accessible to everyone. Kosmio empowers creators, developers, and businesses to harness the full potential of artificial intelligence without complexity.
+            We believe that powerful AI tools should be accessible to everyone. Kroniq empowers creators, developers, and businesses to harness the full potential of artificial intelligence without complexity.
           </p>
         </div>
       </section>

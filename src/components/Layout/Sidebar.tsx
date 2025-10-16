@@ -33,11 +33,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-white/10 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center flex-shrink-0 border border-white/20">
-            <img src="/logo.svg" alt="Kosmio" className="w-8 h-8" />
+            <img src="/logo.svg" alt="Kroniq" className="w-8 h-8" />
           </div>
           {isExpanded && (
             <div className="overflow-hidden">
-              <p className="text-white font-bold text-sm whitespace-nowrap">Kosmio</p>
+              <p className="text-white font-bold text-sm whitespace-nowrap">Kroniq</p>
               <p className="text-white/60 text-xs whitespace-nowrap">AI Studio</p>
             </div>
           )}

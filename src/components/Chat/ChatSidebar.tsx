@@ -72,13 +72,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center flex-shrink-0 p-1">
             <img
               src="/Black Geometric Tech Business Logo.png"
-              alt="Kosmio"
+              alt="Kroniq"
               className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
             />
           </div>
           {isHovered && (
             <span className="text-white font-bold text-base whitespace-nowrap animate-fade-in bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-              Kosmio
+              Kroniq
             </span>
           )}
         </div>
