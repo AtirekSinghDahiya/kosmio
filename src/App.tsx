@@ -7,7 +7,6 @@ import { LoginPage } from './components/Auth/LoginPage';
 import { Sidebar } from './components/Layout/Sidebar';
 import { FloatingNavbar } from './components/Layout/FloatingNavbar';
 import { CosmicBackground } from './components/Layout/CosmicBackground';
-import { DebugPanel } from './components/Debug/DebugPanel';
 import { MainChat } from './components/Chat/MainChat';
 import { ProjectsView } from './components/Projects/ProjectsView';
 import { VoiceStudio } from './components/Studio/VoiceStudio';
@@ -77,7 +76,6 @@ const MainApp: React.FC = () => {
         <div className="relative z-10 h-screen">
           {renderView()}
         </div>
-        <DebugPanel />
       </div>
     );
   }
@@ -88,10 +86,7 @@ const MainApp: React.FC = () => {
       <CosmicBackground />
       <div className="relative z-10 h-screen">
         {currentView === 'chat' ? (
-          <>
-            <MainChat />
-            <DebugPanel />
-          </>
+          <MainChat />
         ) : (
           <div className="flex h-screen">
             <Sidebar currentView={currentView} onViewChange={(view) => navigateTo(view as any)} />
@@ -99,7 +94,6 @@ const MainApp: React.FC = () => {
               <FloatingNavbar />
               {renderView()}
             </div>
-            <DebugPanel />
           </div>
         )}
       </div>

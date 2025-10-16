@@ -113,7 +113,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
 
       setTimeout(() => {
         setSuccess(false);
-      }, 3000);
+        onClose();
+      }, 1000);
     } catch (error: any) {
       console.error('❌ Error updating profile:', error);
 
