@@ -1,6 +1,5 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const HEYGEN_API_KEY = import.meta.env.VITE_HEYGEN_API_KEY;
 
 export interface HeyGenVideoRequest {
   script: string;
@@ -35,7 +34,6 @@ export async function generateHeyGenVideo(request: HeyGenVideoRequest): Promise<
         avatarId: request.avatarId,
         voiceId: request.voiceId,
         aspectRatio: request.aspectRatio,
-        apiKey: HEYGEN_API_KEY,
       }),
     });
 
@@ -90,7 +88,6 @@ export async function pollHeyGenStatus(videoId: string): Promise<HeyGenVideoResp
       body: JSON.stringify({
         action: 'status',
         videoId,
-        apiKey: HEYGEN_API_KEY,
       }),
     });
 
@@ -142,5 +139,5 @@ export async function pollHeyGenStatus(videoId: string): Promise<HeyGenVideoResp
 }
 
 export function isHeyGenAvailable(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && HEYGEN_API_KEY);
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 }

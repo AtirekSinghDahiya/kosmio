@@ -20,11 +20,11 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
 
   const content: Record<string, any> = {
     'getting-started': {
-      title: 'Getting Started with Kroniq',
+      title: 'Getting Started with Kosmio',
       sections: [
         {
-          heading: 'Welcome to Kroniq',
-          content: 'Kroniq is your all-in-one AI platform for chat, code, and design. Get started in minutes and unlock the power of advanced AI models.',
+          heading: 'Welcome to Kosmio',
+          content: 'Kosmio is your all-in-one AI platform for chat, code, and design. Get started in minutes and unlock the power of advanced AI models.',
         },
         {
           heading: 'Quick Start Guide',
@@ -32,7 +32,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
         },
         {
           heading: 'System Requirements',
-          content: 'Kroniq works on any modern browser:\n• Chrome 90+\n• Firefox 88+\n• Safari 14+\n• Edge 90+\n\nNo installation required!',
+          content: 'Kosmio works on any modern browser:\n• Chrome 90+\n• Firefox 88+\n• Safari 14+\n• Edge 90+\n\nNo installation required!',
         },
       ],
     },
@@ -45,7 +45,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
         },
         {
           heading: 'Supported AI Models',
-          content: 'Kroniq supports multiple AI models:\n• OpenAI GPT-4 and GPT-3.5\n• Anthropic Claude\n• Google Gemini\n\nYou can switch between models in your settings.',
+          content: 'Kosmio supports multiple AI models:\n• OpenAI GPT-4 and GPT-3.5\n• Anthropic Claude\n• Google Gemini\n\nYou can switch between models in your settings.',
         },
         {
           heading: 'Customizing AI Personality',

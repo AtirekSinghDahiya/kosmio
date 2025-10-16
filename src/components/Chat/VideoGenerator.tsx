@@ -101,7 +101,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
 
     const link = document.createElement('a');
     link.href = generatedVideoUrl;
-    link.download = `kroniq-video-${Date.now()}.mp4`;
+    link.download = `kosmio-video-${Date.now()}.mp4`;
     link.target = '_blank';
     document.body.appendChild(link);
     link.click();

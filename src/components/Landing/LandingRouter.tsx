@@ -70,9 +70,9 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
               <div>
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2">
-                    <img src="/logo.svg" alt="Kroniq" className="w-full h-full object-contain" />
+                    <img src="/logo.svg" alt="Kosmio" className="w-full h-full object-contain" />
                   </div>
-                  <span className="text-xl font-bold text-white">Kroniq</span>
+                  <span className="text-xl font-bold text-white">Kosmio</span>
                 </div>
                 <p className="text-white/60 text-sm leading-relaxed">
                   Empowering creators with AI-powered tools for the future of digital creation.
@@ -144,7 +144,7 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
 
             <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-white/60 text-sm">
-                Kroniq © 2025 — All rights reserved. Crafted with intelligence.
+                Kosmio © 2025 — All rights reserved. Crafted with intelligence.
               </p>
 
               <div className="flex items-center gap-6">

@@ -129,7 +129,7 @@ export async function getAIResponse(
   const messages: Message[] = [
     {
       role: 'system',
-      content: systemPrompt || 'You are Kroniq AI, a helpful and intelligent assistant. Be concise, helpful, and friendly.',
+      content: systemPrompt || 'You are Kosmio AI, a helpful and intelligent assistant. Be concise, helpful, and friendly.',
     },
     ...conversationHistory.slice(-10), // Last 10 messages for context
     {

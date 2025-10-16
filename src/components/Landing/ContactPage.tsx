@@ -36,7 +36,7 @@ export const ContactPage: React.FC = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      content: 'hello@kroniq.ai',
+      content: 'hello@kosmio.ai',
       description: 'We respond within 24 hours'
     },
     {
