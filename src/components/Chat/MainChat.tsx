@@ -437,7 +437,7 @@ export const MainChat: React.FC = () => {
         onRenameProject={handleRenameProject}
       />
 
-      <div className="flex-1 flex flex-col pt-16 md:pt-20 overflow-hidden">
+      <div className="flex-1 flex flex-col pt-0 md:pt-20 overflow-hidden">
         <div className="flex-1 ml-0 md:ml-16 overflow-y-auto px-2 md:px-4">
           {showLanding ? (
             <>
