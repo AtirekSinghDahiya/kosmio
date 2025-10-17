@@ -160,7 +160,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
       <div className="w-full max-w-4xl max-h-[90vh] glass-panel rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-scale-in flex flex-col">
         <div className="relative h-32 bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30">
           <button

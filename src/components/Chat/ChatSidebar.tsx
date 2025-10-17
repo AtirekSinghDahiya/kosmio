@@ -99,11 +99,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
-      {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in" />
-      )}
-
       {/* Sidebar */}
       <div
         id="mobile-sidebar"

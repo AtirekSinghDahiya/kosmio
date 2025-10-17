@@ -567,7 +567,7 @@ export const MainChat: React.FC = () => {
 
             {/* Mobile View - Simple ChatGPT-style Input */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel backdrop-blur-2xl border-t border-white/10 p-3 safe-bottom z-20">
-              <div className="flex items-center gap-2">
+              <div className="max-w-3xl mx-auto flex items-center gap-2 px-1">
                 {/* Model Selector - Compact */}
                 <div className="flex-shrink-0">
                   <select
