@@ -28,6 +28,13 @@ body {
   margin: 0;
   padding: 0;
   overflow: visible;
+  min-height: 100vh;
+  background: #0a0e27;
+}
+
+#root {
+  min-height: 100vh;
+  isolation: isolate;
 }
 
 /* Custom Scrollbar Styles */

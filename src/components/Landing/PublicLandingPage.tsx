@@ -163,14 +163,14 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
             />
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight px-4">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-white mb-6 md:mb-8 leading-tight px-4">
             One AI.{' '}
             <span className="bg-gradient-to-r from-[#00FFF0] via-[#8A2BE2] to-[#00FFF0] bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
               Infinite Creation.
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/70 mb-8 md:mb-12 max-w-3xl mx-auto font-light px-4 leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/70 mb-8 md:mb-12 max-w-3xl mx-auto font-normal px-4 leading-relaxed">
             Harness the power of <span className="text-[#00FFF0] font-medium">multiple AI models</span> in one unified platform. Create, code, design, and deploy with <span className="text-[#8A2BE2] font-medium">unprecedented speed</span>.
           </p>
 

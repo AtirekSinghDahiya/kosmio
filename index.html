@@ -12,6 +12,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <title>Kroniq - AI Development Studio</title>
+    <style>
+      /* Prevent white flash on load */
+      html, body {
+        background: #0a0e27;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Loading spinner */
+      #root:empty::before {
+        content: '';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 50px;
+        height: 50px;
+        margin: -25px 0 0 -25px;
+        border: 3px solid rgba(0, 255, 240, 0.2);
+        border-top-color: #00FFF0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

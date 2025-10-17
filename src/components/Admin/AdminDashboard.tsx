@@ -24,8 +24,6 @@ export const AdminDashboard: React.FC = () => {
       const users = profilesSnapshot.docs.map(doc => doc.data());
       const proUsers = users.filter((u: any) => u.plan === 'pro').length;
       const enterpriseUsers = users.filter((u: any) => u.plan === 'enterprise').length;
-      const users = profiles Snapshot = await getDocs(collection(db, 'profiles'));
-      const proUsers = users.filter typ
 
       setStats({
         totalUsers: users.length,
