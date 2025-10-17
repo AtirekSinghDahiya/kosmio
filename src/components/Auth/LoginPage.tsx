@@ -29,29 +29,47 @@ export const LoginPage: React.FC = () => {
     setError('');
     setLoading(true);
 
+    // Set a timeout to prevent hanging forever
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setError('Request timed out. Please check your connection and try again.');
+    }, 30000); // 30 second timeout
+
     try {
       if (isLogin) {
         await signIn(email, password);
+        console.log('✅ Login successful, waiting for redirect...');
       } else {
         await signUp(email, password, displayName);
+        console.log('✅ Sign up successful, waiting for redirect...');
       }
+
+      clearTimeout(timeoutId);
+      // Give a moment for auth state to update
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     } catch (err: any) {
+      clearTimeout(timeoutId);
       console.error('Auth error:', err);
       const errorMessage = err.message || 'Authentication failed';
       if (errorMessage.includes('Invalid login credentials')) {
         setError('Invalid email or password.');
       } else if (errorMessage.includes('Email not confirmed')) {
         setError('Please confirm your email address.');
-      } else if (errorMessage.includes('User already registered')) {
+      } else if (errorMessage.includes('User already registered') || errorMessage.includes('email-already-in-use')) {
         setError('This email is already registered. Please sign in instead.');
       } else if (errorMessage.includes('Password should be at least 6 characters')) {
         setError('Password should be at least 6 characters.');
       } else if (errorMessage.includes('Invalid email')) {
         setError('Please enter a valid email address.');
+      } else if (errorMessage.includes('user-not-found')) {
+        setError('No account found with this email. Please sign up first.');
+      } else if (errorMessage.includes('wrong-password') || errorMessage.includes('invalid-credential')) {
+        setError('Invalid email or password. Please try again.');
       } else {
         setError(errorMessage);
       }
-    } finally {
       setLoading(false);
     }
   };

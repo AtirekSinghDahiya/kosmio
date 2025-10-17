@@ -321,11 +321,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔄 Auth state changed:', user ? user.uid : 'No user');
 
       if (user) {
-        if (checkSessionValidity()) {
+        const sessionValid = checkSessionValidity();
+        console.log('   Session check:', sessionValid ? 'Valid' : 'Invalid/New');
+
+        // If no session exists (new login), create one
+        if (!sessionValid && !localStorage.getItem(SESSION_KEY)) {
+          console.log('   Creating new session...');
+          updateSessionTimestamp();
+        }
+
+        // Only sign out if session exists AND is expired
+        if (sessionValid || !localStorage.getItem(SESSION_KEY)) {
           updateSessionTimestamp();
           setCurrentUser(user);
           await fetchUserData(user.uid, user.email || '');
-          console.log('✅ Session valid, user authenticated');
+          console.log('✅ User authenticated');
         } else {
           console.log('⏰ Session expired (2 hours), signing out...');
           await firebaseSignOut(auth);
@@ -334,6 +344,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserData(null);
         }
       } else {
+        console.log('   No user, clearing state');
         setCurrentUser(null);
         setUserData(null);
         clearSession();
