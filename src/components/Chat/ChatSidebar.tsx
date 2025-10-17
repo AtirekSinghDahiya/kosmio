@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings, Menu, X } from 'lucide-react';
+import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings, Menu, X, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
+import { ProfilePage } from '../Profile/ProfilePage';
 
 interface ChatSidebarProps {
   projects: Project[];
@@ -30,6 +31,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [showProfile, setShowProfile] = useState(false);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -284,6 +286,29 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
         <button
           onClick={() => {
+            setShowProfile(true);
+            setIsMobileOpen(false);
+          }}
+          className={`w-full flex items-center gap-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 active:scale-95 transition-all text-sm border border-transparent hover:border-white/20 button-press ${
+            isMobileOpen || isHovered ? 'px-3 py-2.5 justify-start' : 'md:p-2.5 px-3 py-2.5 md:justify-center justify-start'
+          }`}
+          title={!isHovered && !isMobileOpen ? 'Profile' : ''}
+        >
+          <UserIcon className="w-4 h-4 flex-shrink-0" />
+          {(isMobileOpen || isHovered) && (
+            <div className="flex-1 flex items-center justify-between animate-fade-in">
+              <span>Profile</span>
+              {userData && (
+                <span className="text-[10px] font-semibold text-[#00FFF0] uppercase tracking-wide">
+                  {userData.plan}
+                </span>
+              )}
+            </div>
+          )}
+        </button>
+
+        <button
+          onClick={() => {
             navigateTo('settings');
             setIsMobileOpen(false);
           }}
@@ -366,6 +391,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {showProfile && (
+        <ProfilePage onClose={() => setShowProfile(false)} />
       )}
       </div>
     </>

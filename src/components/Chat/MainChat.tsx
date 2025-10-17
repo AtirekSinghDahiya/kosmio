@@ -462,24 +462,24 @@ export const MainChat: React.FC = () => {
           ) : (
             <>
               {/* Messages Area */}
-              <div className="px-6 py-8 space-y-6 pb-32">
+              <div className="px-4 md:px-6 py-6 md:py-8 space-y-6 pb-32">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-2 md:gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                  className={`flex gap-3 md:gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}
                 >
                   {/* Avatar */}
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                  <div className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2]'
-                      : 'bg-gradient-to-br from-purple-500 to-pink-500'
+                      ? 'bg-gradient-to-br from-cyan-400 to-blue-600 ring-2 ring-cyan-400/30'
+                      : 'bg-gradient-to-br from-purple-500 to-pink-500 ring-2 ring-purple-400/30'
                   }`}>
                     {message.role === 'user' ? (
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                     ) : (
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
                         <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
                       </svg>
@@ -488,14 +488,14 @@ export const MainChat: React.FC = () => {
 
                   {/* Message Content */}
                   <div className={`flex-1 max-w-full md:max-w-3xl ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block rounded-2xl px-5 py-3 shadow-lg ${
+                    <div className={`inline-block rounded-2xl px-4 md:px-5 py-2.5 md:py-3 shadow-xl transition-all hover:shadow-2xl ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'
-                        : 'bg-white/5 backdrop-blur-xl border border-white/10 text-white'
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border border-cyan-400/20'
+                        : 'glass-panel border border-white/10 text-white/95 hover:border-white/20'
                     }`}>
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
+                      <div className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">{message.content}</div>
                     </div>
-                    <div className={`text-xs mt-1.5 px-1 ${
+                    <div className={`text-[10px] md:text-xs mt-1.5 px-2 ${
                       message.role === 'user' ? 'text-white/50' : 'text-white/40'
                     }`}>
                       {message.created_at && new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
