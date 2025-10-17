@@ -50,18 +50,18 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-background flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen gradient-background flex items-center justify-center p-3 md:p-4 relative overflow-hidden">
       <CosmicBackground />
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="orbit-ring" style={{ width: '400px', height: '400px', top: '10%', left: '5%' }} />
-        <div className="orbit-ring" style={{ width: '600px', height: '600px', top: '50%', right: '0%' }} />
-        <div className="orbit-ring" style={{ width: '300px', height: '300px', bottom: '10%', left: '40%' }} />
+        <div className="orbit-ring hidden md:block" style={{ width: '400px', height: '400px', top: '10%', left: '5%' }} />
+        <div className="orbit-ring hidden md:block" style={{ width: '600px', height: '600px', top: '50%', right: '0%' }} />
+        <div className="orbit-ring hidden md:block" style={{ width: '300px', height: '300px', bottom: '10%', left: '40%' }} />
       </div>
 
-      <div className={`w-full max-w-md relative z-10 ${mounted ? 'animate-scale-in' : 'opacity-0'}`}>
-        <div className="text-center mb-8 space-y-4">
-          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-4 animate-pulse-glow">
+      <div className={`w-full max-w-md relative z-10 px-2 ${mounted ? 'animate-scale-in' : 'opacity-0'}`}>
+        <div className="text-center mb-6 md:mb-8 space-y-3 md:space-y-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-3 md:p-4 animate-pulse-glow">
             <img
               src="/logo.svg"
               alt="Kroniq"
@@ -70,23 +70,23 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-1 md:mb-2">
               <span className="text-glow-teal">Kroniq</span>
             </h1>
-            <p className="text-white/70 text-sm font-light tracking-wide">
-              Creating at cosmic scale
+            <p className="text-white/70 text-xs md:text-sm font-light tracking-wide">
+              AI Development Studio
             </p>
           </div>
         </div>
 
-        <div className="glass-panel rounded-3xl shadow-2xl p-6 border border-white/20 backdrop-blur-2xl">
-          <div className="flex gap-2 mb-6 glass-panel rounded-2xl p-1">
+        <div className="glass-panel rounded-2xl md:rounded-3xl shadow-2xl p-4 md:p-6 border border-white/20 backdrop-blur-2xl">
+          <div className="flex gap-1 md:gap-2 mb-4 md:mb-6 glass-panel rounded-xl md:rounded-2xl p-1">
             <button
               onClick={() => {
                 setIsLogin(true);
                 setError('');
               }}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all text-sm blur-transition ${
+              className={`flex-1 py-2 md:py-2.5 px-3 md:px-4 rounded-lg md:rounded-xl font-medium transition-all text-xs md:text-sm blur-transition active:scale-95 ${
                 isLogin
                   ? 'bg-gradient-to-r from-[#00FFF0]/30 to-[#8A2BE2]/30 text-white shadow-lg border border-[#00FFF0]/50'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -99,7 +99,7 @@ export const LoginPage: React.FC = () => {
                 setIsLogin(false);
                 setError('');
               }}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all text-sm blur-transition ${
+              className={`flex-1 py-2 md:py-2.5 px-3 md:px-4 rounded-lg md:rounded-xl font-medium transition-all text-xs md:text-sm blur-transition active:scale-95 ${
                 !isLogin
                   ? 'bg-gradient-to-r from-[#00FFF0]/30 to-[#8A2BE2]/30 text-white shadow-lg border border-[#00FFF0]/50'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -109,10 +109,10 @@ export const LoginPage: React.FC = () => {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
             {!isLogin && (
               <div className="animate-fade-in-up">
-                <label className="block text-xs font-medium text-white/80 mb-2">
+                <label className="block text-xs font-medium text-white/80 mb-1.5 md:mb-2">
                   Display Name
                 </label>
                 <div className="relative">
@@ -121,16 +121,17 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 glass-panel border border-white/20 rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
+                    className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 glass-panel border border-white/20 rounded-lg md:rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
                     placeholder="John Doe"
                     required={!isLogin}
+                    autoComplete="name"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-white/80 mb-2">
+              <label className="block text-xs font-medium text-white/80 mb-1.5 md:mb-2">
                 Email
               </label>
               <div className="relative">
@@ -139,15 +140,16 @@ export const LoginPage: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 glass-panel border border-white/20 rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
+                  className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 glass-panel border border-white/20 rounded-lg md:rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
                   placeholder="you@example.com"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-white/80 mb-2">
+              <label className="block text-xs font-medium text-white/80 mb-1.5 md:mb-2">
                 Password
               </label>
               <div className="relative">
@@ -156,15 +158,17 @@ export const LoginPage: React.FC = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 glass-panel border border-white/20 rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
+                  className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 glass-panel border border-white/20 rounded-lg md:rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
                   placeholder="••••••••"
                   required
+                  autoComplete={isLogin ? "current-password" : "new-password"}
+                  minLength={6}
                 />
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl text-xs animate-fade-in-up">
+              <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl text-xs animate-fade-in-up">
                 {error}
               </div>
             )}
@@ -172,7 +176,7 @@ export const LoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white py-3 px-4 rounded-xl font-medium hover:shadow-xl hover:shadow-[#00FFF0]/40 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed button-press text-sm"
+              className="w-full bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white py-3 md:py-3.5 px-4 rounded-lg md:rounded-xl font-semibold hover:shadow-xl hover:shadow-[#00FFF0]/40 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-sm md:text-base min-h-[48px]"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">

@@ -1,0 +1,27 @@
+# Robots.txt for Kroniq AI Development Studio
+# https://kroniq.ai
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://bolt.new/sitemap.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /private/
+
+# Allow public assets
+Allow: /logo.svg
+Allow: /favicon.svg
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.webp

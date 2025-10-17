@@ -103,40 +103,40 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
       <CosmicBackground />
 
       {/* Floating Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-5">
+      <nav className="fixed top-0 left-0 right-0 z-50 px-3 md:px-4 py-3 md:py-5">
         <div className="max-w-7xl mx-auto">
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/20 via-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative glass-panel rounded-full px-8 py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2">
+            <div className="relative glass-panel rounded-full px-4 md:px-8 py-2.5 md:py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-1.5 md:p-2 flex-shrink-0">
                     <img
                       src="/logo.svg"
                       alt="Kroniq"
                       className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                     />
                   </div>
-                  <span className="text-xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                  <span className="text-base md:text-xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent truncate">
                     Kroniq
                   </span>
                 </div>
 
-                <div className="hidden md:flex items-center gap-8">
-                  <a href="#features" className="text-sm text-white/70 hover:text-white font-medium transition-colors">
+                <div className="hidden lg:flex items-center gap-6">
+                  <a href="#features" className="text-sm text-white/70 hover:text-white font-medium transition-colors whitespace-nowrap">
                     Features
                   </a>
-                  <a href="#how-it-works" className="text-sm text-white/70 hover:text-white font-medium transition-colors">
+                  <a href="#how-it-works" className="text-sm text-white/70 hover:text-white font-medium transition-colors whitespace-nowrap">
                     How It Works
                   </a>
-                  <a href="#testimonials" className="text-sm text-white/70 hover:text-white font-medium transition-colors">
+                  <a href="#testimonials" className="text-sm text-white/70 hover:text-white font-medium transition-colors whitespace-nowrap">
                     Testimonials
                   </a>
                 </div>
 
                 <button
                   onClick={onGetStarted}
-                  className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-6 py-2.5 rounded-full font-semibold text-sm hover:shadow-lg hover:shadow-[#00FFF0]/30 transition-all duration-300 hover:scale-105"
+                  className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-4 md:px-6 py-2 md:py-2.5 rounded-full font-semibold text-xs md:text-sm hover:shadow-lg hover:shadow-[#00FFF0]/30 transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap flex-shrink-0"
                 >
                   Get Started
                 </button>
@@ -147,7 +147,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-32 pb-20">
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-24 md:pt-32 pb-12 md:pb-20">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="orbit-ring" style={{ width: '500px', height: '500px', top: '20%', left: '10%', opacity: scrollY > 100 ? 0 : 1, transition: 'opacity 0.5s' }} />
           <div className="orbit-ring" style={{ width: '700px', height: '700px', top: '40%', right: '5%', opacity: scrollY > 100 ? 0 : 1, transition: 'opacity 0.5s' }} />
@@ -155,7 +155,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
         </div>
 
         <div className={`max-w-6xl mx-auto text-center relative z-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
-          <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-4 mb-8 animate-pulse-glow">
+          <div className="inline-flex items-center justify-center w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-3 md:p-4 mb-6 md:mb-8 animate-pulse-glow">
             <img
               src="/logo.svg"
               alt="Kroniq"
@@ -163,45 +163,45 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
             />
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight px-4">
             One AI.{' '}
             <span className="bg-gradient-to-r from-[#00FFF0] via-[#8A2BE2] to-[#00FFF0] bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
               Infinite Creation.
             </span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-3xl mx-auto font-light">
-            Harness the power of multiple AI models in one unified platform. Create, code, design, and deploy with unprecedented speed and intelligence.
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/70 mb-8 md:mb-12 max-w-3xl mx-auto font-light px-4 leading-relaxed">
+            Harness the power of <span className="text-[#00FFF0] font-medium">multiple AI models</span> in one unified platform. Create, code, design, and deploy with <span className="text-[#8A2BE2] font-medium">unprecedented speed</span>.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 px-4 w-full max-w-md sm:max-w-none mx-auto">
             <button
               onClick={onGetStarted}
-              className="group relative bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-2xl hover:shadow-[#00FFF0]/40 transition-all duration-300 hover:scale-105 flex items-center gap-2"
+              className="group relative bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg hover:shadow-2xl hover:shadow-[#00FFF0]/40 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto min-h-[48px] active:scale-95"
             >
-              Get Started Free
+              Start Creating Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
 
             <button
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              className="glass-panel border border-white/20 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/10 transition-all duration-300 hover:scale-105"
+              className="glass-panel border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg hover:bg-white/10 transition-all duration-300 hover:scale-105 w-full sm:w-auto min-h-[48px] active:scale-95"
             >
-              Learn More
+              Explore Features
             </button>
           </div>
 
-          <div className="mt-16 flex items-center justify-center gap-8 text-white/60 text-sm">
+          <div className="mt-8 md:mt-16 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 md:gap-8 text-white/60 text-xs sm:text-sm px-4">
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-[#00FFF0]" />
-              <span>No credit card required</span>
+              <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
+              <span>No credit card</span>
             </div>
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-[#00FFF0]" />
-              <span>Free forever plan</span>
+              <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
+              <span>Free forever</span>
             </div>
             <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-[#00FFF0]" />
+              <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
               <span>Instant access</span>
             </div>
           </div>
