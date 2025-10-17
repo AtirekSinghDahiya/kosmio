@@ -18,7 +18,6 @@ import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
-import { PricingModal } from '../Pages/PricingModal';
 import {
   createProject,
   addMessage,
@@ -51,7 +50,6 @@ export const MainChat: React.FC = () => {
   const [videoPrompt, setVideoPrompt] = useState('');
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
-  const [showPricing, setShowPricing] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -463,35 +461,25 @@ export const MainChat: React.FC = () => {
             </>
           ) : (
             <>
-              {/* Mobile Get Plus Button - Top Right */}
-              <div className="md:hidden fixed top-3 right-3 z-20">
-                <button
-                  onClick={() => setShowPricing(true)}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 hover:from-blue-600 hover:to-indigo-600 rounded-full text-white text-xs font-medium transition-all active:scale-95 shadow-lg border border-white/20"
-                >
-                  Get Plus
-                </button>
-              </div>
-
               {/* Messages Area */}
-              <div className="px-4 md:px-6 py-6 md:py-8 space-y-6 pb-32">
+              <div className="px-6 py-8 space-y-6 pb-32">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 md:gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}
+                  className={`flex gap-2 md:gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   {/* Avatar */}
-                  <div className={`flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-lg ${
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-br from-cyan-400 to-blue-600 ring-2 ring-cyan-400/30'
-                      : 'bg-gradient-to-br from-purple-500 to-pink-500 ring-2 ring-purple-400/30'
+                      ? 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2]'
+                      : 'bg-gradient-to-br from-purple-500 to-pink-500'
                   }`}>
                     {message.role === 'user' ? (
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
                         <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
                       </svg>
@@ -500,14 +488,14 @@ export const MainChat: React.FC = () => {
 
                   {/* Message Content */}
                   <div className={`flex-1 max-w-full md:max-w-3xl ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block rounded-2xl px-4 md:px-5 py-2.5 md:py-3 shadow-xl transition-all hover:shadow-2xl ${
+                    <div className={`inline-block rounded-2xl px-5 py-3 shadow-lg ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white border border-cyan-400/20'
-                        : 'glass-panel border border-white/10 text-white/95 hover:border-white/20'
+                        ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'
+                        : 'bg-white/5 backdrop-blur-xl border border-white/10 text-white'
                     }`}>
-                      <div className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">{message.content}</div>
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
                     </div>
-                    <div className={`text-[10px] md:text-xs mt-1.5 px-2 ${
+                    <div className={`text-xs mt-1.5 px-1 ${
                       message.role === 'user' ? 'text-white/50' : 'text-white/40'
                     }`}>
                       {message.created_at && new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -540,19 +528,19 @@ export const MainChat: React.FC = () => {
           )}
         </div>
 
-        {/* Input Area - Mobile/Desktop Optimized */}
+        {/* Input Area - Full Width */}
         {!showLanding && (
-          <>
-            {/* Desktop View - Original Chat Input */}
-            <div className="hidden md:block border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
-              <div className="max-w-4xl mx-auto">
-                <div className="mb-4">
-                  <AIModelSelector
-                    selectedModel={selectedModel}
-                    onModelChange={setSelectedModel}
-                    category="chat"
-                  />
-                </div>
+          <div className="border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-4">
+                <AIModelSelector
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                  category="chat"
+                />
+              </div>
+              {/* Hide chat input on mobile when landing view is active (it has its own input) */}
+              <div className={showLanding ? 'hidden md:block' : ''}>
                 <ChatInput
                   value={inputValue}
                   onChange={setInputValue}
@@ -564,50 +552,7 @@ export const MainChat: React.FC = () => {
                 />
               </div>
             </div>
-
-            {/* Mobile View - Simple ChatGPT-style Input */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel backdrop-blur-2xl border-t border-white/10 p-3 safe-bottom z-20">
-              <div className="max-w-3xl mx-auto flex items-center gap-2 px-1">
-                {/* Model Selector - Compact */}
-                <div className="flex-shrink-0">
-                  <select
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="w-12 h-10 bg-white/10 hover:bg-white/15 border border-white/20 rounded-full text-white text-xs font-medium appearance-none text-center cursor-pointer transition-all"
-                    style={{ backgroundImage: 'none' }}
-                  >
-                    <option value="groq-llama-3.3-70b" className="bg-slate-900">🦙</option>
-                    <option value="groq-llama-3.1-70b" className="bg-slate-900">🦙</option>
-                    <option value="groq-mixtral-8x7b" className="bg-slate-900">🤖</option>
-                  </select>
-                </div>
-
-                {/* Input Container */}
-                <div className="flex-1 bg-white/10 border border-white/20 rounded-[26px] px-4 py-2.5 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Message..."
-                    disabled={isLoading}
-                    className="flex-1 bg-transparent text-white placeholder-white/40 outline-none text-[15px]"
-                  />
-                  <button
-                    onClick={() => handleSendMessage()}
-                    disabled={!inputValue.trim() || isLoading}
-                    className={`flex-shrink-0 p-2 rounded-full transition-all active:scale-95 ${
-                      inputValue.trim() && !isLoading
-                        ? 'bg-white text-black hover:bg-white/90'
-                        : 'bg-white/20 text-white/40 cursor-not-allowed'
-                    }`}
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -655,10 +600,6 @@ export const MainChat: React.FC = () => {
           }}
           initialText={voiceoverText}
         />
-      )}
-
-      {showPricing && (
-        <PricingModal onClose={() => setShowPricing(false)} />
       )}
     </div>
   );

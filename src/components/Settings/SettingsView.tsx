@@ -144,16 +144,13 @@ export const SettingsView: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto">
         <div className="min-h-screen p-4 md:p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="md:hidden w-14"></div>
-            <button
-              onClick={() => navigateTo('chat')}
-              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors group md:ml-0 ml-auto"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to Chat</span>
-            </button>
-          </div>
+          <button
+            onClick={() => navigateTo('chat')}
+            className="flex items-center gap-2 text-white/70 hover:text-white mb-6 transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span>Back to Chat</span>
+          </button>
 
           <h1 className="text-4xl font-bold text-white mb-8 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">Settings</h1>
 

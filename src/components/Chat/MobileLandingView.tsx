@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Image, Lightbulb, FileText, Globe, BookOpen, Plus, Mic, Send, Camera, ImageIcon, Paperclip, X, Menu, MessageSquare } from 'lucide-react';
-import { PricingModal } from '../Pages/PricingModal';
 
 interface MobileLandingViewProps {
   onQuickAction: (prompt: string) => void;
@@ -18,7 +17,6 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
   onOpenSidebar
 }) => {
   const [showAttachMenu, setShowAttachMenu] = useState(false);
-  const [showPricing, setShowPricing] = useState(false);
 
   const suggestions = [
     {
@@ -82,10 +80,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
         {/* Spacer for hamburger button from ChatSidebar */}
         <div className="w-11" />
 
-        <button
-          onClick={() => setShowPricing(true)}
-          className="px-5 py-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 hover:from-blue-600 hover:to-indigo-600 rounded-full text-white text-sm font-medium transition-all active:scale-95 shadow-lg border border-white/20 pointer-events-auto"
-        >
+        <button className="px-5 py-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 hover:from-blue-600 hover:to-indigo-600 rounded-full text-white text-sm font-medium transition-all active:scale-95 shadow-lg border border-white/20 pointer-events-auto">
           Get Plus
         </button>
 
@@ -219,10 +214,6 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
           </>
         )}
       </div>
-
-      {showPricing && (
-        <PricingModal onClose={() => setShowPricing(false)} />
-      )}
     </div>
   );
 };
