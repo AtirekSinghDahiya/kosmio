@@ -139,8 +139,8 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
   const activeContent = content[activeSection];
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-black/40 backdrop-blur-xl border border-white/20 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="glass-panel backdrop-blur-3xl border border-white/20 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex">
         <div className="w-64 border-r border-white/10 flex flex-col">
           <div className="p-6 border-b border-white/10">
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -170,7 +170,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
         </div>
 
         <div className="flex-1 flex flex-col">
-          <div className="sticky top-0 bg-black/60 backdrop-blur-xl border-b border-white/10 p-6 flex items-center justify-between z-10">
+          <div className="sticky top-0 glass-panel backdrop-blur-3xl border-b border-white/10 p-6 flex items-center justify-between z-10">
             <h2 className="text-2xl font-bold text-white">{activeContent.title}</h2>
             <button
               onClick={onClose}

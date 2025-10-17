@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
-import { User, Zap, Briefcase, DollarSign, Home, Lightbulb, HelpCircle, BookOpen } from 'lucide-react';
+import { User, Zap, Briefcase, DollarSign, Home, Lightbulb, HelpCircle, BookOpen, Building2 } from 'lucide-react';
 import { ProfilePage } from '../Profile/ProfilePage';
 import { FeaturesPage } from '../Pages/FeaturesPage';
 import { DocsPage } from '../Pages/DocsPage';
 import { PricingModal } from '../Pages/PricingModal';
 import { HelpModal } from '../Pages/HelpModal';
 import { CareersModal } from '../Pages/CareersModal';
+import { CustomSolutionsModal } from '../Pages/CustomSolutionsModal';
 
 interface FloatingNavbarProps {
   onProfileOpen?: () => void;
@@ -22,6 +23,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
   const [showPricing, setShowPricing] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showCareers, setShowCareers] = useState(false);
+  const [showCustomSolutions, setShowCustomSolutions] = useState(false);
 
   const handleProfileClick = () => {
     if (onProfileOpen) {
@@ -86,6 +88,14 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] group-hover/item:w-full transition-all duration-300" />
               </button>
               <button
+                onClick={() => setShowCustomSolutions(true)}
+                className="relative flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-white/70 hover:text-white font-medium transition-all hover:scale-105 active:scale-95 group/item whitespace-nowrap px-2 md:px-0"
+              >
+                <Building2 className="w-4 h-4 transition-transform group-hover/item:rotate-12" />
+                <span className="hidden sm:inline">Enterprise</span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] group-hover/item:w-full transition-all duration-300" />
+              </button>
+              <button
                 onClick={() => setShowHelp(true)}
                 className="relative flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-white/70 hover:text-white font-medium transition-all hover:scale-105 active:scale-95 group/item whitespace-nowrap px-2 md:px-0"
               >
@@ -146,6 +156,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
       {showCareers && <CareersModal onClose={() => setShowCareers(false)} />}
+      {showCustomSolutions && <CustomSolutionsModal onClose={() => setShowCustomSolutions(false)} />}
     </>
   );
 };

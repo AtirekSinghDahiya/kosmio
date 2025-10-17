@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Sparkles, Zap, Star, Crown } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { CustomSolutionsModal } from './CustomSolutionsModal';
 
 interface PricingModalProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ interface Plan {
 
 export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [showCustomSolutions, setShowCustomSolutions] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -174,9 +176,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-black/40 backdrop-blur-xl border border-white/20 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-        <div className="sticky top-0 bg-black/60 backdrop-blur-xl border-b border-white/10 p-6 flex items-center justify-between z-10">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-md z-50 flex items-center justify-center p-4">
+      <div className="glass-panel backdrop-blur-3xl border border-white/20 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+        <div className="sticky top-0 glass-panel backdrop-blur-3xl border-b border-white/10 p-6 flex items-center justify-between z-10">
           <div>
             <h2 className="text-3xl font-bold text-white">Pricing Plans</h2>
             <p className="text-white/60 text-sm mt-1">Choose the perfect plan for your needs</p>
@@ -251,11 +253,17 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
             <p className="text-white/70 text-sm">
               All plans include secure data storage, regular updates, and access to new features.
               <br />
-              <span className="text-cyan-400">Need a custom solution?</span> Contact our sales team for enterprise pricing.
+              <button
+                onClick={() => setShowCustomSolutions(true)}
+                className="text-cyan-400 hover:text-cyan-300 underline hover:no-underline transition-all"
+              >
+                Need a custom solution?
+              </button> Contact our sales team for enterprise pricing.
             </p>
           </div>
         </div>
       </div>
+      {showCustomSolutions && <CustomSolutionsModal onClose={() => setShowCustomSolutions(false)} />}
     </div>
   );
 };
