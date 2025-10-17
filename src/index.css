@@ -115,7 +115,7 @@ body {
 .light-theme .gradient-background {
   background: linear-gradient(300deg, deepskyblue, #e30490, #ffa100, #f6f9f5);
   background-size: 240% 240%;
-  animation: gradient-animation 24s ease infinite;
+  animation: gradient-animation 16s ease infinite;
 }
 
 .light-theme .gradient-background::before {
@@ -192,6 +192,154 @@ body {
 
 .light-theme button:hover .bg-gradient-to-r {
   background: linear-gradient(to right, rgba(0, 191, 255, 0.3), rgba(227, 4, 144, 0.3)) !important;
+}
+
+/* Light Theme - Sidebar Styling */
+.light-theme .bg-gradient-to-b {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+.light-theme .hover\:bg-white\/10:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light-theme .bg-white\/5 {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Light Theme - Cards & Panels */
+.light-theme .bg-\[rgba\(15\,23\,42\,0\.3\)\],
+.light-theme .bg-\[rgba\(15\,23\,42\,0\.4\)\],
+.light-theme .bg-\[rgba\(15\,23\,42\,0\.5\)\] {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light Theme - Hover States */
+.light-theme .hover\:bg-\[rgba\(15\,23\,42\,0\.4\)\]:hover,
+.light-theme .hover\:bg-\[rgba\(15\,23\,42\,0\.5\)\]:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Light Theme - Gradient Buttons */
+.light-theme .from-cyan-500,
+.light-theme .from-\[\#00FFF0\] {
+  --tw-gradient-from: deepskyblue !important;
+}
+
+.light-theme .to-blue-600,
+.light-theme .to-\[\#8A2BE2\] {
+  --tw-gradient-to: #e30490 !important;
+}
+
+/* Light Theme - Text Colors for Better Contrast */
+.light-theme .text-\[\#00FFF0\],
+.light-theme .text-cyan-400,
+.light-theme .text-cyan-500 {
+  color: #0077cc !important;
+}
+
+.light-theme .text-purple-400,
+.light-theme .text-purple-500 {
+  color: #c2047c !important;
+}
+
+/* Light Theme - Icon Colors */
+.light-theme svg {
+  opacity: 0.85;
+}
+
+/* Light Theme - Message Bubbles */
+.light-theme .message-bubble-user {
+  background: rgba(0, 119, 204, 0.15) !important;
+  border-color: rgba(0, 119, 204, 0.3) !important;
+}
+
+.light-theme .message-bubble-ai {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light Theme - Navbar & Header */
+.light-theme nav,
+.light-theme header {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light Theme - Buttons */
+.light-theme button {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light Theme - Focus States */
+.light-theme input:focus,
+.light-theme textarea:focus {
+  border-color: #0077cc !important;
+  box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.1),
+              0 0 20px rgba(0, 119, 204, 0.2) !important;
+}
+
+/* Light Theme - Shadows */
+.light-theme .shadow-lg,
+.light-theme .shadow-xl,
+.light-theme .shadow-2xl {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Light Theme - Disabled States */
+.light-theme button:disabled {
+  opacity: 0.4 !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Light Theme - KBD Elements */
+.light-theme kbd {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #1a1a1a !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Light Theme - Backdrop Overlays */
+.light-theme .backdrop-blur-xl,
+.light-theme .backdrop-blur-lg {
+  backdrop-filter: blur(30px) !important;
+}
+
+/* Light Theme - Gradient Text */
+.light-theme .bg-clip-text {
+  background: linear-gradient(120deg, #0077cc, #c2047c, #0077cc) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+/* Light Theme - Specific Component Overrides */
+.light-theme [class*="from-cyan"],
+.light-theme [class*="from-blue"],
+.light-theme [class*="from-teal"] {
+  --tw-gradient-from: deepskyblue !important;
+}
+
+.light-theme [class*="to-cyan"],
+.light-theme [class*="to-blue"],
+.light-theme [class*="to-purple"],
+.light-theme [class*="via-teal"] {
+  --tw-gradient-to: #e30490 !important;
+}
+
+/* Light Theme - Enhance Visibility */
+.light-theme .text-white\/30 {
+  color: rgba(26, 26, 26, 0.5) !important;
+}
+
+.light-theme .text-white\/40 {
+  color: rgba(26, 26, 26, 0.6) !important;
+}
+
+.light-theme .text-white\/80 {
+  color: rgba(26, 26, 26, 0.9) !important;
 }
 
 .cosmic-particles {
