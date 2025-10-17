@@ -169,11 +169,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
       console.log('🔐 Creating new user account...');
+      console.log('   Email:', email);
+      console.log('   Password length:', password?.length || 0);
+      console.log('   Display name:', displayName);
+
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
+      if (password.length < 6) {
+        throw new Error('Password should be at least 6 characters');
+      }
+
+      console.log('   Firebase auth instance:', auth ? 'OK' : 'NULL');
+      console.log('   Firebase project:', auth?.app?.options?.projectId);
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('✅ User account created:', userCredential.user.uid);
+      console.log('   Email verified:', userCredential.user.emailVerified);
+
       await createDefaultProfile(userCredential.user.uid, email, displayName);
-    } catch (error) {
+      console.log('✅ Sign up complete!');
+    } catch (error: any) {
       console.error('❌ Error during sign up:', error);
+      console.error('   Error code:', error.code);
+      console.error('   Error message:', error.message);
+
+      // Translate Firebase error codes to user-friendly messages
+      if (error.code === 'auth/email-already-in-use') {
+        throw new Error('This email is already registered. Please sign in instead.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
+      } else if (error.code === 'auth/operation-not-allowed') {
+        throw new Error('Email/password sign up is not enabled. Please contact support.');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('Password should be at least 6 characters.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection.');
+      }
+
       throw error;
     }
   };
@@ -181,11 +215,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       console.log('🔐 Signing in...');
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log('   Email:', email);
+      console.log('   Password length:', password?.length || 0);
+
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+
+      console.log('   Firebase auth instance:', auth ? 'OK' : 'NULL');
+      console.log('   Firebase project:', auth?.app?.options?.projectId);
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       updateSessionTimestamp();
       console.log('✅ Sign in successful - session created');
-    } catch (error) {
+      console.log('   User ID:', userCredential.user.uid);
+      console.log('   Email:', userCredential.user.email);
+    } catch (error: any) {
       console.error('❌ Error during sign in:', error);
+      console.error('   Error code:', error.code);
+      console.error('   Error message:', error.message);
+
+      // Translate Firebase error codes to user-friendly messages
+      if (error.code === 'auth/user-not-found') {
+        throw new Error('No account found with this email. Please sign up first.');
+      } else if (error.code === 'auth/wrong-password') {
+        throw new Error('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
+      } else if (error.code === 'auth/user-disabled') {
+        throw new Error('This account has been disabled. Please contact support.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection.');
+      } else if (error.code === 'auth/invalid-credential') {
+        throw new Error('Invalid email or password. Please try again.');
+      }
+
       throw error;
     }
   };

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, User as UserIcon } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Bug } from 'lucide-react';
 import { CosmicBackground } from '../Layout/CosmicBackground';
+import { auth } from '../../lib/firebase';
 
 export const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,10 +12,16 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
   const { signIn, signUp } = useAuth();
 
   useEffect(() => {
     setMounted(true);
+    // Log Firebase status on mount
+    console.log('🔥 Firebase Auth Status:');
+    console.log('   Auth instance:', auth ? 'OK' : 'NULL');
+    console.log('   Project ID:', auth?.app?.options?.projectId);
+    console.log('   Auth domain:', auth?.app?.options?.authDomain);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,8 +216,28 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-center mt-6 text-white/40 text-xs">
-          <p>Kroniq © 2025 — Crafted with intelligence</p>
+        <div className="text-center mt-6 space-y-3">
+          <p className="text-white/40 text-xs">Kroniq © 2025 — Crafted with intelligence</p>
+
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="text-white/30 hover:text-white/60 text-xs flex items-center justify-center gap-1 mx-auto transition-colors"
+          >
+            <Bug className="w-3 h-3" />
+            {showDebug ? 'Hide' : 'Show'} Debug Info
+          </button>
+
+          {showDebug && (
+            <div className="glass-panel rounded-xl p-3 border border-white/10 text-left">
+              <p className="text-white/60 text-xs font-mono mb-2">Firebase Status:</p>
+              <div className="space-y-1 text-xs font-mono">
+                <p className="text-white/50">Auth: {auth ? '✅ OK' : '❌ NULL'}</p>
+                <p className="text-white/50">Project: {auth?.app?.options?.projectId}</p>
+                <p className="text-white/50">Domain: {auth?.app?.options?.authDomain}</p>
+                {error && <p className="text-red-400 mt-2">Last Error: {error}</p>}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
