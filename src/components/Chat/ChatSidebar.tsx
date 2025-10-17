@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
 
@@ -22,6 +23,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onRenameProject,
 }) => {
   const { signOut, userData } = useAuth();
+  const { navigateTo } = useNavigation();
   const [isHovered, setIsHovered] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
@@ -226,6 +228,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             </div>
           </div>
         )}
+
+        <button
+          onClick={() => navigateTo('settings')}
+          className={`w-full flex items-center gap-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all text-sm border border-transparent hover:border-white/20 button-press ${
+            isHovered ? 'px-3 py-2.5 justify-start' : 'p-2.5 justify-center'
+          }`}
+          title={!isHovered ? 'Settings' : ''}
+        >
+          <Settings className="w-4 h-4 flex-shrink-0" />
+          {isHovered && <span className="animate-fade-in">Settings</span>}
+        </button>
 
         <button
           onClick={signOut}
