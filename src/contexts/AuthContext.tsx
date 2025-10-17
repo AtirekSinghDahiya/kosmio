@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       bio: '',
       location: '',
       phone: '',
-      plan: 'free',
+      plan: 'starter',
       tokensUsed: 0,
       tokensLimit: 10000,
       aiPersonality: 'balanced',
@@ -321,28 +321,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔄 Auth state changed:', user ? user.uid : 'No user');
 
       if (user) {
-        const sessionValid = checkSessionValidity();
-        console.log('   Session check:', sessionValid ? 'Valid' : 'Invalid/New');
+        // Always create/update session on auth state change
+        updateSessionTimestamp();
+        console.log('   Creating/updating session...');
 
-        // If no session exists (new login), create one
-        if (!sessionValid && !localStorage.getItem(SESSION_KEY)) {
-          console.log('   Creating new session...');
-          updateSessionTimestamp();
-        }
-
-        // Only sign out if session exists AND is expired
-        if (sessionValid || !localStorage.getItem(SESSION_KEY)) {
-          updateSessionTimestamp();
-          setCurrentUser(user);
-          await fetchUserData(user.uid, user.email || '');
-          console.log('✅ User authenticated');
-        } else {
-          console.log('⏰ Session expired (2 hours), signing out...');
-          await firebaseSignOut(auth);
-          clearSession();
-          setCurrentUser(null);
-          setUserData(null);
-        }
+        setCurrentUser(user);
+        await fetchUserData(user.uid, user.email || '');
+        console.log('✅ User authenticated');
       } else {
         console.log('   No user, clearing state');
         setCurrentUser(null);
