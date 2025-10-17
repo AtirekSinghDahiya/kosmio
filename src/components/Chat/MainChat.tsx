@@ -445,9 +445,9 @@ export const MainChat: React.FC = () => {
               <div className="md:hidden h-full">
                 <MobileLandingView
                   onQuickAction={(text) => handleSendMessage(text)}
-                  input={input}
-                  setInput={setInput}
-                  onSendMessage={() => handleSendMessage(input)}
+                  input={inputValue}
+                  setInput={setInputValue}
+                  onSendMessage={() => handleSendMessage(inputValue)}
                 />
               </div>
               {/* Desktop Landing View */}
