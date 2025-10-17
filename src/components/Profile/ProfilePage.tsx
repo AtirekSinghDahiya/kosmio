@@ -160,8 +160,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-      <div className="w-full max-w-4xl glass-panel rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-scale-in my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
+      <div className="w-full max-w-4xl max-h-[90vh] glass-panel rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-scale-in flex flex-col">
         <div className="relative h-32 bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30">
           <button
             onClick={onClose}
@@ -171,7 +171,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
           </button>
         </div>
 
-        <div className="px-6 pb-6 -mt-16 relative">
+        <div className="px-6 pb-6 -mt-16 relative overflow-y-auto flex-1">
           <div className="flex items-end gap-6 mb-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl border-4 border-[#0a0a1f] overflow-hidden">

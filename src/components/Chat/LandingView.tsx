@@ -90,8 +90,8 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         {/* Mobile: Input First (at top), Cards Below */}
         {/* Desktop: Normal order - Cards then Input */}
         <div className="flex flex-col-reverse md:flex-col">
-          {/* Cards Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 md:mb-3">
+          {/* Cards Section - Hidden on mobile */}
+          <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 md:mb-3">
             {suggestions.map((suggestion, index) => {
             const Icon = suggestion.icon;
             return (

@@ -72,7 +72,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-3 w-full bg-slate-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in">
+          <div className="absolute top-full left-0 mt-3 w-full glass-panel backdrop-blur-3xl border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in">
             <div className="p-2 max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => (
                 <button
