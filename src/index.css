@@ -400,6 +400,13 @@ body {
   }
 }
 
+@media (max-width: 1024px) {
+  :root {
+    --glass-blur: 14px;
+    --tile-radius: 22px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --glass-blur: 12px;
@@ -423,8 +430,28 @@ body {
     font-size: 2.5rem !important;
   }
 
+  h2 {
+    font-size: 1.75rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+
   .animate-fade-in-up {
     animation-duration: 0.4s;
+  }
+
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }
 
@@ -442,6 +469,41 @@ body {
   .message-bubble-ai {
     margin-left: 0;
     margin-right: 0;
+  }
+
+  h1 {
+    font-size: 2rem !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+  }
+
+  body {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --glass-blur: 8px;
+    --tile-radius: 14px;
+  }
+
+  h1 {
+    font-size: 1.75rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .floating-card-inner:hover {
+    transform: translateY(-8px) scale(1.02);
   }
 }
 
@@ -846,4 +908,88 @@ select option:checked {
   background-color: #3b82f6;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
+}
+
+/* Touch-Optimized Interactions */
+@media (hover: none) and (pointer: coarse) {
+  button:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+
+  .glass-panel-hover:active {
+    background: rgba(15, 23, 42, 0.6);
+    border-color: var(--accent-teal);
+  }
+
+  a:active {
+    opacity: 0.7;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+  }
+}
+
+/* Prevent text selection on interactive elements */
+button,
+.no-select,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Smooth scrolling for mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile-specific layout adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .modal-content,
+  .dialog-content {
+    max-width: 95vw;
+    margin: 0.5rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+}
+
+/* Landscape mode adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+  .h-screen {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
 }

@@ -424,7 +424,7 @@ export const MainChat: React.FC = () => {
   const showLanding = !activeProjectId;
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900 overflow-hidden">
       <FloatingNavbar />
 
       <ChatSidebar
@@ -436,8 +436,8 @@ export const MainChat: React.FC = () => {
         onRenameProject={handleRenameProject}
       />
 
-      <div className="flex-1 flex flex-col pt-20 overflow-hidden">
-        <div className="flex-1 ml-16 overflow-y-auto">
+      <div className="flex-1 flex flex-col pt-16 md:pt-20 overflow-hidden">
+        <div className="flex-1 ml-0 md:ml-16 overflow-y-auto px-2 md:px-4">
           {showLanding ? (
             <LandingView
               onQuickAction={(text) => handleSendMessage(text)}
@@ -451,7 +451,7 @@ export const MainChat: React.FC = () => {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                  className={`flex gap-2 md:gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   {/* Avatar */}
                   <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
@@ -472,7 +472,7 @@ export const MainChat: React.FC = () => {
                   </div>
 
                   {/* Message Content */}
-                  <div className={`flex-1 max-w-3xl ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                  <div className={`flex-1 max-w-full md:max-w-3xl ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                     <div className={`inline-block rounded-2xl px-5 py-3 shadow-lg ${
                       message.role === 'user'
                         ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'

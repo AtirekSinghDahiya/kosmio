@@ -90,9 +90,11 @@ const MainApp: React.FC = () => {
         ) : (
           <div className="flex h-screen">
             <Sidebar currentView={currentView} onViewChange={(view) => navigateTo(view as any)} />
-            <div className="flex-1 ml-16">
+            <div className="flex-1 ml-0 md:ml-16">
               <FloatingNavbar />
-              {renderView()}
+              <div className="pt-16 md:pt-0">
+                {renderView()}
+              </div>
             </div>
           </div>
         )}

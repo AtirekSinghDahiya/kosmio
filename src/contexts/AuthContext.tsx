@@ -50,10 +50,29 @@ export const useAuth = () => {
   return context;
 };
 
+const SESSION_TIMEOUT_MS = 2 * 60 * 60 * 1000;
+const SESSION_KEY = 'kroniq_session_timestamp';
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const updateSessionTimestamp = () => {
+    localStorage.setItem(SESSION_KEY, Date.now().toString());
+  };
+
+  const checkSessionValidity = (): boolean => {
+    const timestamp = localStorage.getItem(SESSION_KEY);
+    if (!timestamp) return false;
+
+    const elapsed = Date.now() - parseInt(timestamp, 10);
+    return elapsed < SESSION_TIMEOUT_MS;
+  };
+
+  const clearSession = () => {
+    localStorage.removeItem(SESSION_KEY);
+  };
 
   const createSupabaseProfile = async (userId: string, email: string, displayName?: string) => {
     console.log('📝 Creating/updating Supabase profile for user:', userId);
@@ -163,7 +182,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🔐 Signing in...');
       await signInWithEmailAndPassword(auth, email, password);
-      console.log('✅ Sign in successful');
+      updateSessionTimestamp();
+      console.log('✅ Sign in successful - session created');
     } catch (error) {
       console.error('❌ Error during sign in:', error);
       throw error;
@@ -174,8 +194,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🚪 Signing out...');
       await firebaseSignOut(auth);
+      clearSession();
       setUserData(null);
-      console.log('✅ Sign out successful');
+      console.log('✅ Sign out successful - session cleared');
     } catch (error) {
       console.error('❌ Error during sign out:', error);
       throw error;
@@ -234,22 +255,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('🔄 Auth state changed:', user ? user.uid : 'No user');
-      setCurrentUser(user);
 
       if (user) {
-        await fetchUserData(user.uid, user.email || '');
+        if (checkSessionValidity()) {
+          updateSessionTimestamp();
+          setCurrentUser(user);
+          await fetchUserData(user.uid, user.email || '');
+          console.log('✅ Session valid, user authenticated');
+        } else {
+          console.log('⏰ Session expired (2 hours), signing out...');
+          await firebaseSignOut(auth);
+          clearSession();
+          setCurrentUser(null);
+          setUserData(null);
+        }
       } else {
+        setCurrentUser(null);
         setUserData(null);
+        clearSession();
       }
 
       setLoading(false);
     });
 
+    const activityHandler = () => {
+      if (currentUser && checkSessionValidity()) {
+        updateSessionTimestamp();
+      }
+    };
+
+    window.addEventListener('click', activityHandler);
+    window.addEventListener('keydown', activityHandler);
+    window.addEventListener('scroll', activityHandler);
+
+    const sessionCheck = setInterval(() => {
+      if (currentUser && !checkSessionValidity()) {
+        console.log('⏰ Session timeout detected, signing out...');
+        firebaseSignOut(auth);
+      }
+    }, 60000);
+
     return () => {
       console.log('🧹 Cleaning up auth listener');
       unsubscribe();
+      window.removeEventListener('click', activityHandler);
+      window.removeEventListener('keydown', activityHandler);
+      window.removeEventListener('scroll', activityHandler);
+      clearInterval(sessionCheck);
     };
-  }, []);
+  }, [currentUser]);
 
   const value: AuthContextType = {
     currentUser,
