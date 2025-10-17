@@ -424,7 +424,7 @@ export const MainChat: React.FC = () => {
   const showLanding = !activeProjectId;
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900 overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <FloatingNavbar />
 
       <ChatSidebar

@@ -194,10 +194,11 @@ body {
   background: linear-gradient(to right, rgba(0, 191, 255, 0.3), rgba(227, 4, 144, 0.3)) !important;
 }
 
-/* Light Theme - Sidebar Styling */
-.light-theme .bg-gradient-to-b {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
+/* Light Theme - Sidebar Styling - Keep transparent to show gradient */
+.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(30px) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 .light-theme .hover\:bg-white\/10:hover {
@@ -261,11 +262,11 @@ body {
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Light Theme - Navbar & Header */
-.light-theme nav,
-.light-theme header {
-  background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(20px) !important;
+/* Light Theme - Navbar & Header - Keep transparent to show gradient */
+.light-theme nav .glass-panel,
+.light-theme header .glass-panel {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(30px) !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
 

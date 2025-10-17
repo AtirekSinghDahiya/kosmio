@@ -66,8 +66,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         <div className="orbit-ring" style={{ width: '200px', height: '200px', bottom: '15%', left: '60%' }} />
       </div>
 
-      <div className="max-w-4xl w-full space-y-4 md:space-y-3 relative z-10 pt-16 md:pt-4">
-        <div className={`text-center space-y-2 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
+      <div className="max-w-4xl w-full flex flex-col relative z-10 pt-16 md:pt-4">
+        {/* Header - Hidden on mobile to save space */}
+        <div className={`hidden md:block text-center space-y-2 mb-3 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-2 md:p-3 animate-pulse-glow">
             <img
               src="/logo.svg"
@@ -86,8 +87,12 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {suggestions.map((suggestion, index) => {
+        {/* Mobile: Input First (at top), Cards Below */}
+        {/* Desktop: Normal order - Cards then Input */}
+        <div className="flex flex-col-reverse md:flex-col">
+          {/* Cards Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 md:mb-3">
+            {suggestions.map((suggestion, index) => {
             const Icon = suggestion.icon;
             return (
               <div
@@ -160,9 +165,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
               </div>
             );
           })}
-        </div>
+          </div>
 
-        <div className={`text-center space-y-1 mb-2 ${mounted ? 'animate-fade-in-up stagger-4' : 'opacity-0'}`}>
+          {/* Input Section - Shows first on mobile */}
+          <div className="space-y-2">
+            <div className={`hidden md:flex text-center space-y-1 mb-2 justify-center ${mounted ? 'animate-fade-in-up stagger-4' : 'opacity-0'}`}>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 glass-panel rounded-full">
             <div className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/80 text-[10px] font-medium border border-white/20">
@@ -313,7 +320,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
               </div>
             </div>
           </div>
-        </form>
+          </form>
+          </div>
+        </div>
       </div>
 
       <footer className={`text-center text-white/40 text-xs py-4 ${mounted ? 'animate-fade-in-up stagger-6' : 'opacity-0'}`}>
