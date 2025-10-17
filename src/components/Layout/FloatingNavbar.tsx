@@ -108,7 +108,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
         </div>
       </nav>
 
-      <div className="fixed top-3 md:top-5 right-3 md:right-4 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
+      <div className="hidden md:flex fixed top-3 md:top-5 right-3 md:right-4 z-30 items-center gap-2 md:gap-3 animate-fade-in-up">
         <div className="relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/10 to-[#8A2BE2]/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="relative bg-black/30 backdrop-blur-xl border border-white/10 group-hover:border-white/20 rounded-2xl px-2 md:px-5 py-1.5 md:py-3 flex items-center gap-2 md:gap-4 shadow-xl transition-all duration-300">

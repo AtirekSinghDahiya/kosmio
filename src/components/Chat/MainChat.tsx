@@ -18,6 +18,7 @@ import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
+import { PricingModal } from '../Pages/PricingModal';
 import {
   createProject,
   addMessage,
@@ -50,6 +51,7 @@ export const MainChat: React.FC = () => {
   const [videoPrompt, setVideoPrompt] = useState('');
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
+  const [showPricing, setShowPricing] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -461,6 +463,16 @@ export const MainChat: React.FC = () => {
             </>
           ) : (
             <>
+              {/* Mobile Get Plus Button - Top Right */}
+              <div className="md:hidden fixed top-3 right-3 z-20">
+                <button
+                  onClick={() => setShowPricing(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600/90 to-indigo-600/90 hover:from-blue-600 hover:to-indigo-600 rounded-full text-white text-xs font-medium transition-all active:scale-95 shadow-lg border border-white/20"
+                >
+                  Get Plus
+                </button>
+              </div>
+
               {/* Messages Area */}
               <div className="px-4 md:px-6 py-6 md:py-8 space-y-6 pb-32">
               {messages.map((message) => (
@@ -528,19 +540,19 @@ export const MainChat: React.FC = () => {
           )}
         </div>
 
-        {/* Input Area - Full Width */}
+        {/* Input Area - Mobile/Desktop Optimized */}
         {!showLanding && (
-          <div className="border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
-            <div className="max-w-4xl mx-auto">
-              <div className="mb-4">
-                <AIModelSelector
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                  category="chat"
-                />
-              </div>
-              {/* Hide chat input on mobile when landing view is active (it has its own input) */}
-              <div className={showLanding ? 'hidden md:block' : ''}>
+          <>
+            {/* Desktop View - Original Chat Input */}
+            <div className="hidden md:block border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
+              <div className="max-w-4xl mx-auto">
+                <div className="mb-4">
+                  <AIModelSelector
+                    selectedModel={selectedModel}
+                    onModelChange={setSelectedModel}
+                    category="chat"
+                  />
+                </div>
                 <ChatInput
                   value={inputValue}
                   onChange={setInputValue}
@@ -552,7 +564,50 @@ export const MainChat: React.FC = () => {
                 />
               </div>
             </div>
-          </div>
+
+            {/* Mobile View - Simple ChatGPT-style Input */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel backdrop-blur-2xl border-t border-white/10 p-3 safe-bottom z-20">
+              <div className="flex items-center gap-2">
+                {/* Model Selector - Compact */}
+                <div className="flex-shrink-0">
+                  <select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    className="w-12 h-10 bg-white/10 hover:bg-white/15 border border-white/20 rounded-full text-white text-xs font-medium appearance-none text-center cursor-pointer transition-all"
+                    style={{ backgroundImage: 'none' }}
+                  >
+                    <option value="groq-llama-3.3-70b" className="bg-slate-900">🦙</option>
+                    <option value="groq-llama-3.1-70b" className="bg-slate-900">🦙</option>
+                    <option value="groq-mixtral-8x7b" className="bg-slate-900">🤖</option>
+                  </select>
+                </div>
+
+                {/* Input Container */}
+                <div className="flex-1 bg-white/10 border border-white/20 rounded-[26px] px-4 py-2.5 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Message..."
+                    disabled={isLoading}
+                    className="flex-1 bg-transparent text-white placeholder-white/40 outline-none text-[15px]"
+                  />
+                  <button
+                    onClick={() => handleSendMessage()}
+                    disabled={!inputValue.trim() || isLoading}
+                    className={`flex-shrink-0 p-2 rounded-full transition-all active:scale-95 ${
+                      inputValue.trim() && !isLoading
+                        ? 'bg-white text-black hover:bg-white/90'
+                        : 'bg-white/20 text-white/40 cursor-not-allowed'
+                    }`}
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -600,6 +655,10 @@ export const MainChat: React.FC = () => {
           }}
           initialText={voiceoverText}
         />
+      )}
+
+      {showPricing && (
+        <PricingModal onClose={() => setShowPricing(false)} />
       )}
     </div>
   );
