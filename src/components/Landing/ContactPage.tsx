@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, MessageSquare, MapPin, Send, Check } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
+import { submitForm } from '../../lib/formTrackingService';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const ContactPage: React.FC = () => {
+  const { currentUser } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -11,18 +14,38 @@ export const ContactPage: React.FC = () => {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const userId = currentUser?.uid || 'anonymous';
+      const result = await submitForm(userId, 'contact', formData);
+
+      if (result.success) {
+        console.log('✅ Contact form submitted successfully:', result.id);
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({ name: '', email: '', subject: '', message: '' });
+        }, 3000);
+      } else {
+        setError(result.error || 'Failed to submit form. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error submitting contact form:', err);
+      setError('Failed to submit form. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -172,12 +195,32 @@ export const ContactPage: React.FC = () => {
                       />
                     </div>
 
+                    {error && (
+                      <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-4 rounded-2xl text-sm">
+                        {error}
+                      </div>
+                    )}
+
                     <button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-8 py-5 rounded-2xl font-bold text-lg hover:shadow-2xl hover:shadow-[#00FFF0]/40 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3 group"
+                      disabled={submitting}
+                      className="w-full bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-8 py-5 rounded-2xl font-bold text-lg hover:shadow-2xl hover:shadow-[#00FFF0]/40 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      <span>Send Message</span>
-                      <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      {submitting ? (
+                        <>
+                          <div className="typing-indicator">
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                          </div>
+                          <span>Sending...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Send Message</span>
+                          <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </button>
                   </form>
                 ) : (
