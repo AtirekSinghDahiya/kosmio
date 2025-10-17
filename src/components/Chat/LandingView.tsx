@@ -66,7 +66,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         <div className="orbit-ring" style={{ width: '200px', height: '200px', bottom: '15%', left: '60%' }} />
       </div>
 
-      <div className="max-w-4xl w-full space-y-3 relative z-10 pt-4">
+      <div className="max-w-4xl w-full space-y-4 md:space-y-3 relative z-10 pt-16 md:pt-4">
         <div className={`text-center space-y-2 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-2 md:p-3 animate-pulse-glow">
             <img
@@ -99,11 +99,12 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
               >
                 <button
                   onClick={() => onQuickAction(suggestion.prompt)}
-                  className="floating-card-inner w-full group relative overflow-hidden rounded-xl p-3 text-left transition-all duration-500"
+                  className="floating-card-inner w-full group relative overflow-hidden rounded-xl p-4 md:p-3 text-left transition-all duration-500 active:scale-95 touch-manipulation"
                   style={{
                     background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
                     backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(255,255,255,0.1)',
+                    minHeight: '80px',
                   }}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${suggestion.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -114,9 +115,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                     }}
                   />
 
-                  <div className="relative z-10 space-y-2">
+                  <div className="relative z-10 space-y-2 md:space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
+                      <div className="w-12 h-12 md:w-10 md:h-10 rounded-lg flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500"
                         style={{
                           background: 'linear-gradient(135deg, rgba(0,255,240,0.2), rgba(138,43,226,0.2))',
                           backdropFilter: 'blur(10px)',
@@ -124,21 +125,21 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                           boxShadow: '0 8px 32px rgba(0,255,240,0.1)',
                         }}
                       >
-                        <Icon className="w-5 h-5 text-white drop-shadow-2xl" />
+                        <Icon className="w-6 h-6 md:w-5 md:h-5 text-white drop-shadow-2xl" />
                       </div>
 
                       <div className="w-2 h-2 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
                     </div>
 
-                    <div className="space-y-0.5">
-                      <h3 className="text-base font-bold text-white group-hover:translate-x-1 transition-transform duration-500"
+                    <div className="space-y-1">
+                      <h3 className="text-lg md:text-base font-bold text-white group-hover:translate-x-1 transition-transform duration-500"
                         style={{
                           textShadow: '0 2px 10px rgba(0,255,240,0.3)',
                         }}
                       >
                         {suggestion.title}
                       </h3>
-                      <p className="text-xs text-white/70 group-hover:text-white/90 leading-relaxed transition-colors duration-500">
+                      <p className="text-sm md:text-xs text-white/70 group-hover:text-white/90 leading-relaxed transition-colors duration-500">
                         {suggestion.description}
                       </p>
                     </div>

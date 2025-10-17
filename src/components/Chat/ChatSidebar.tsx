@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { Project } from '../../types';
@@ -25,10 +25,34 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const { signOut, userData } = useAuth();
   const { navigateTo } = useNavigation();
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const sidebar = document.getElementById('mobile-sidebar');
+      const hamburger = document.getElementById('mobile-hamburger');
+      if (sidebar && !sidebar.contains(e.target as Node) && hamburger && !hamburger.contains(e.target as Node)) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    if (isMobileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = '';
+    };
+  }, [isMobileOpen]);
 
   const getProjectIcon = (type: string) => {
     switch (type) {
@@ -62,13 +86,36 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const groupOrder = ['Today', 'Yesterday', 'This Week', 'Older'];
 
   return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`h-screen glass-panel border-r border-white/10 flex flex-col transition-all duration-500 ease-out ${
-        isHovered ? 'w-72 shadow-2xl shadow-[#00FFF0]/5' : 'w-16'
-      }`}
-    >
+    <>
+      {/* Mobile Hamburger Button */}
+      <button
+        id="mobile-hamburger"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-3 rounded-xl glass-panel border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg"
+        aria-label="Toggle menu"
+      >
+        {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in" />
+      )}
+
+      {/* Sidebar */}
+      <div
+        id="mobile-sidebar"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`h-screen glass-panel border-r border-white/10 flex flex-col transition-all duration-500 ease-out z-50
+          md:relative fixed top-0 left-0
+          ${
+            isMobileOpen
+              ? 'translate-x-0 w-72 shadow-2xl shadow-[#00FFF0]/5'
+              : 'md:translate-x-0 -translate-x-full md:w-16 md:hover:w-72 md:hover:shadow-2xl md:hover:shadow-[#00FFF0]/5 w-72'
+          }
+        `}
+      >
       <div className="p-3 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center flex-shrink-0 p-1">
@@ -78,7 +125,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
             />
           </div>
-          {isHovered && (
+          {(isMobileOpen || isHovered) && (
             <span className="text-white font-bold text-base whitespace-nowrap animate-fade-in bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
               Kroniq
             </span>
@@ -88,19 +135,22 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
       <div className="p-3">
         <button
-          onClick={onNewChat}
-          className={`relative w-full flex items-center gap-2 bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 hover:from-[#00FFF0]/30 hover:to-[#8A2BE2]/30 rounded-xl text-white text-sm font-semibold transition-all duration-300 border border-white/10 hover:border-[#00FFF0]/50 hover:shadow-lg hover:shadow-[#00FFF0]/20 group ${
-            isHovered ? 'px-4 py-3 justify-start' : 'p-3 justify-center'
+          onClick={() => {
+            onNewChat();
+            setIsMobileOpen(false);
+          }}
+          className={`relative w-full flex items-center gap-2 bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 hover:from-[#00FFF0]/30 hover:to-[#8A2BE2]/30 active:scale-95 rounded-xl text-white text-sm font-semibold transition-all duration-300 border border-white/10 hover:border-[#00FFF0]/50 hover:shadow-lg hover:shadow-[#00FFF0]/20 group ${
+            isMobileOpen || isHovered ? 'px-4 py-3 justify-start' : 'md:p-3 px-4 py-3 md:justify-center justify-start'
           }`}
-          title={!isHovered ? 'New Chat' : ''}
+          title={!isHovered && !isMobileOpen ? 'New Chat' : ''}
         >
           <Plus className="w-5 h-5 flex-shrink-0 transition-transform group-hover:rotate-90 duration-300" />
-          {isHovered && <span className="animate-fade-in">New Chat</span>}
+          {(isMobileOpen || isHovered) && <span className="animate-fade-in">New Chat</span>}
           <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/0 via-[#00FFF0]/10 to-[#00FFF0]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl" />
         </button>
       </div>
 
-      {isHovered && projects.length > 0 && (
+      {(isMobileOpen || isHovered) && projects.length > 0 && (
         <div className="px-3 pb-3 animate-fade-in">
           <div className="relative glass-panel rounded-lg">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
@@ -118,7 +168,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="flex-1 overflow-y-auto scrollbar-thin px-2">
         {projects.length === 0 ? (
           <div className="flex items-center justify-center h-32 px-4">
-            {isHovered && (
+            {(isMobileOpen || isHovered) && (
               <p className="text-white/40 text-xs text-center animate-fade-in">
                 Start a new chat to begin
               </p>
@@ -132,7 +182,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
               return (
                 <div key={group}>
-                  {isHovered && (
+                  {(isMobileOpen || isHovered) && (
                     <div className="px-2 py-1 text-[10px] font-semibold text-white/40 uppercase tracking-wider animate-fade-in">
                       {group}
                     </div>
@@ -145,13 +195,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       return (
                         <div key={project.id} className="relative group/item">
                           <button
-                            onClick={() => onSelectProject(project.id)}
-                            className={`relative w-full flex items-start gap-2.5 rounded-lg transition-all duration-300 group text-left border overflow-hidden ${
+                            onClick={() => {
+                              onSelectProject(project.id);
+                              setIsMobileOpen(false);
+                            }}
+                            className={`relative w-full flex items-start gap-2.5 rounded-lg transition-all duration-300 group text-left border overflow-hidden active:scale-95 ${
                               isActive
                                 ? 'bg-white/10 text-white border-[#00FFF0]/40 shadow-lg shadow-[#00FFF0]/10'
                                 : 'text-white/70 hover:bg-white/10 hover:text-white border-transparent hover:border-white/10'
-                            } ${isHovered ? 'px-3 py-2.5 pr-20' : 'p-2.5 justify-center'}`}
-                            title={!isHovered ? project.name : ''}
+                            } ${isMobileOpen || isHovered ? 'px-3 py-2.5 pr-20' : 'md:p-2.5 px-3 py-2.5 md:justify-center'}`}
+                            title={!isHovered && !isMobileOpen ? project.name : ''}
                           >
                             {isActive && (
                               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#00FFF0] to-[#8A2BE2]" />
@@ -159,15 +212,15 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 transition-all duration-300 ${
                               isActive ? 'text-[#00FFF0] scale-110' : 'group-hover:text-[#00FFF0] group-hover:scale-110'
                             }`} />
-                            {isHovered && (
+                            {(isMobileOpen || isHovered) && (
                               <div className="flex-1 min-w-0 animate-fade-in">
                                 <p className="text-xs font-semibold truncate">{project.name}</p>
                                 <p className="text-[10px] text-white/50 mt-0.5 capitalize tracking-wide">{project.type} Project</p>
                               </div>
                             )}
                           </button>
-                          {isHovered && (
-                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-item/item:opacity-100 group-hover/item:opacity-100 transition-opacity">
+                          {(isMobileOpen || isHovered) && (
+                            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 md:opacity-0 md:group-hover/item:opacity-100 opacity-100 transition-opacity">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -204,7 +257,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       </div>
 
       <div className="p-3 border-t border-white/10 space-y-2">
-        {userData && isHovered && (
+        {userData && (isMobileOpen || isHovered) && (
           <div className="glass-panel rounded-xl p-3 border-white/10 animate-fade-in">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs text-white/70 font-medium">Token Usage</span>
@@ -230,25 +283,28 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         )}
 
         <button
-          onClick={() => navigateTo('settings')}
-          className={`w-full flex items-center gap-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-all text-sm border border-transparent hover:border-white/20 button-press ${
-            isHovered ? 'px-3 py-2.5 justify-start' : 'p-2.5 justify-center'
+          onClick={() => {
+            navigateTo('settings');
+            setIsMobileOpen(false);
+          }}
+          className={`w-full flex items-center gap-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 active:scale-95 transition-all text-sm border border-transparent hover:border-white/20 button-press ${
+            isMobileOpen || isHovered ? 'px-3 py-2.5 justify-start' : 'md:p-2.5 px-3 py-2.5 md:justify-center justify-start'
           }`}
-          title={!isHovered ? 'Settings' : ''}
+          title={!isHovered && !isMobileOpen ? 'Settings' : ''}
         >
           <Settings className="w-4 h-4 flex-shrink-0" />
-          {isHovered && <span className="animate-fade-in">Settings</span>}
+          {(isMobileOpen || isHovered) && <span className="animate-fade-in">Settings</span>}
         </button>
 
         <button
           onClick={signOut}
-          className={`w-full flex items-center gap-2 rounded-xl text-white/70 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm border border-transparent hover:border-red-500/30 button-press ${
-            isHovered ? 'px-3 py-2.5 justify-start' : 'p-2.5 justify-center'
+          className={`w-full flex items-center gap-2 rounded-xl text-white/70 hover:text-red-400 hover:bg-red-500/10 active:scale-95 transition-all text-sm border border-transparent hover:border-red-500/30 button-press ${
+            isMobileOpen || isHovered ? 'px-3 py-2.5 justify-start' : 'md:p-2.5 px-3 py-2.5 md:justify-center justify-start'
           }`}
-          title={!isHovered ? 'Sign Out' : ''}
+          title={!isHovered && !isMobileOpen ? 'Sign Out' : ''}
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
-          {isHovered && <span className="animate-fade-in">Sign Out</span>}
+          {(isMobileOpen || isHovered) && <span className="animate-fade-in">Sign Out</span>}
         </button>
       </div>
 
@@ -311,6 +367,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };

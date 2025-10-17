@@ -94,10 +94,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <div className="absolute -inset-[2px] bg-gradient-to-r from-cyan-500/30 via-blue-500/30 to-teal-500/30 rounded-[28px] blur-xl opacity-0 group-focus-within:opacity-100 transition-all duration-700 animate-pulse" />
         <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-400/40 via-blue-500/40 to-teal-400/40 rounded-[26px] opacity-0 group-focus-within:opacity-100 transition-all duration-500" />
 
-        <div className="relative flex items-end gap-3 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl p-4 border border-white/10 shadow-2xl">
+        <div className="relative flex items-end gap-2 md:gap-3 bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl md:rounded-3xl p-2 md:p-4 border border-white/10 shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/5 via-transparent to-blue-500/5 rounded-3xl pointer-events-none" />
 
-          <div className="flex flex-col gap-2.5 relative z-10">
+          <div className="flex flex-col gap-1.5 md:gap-2.5 relative z-10">
             <input
               ref={fileInputRef}
               type="file"
@@ -109,7 +109,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/20 hover:border-cyan-400/60 text-white p-3.5 rounded-2xl transition-all duration-300 disabled:opacity-40 hover:scale-110 active:scale-95 group/attach shadow-lg hover:shadow-cyan-400/30"
+              className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 active:from-white/15 active:to-white/10 border border-white/20 hover:border-cyan-400/60 active:border-cyan-400/60 text-white p-2.5 md:p-3.5 rounded-xl md:rounded-2xl transition-all duration-300 disabled:opacity-40 md:hover:scale-110 active:scale-95 group/attach shadow-lg hover:shadow-cyan-400/30 touch-manipulation"
               title="Attach files"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/attach:translate-x-[100%] transition-transform duration-700" />
@@ -123,7 +123,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               onClick={handleEnhancePrompt}
               disabled={!value.trim() || disabled || isEnhancing}
-              className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/20 hover:border-teal-400/60 text-white p-3.5 rounded-2xl transition-all duration-300 disabled:opacity-40 hover:scale-110 active:scale-95 group/enhance shadow-lg hover:shadow-teal-400/30"
+              className="relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 active:from-white/15 active:to-white/10 border border-white/20 hover:border-teal-400/60 active:border-teal-400/60 text-white p-2.5 md:p-3.5 rounded-xl md:rounded-2xl transition-all duration-300 disabled:opacity-40 md:hover:scale-110 active:scale-95 group/enhance shadow-lg hover:shadow-teal-400/30 touch-manipulation"
               title="Enhance prompt with AI"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/enhance:translate-x-[100%] transition-transform duration-700" />
@@ -147,9 +147,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               onKeyPress={onKeyPress}
               placeholder={placeholder}
               disabled={disabled}
-              className="w-full bg-gradient-to-br from-white/8 to-white/4 border border-white/20 focus:border-cyan-400/60 rounded-2xl px-5 py-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 resize-none disabled:opacity-50 backdrop-blur-sm text-base transition-all duration-300 shadow-inner"
+              className="w-full bg-gradient-to-br from-white/8 to-white/4 border border-white/20 focus:border-cyan-400/60 rounded-xl md:rounded-2xl px-3 md:px-5 py-3 md:py-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 resize-none disabled:opacity-50 backdrop-blur-sm text-base transition-all duration-300 shadow-inner touch-manipulation"
               rows={3}
-              style={{ minHeight: '90px', maxHeight: '200px' }}
+              style={{ minHeight: '70px', maxHeight: '150px' }}
             />
           </div>
 
@@ -161,7 +161,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               onSend();
             }}
             disabled={!value.trim() || disabled}
-            className="relative overflow-hidden bg-gradient-to-br from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:via-teal-400 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 disabled:opacity-40 text-white p-4 rounded-2xl transition-all duration-300 disabled:cursor-not-allowed hover:scale-110 active:scale-95 hover:shadow-2xl hover:shadow-cyan-400/50 group/send z-10"
+            className="relative overflow-hidden bg-gradient-to-br from-cyan-500 via-teal-500 to-blue-600 hover:from-cyan-400 hover:via-teal-400 hover:to-blue-500 active:from-cyan-400 active:via-teal-400 active:to-blue-500 disabled:from-gray-700 disabled:to-gray-800 disabled:opacity-40 text-white p-3 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 disabled:cursor-not-allowed md:hover:scale-110 active:scale-95 hover:shadow-2xl hover:shadow-cyan-400/50 group/send z-10 touch-manipulation"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/send:translate-x-[100%] transition-transform duration-500" />
             <Send className="w-5 h-5 relative z-10 group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5 transition-transform duration-200 drop-shadow-lg" />
@@ -169,7 +169,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 text-white/30 text-xs">
+      <div className="hidden md:flex items-center justify-center gap-2 text-white/30 text-xs">
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 animate-pulse" />
         <span>Press Enter to send • Shift + Enter for new line</span>
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-400 to-teal-400 animate-pulse" />
