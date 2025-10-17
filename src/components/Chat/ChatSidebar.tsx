@@ -91,10 +91,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <button
         id="mobile-hamburger"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="md:hidden fixed top-4 left-4 z-20 p-3 rounded-xl glass-panel border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg"
+        className="md:hidden fixed top-3 left-3 z-30 w-11 h-11 flex items-center justify-center rounded-full glass-panel border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg backdrop-blur-xl"
         aria-label="Toggle menu"
       >
-        {isMobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
       {/* Mobile Overlay */}
