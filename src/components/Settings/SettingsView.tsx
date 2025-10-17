@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, Bell, Shield, Trash2 } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { User, Bell, Shield, Trash2, Sun, Moon } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
   const { userData, currentUser } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState({
     email: true,
     updates: true,
@@ -48,6 +50,41 @@ export const SettingsView: React.FC = () => {
               <button className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition-all">
                 Update Profile
               </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
+                {theme === 'dark' ? <Moon className="w-5 h-5 text-white" /> : <Sun className="w-5 h-5 text-white" />}
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Appearance</h2>
+            </div>
+
+            <div className="space-y-4">
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <div className="font-medium text-gray-900">Theme</div>
+                  <div className="text-sm text-gray-600">Switch between light and dark mode</div>
+                </div>
+                <button
+                  onClick={toggleTheme}
+                  className="relative inline-flex items-center h-8 rounded-full w-16 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  style={{ backgroundColor: theme === 'dark' ? '#3b82f6' : '#f59e0b' }}
+                >
+                  <span
+                    className={`inline-block w-6 h-6 transform rounded-full bg-white transition-transform ${
+                      theme === 'dark' ? 'translate-x-9' : 'translate-x-1'
+                    }`}
+                  >
+                    {theme === 'dark' ? (
+                      <Moon className="w-4 h-4 text-blue-500 m-auto mt-1" />
+                    ) : (
+                      <Sun className="w-4 h-4 text-orange-500 m-auto mt-1" />
+                    )}
+                  </span>
+                </button>
+              </label>
             </div>
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { LandingRouter } from './components/Landing/LandingRouter';
 import { LoginPage } from './components/Auth/LoginPage';
 import { Sidebar } from './components/Layout/Sidebar';
@@ -105,13 +106,15 @@ const MainApp: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <NavigationProvider>
-          <MainApp />
-        </NavigationProvider>
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <NavigationProvider>
+            <MainApp />
+          </NavigationProvider>
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
