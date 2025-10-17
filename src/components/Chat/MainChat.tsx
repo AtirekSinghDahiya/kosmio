@@ -10,6 +10,7 @@ import { getAIResponse as callSimpleAI } from '../../lib/simpleAI';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
+import { MobileLandingView } from './MobileLandingView';
 import { IntentDialog } from './IntentDialog';
 import { FloatingNavbar } from '../Layout/FloatingNavbar';
 import { AIModelSelector } from './AIModelSelector';
@@ -439,11 +440,25 @@ export const MainChat: React.FC = () => {
       <div className="flex-1 flex flex-col pt-16 md:pt-20 overflow-hidden">
         <div className="flex-1 ml-0 md:ml-16 overflow-y-auto px-2 md:px-4">
           {showLanding ? (
-            <LandingView
-              onQuickAction={(text) => handleSendMessage(text)}
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-            />
+            <>
+              {/* Mobile Landing View */}
+              <div className="md:hidden h-full">
+                <MobileLandingView
+                  onQuickAction={(text) => handleSendMessage(text)}
+                  input={input}
+                  setInput={setInput}
+                  onSendMessage={() => handleSendMessage(input)}
+                />
+              </div>
+              {/* Desktop Landing View */}
+              <div className="hidden md:block">
+                <LandingView
+                  onQuickAction={(text) => handleSendMessage(text)}
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                />
+              </div>
+            </>
           ) : (
             <>
               {/* Messages Area */}
@@ -524,15 +539,18 @@ export const MainChat: React.FC = () => {
                   category="chat"
                 />
               </div>
-              <ChatInput
-                value={inputValue}
-                onChange={setInputValue}
-                onSend={() => handleSendMessage()}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask Kroniq anything..."
-                disabled={isLoading}
-                selectedModel={selectedModel}
-              />
+              {/* Hide chat input on mobile when landing view is active (it has its own input) */}
+              <div className={showLanding ? 'hidden md:block' : ''}>
+                <ChatInput
+                  value={inputValue}
+                  onChange={setInputValue}
+                  onSend={() => handleSendMessage()}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask Kroniq anything..."
+                  disabled={isLoading}
+                  selectedModel={selectedModel}
+                />
+              </div>
             </div>
           </div>
         )}
