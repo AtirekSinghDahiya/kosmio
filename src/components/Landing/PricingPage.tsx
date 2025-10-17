@@ -16,35 +16,52 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
 
   const plans = [
     {
-      name: 'Free',
+      name: 'Starter',
       icon: Sparkles,
       price: { monthly: 0, annual: 0 },
       description: 'Perfect for getting started',
       features: [
-        '10,000 tokens/month',
-        'Access to Chat AI',
-        'Basic code generation',
-        'Community support',
-        '5 projects',
-        'Standard response speed'
+        'Chat AI (Basic Model) - 30 messages/day',
+        'Code Studio (2 projects, 500 lines each)',
+        'Design Studio (10 AI images/month)',
+        'Video Studio (2 videos/month, watermark)',
+        '200 MB cloud storage',
+        'Community support'
       ],
       color: 'from-gray-500 to-gray-700',
       popular: false
     },
     {
-      name: 'Pro',
+      name: 'Creator',
       icon: Zap,
-      price: { monthly: 29, annual: 290 },
-      description: 'For serious creators',
+      price: { monthly: 9, annual: 90 },
+      description: 'For students, creators, and freelancers',
       features: [
-        '1,000,000 tokens/month',
-        'All 4 AI Studios',
-        'Advanced code generation',
-        'Priority support',
-        'Unlimited projects',
-        'Fast response speed',
-        'API access',
-        'Team collaboration'
+        'Unlimited Chat AI (GPT-4/Claude)',
+        'Code Studio (10 projects, 2K lines/project)',
+        'Design Studio (50 images/month, no watermark)',
+        'Video Studio (10 AI avatar videos/month)',
+        '2 GB storage',
+        'AI workflow automations (beta)',
+        'Priority response times'
+      ],
+      color: 'from-blue-500 to-cyan-500',
+      popular: false
+    },
+    {
+      name: 'Pro',
+      icon: Star,
+      price: { monthly: 29, annual: 290 },
+      description: 'For professionals and startups',
+      features: [
+        'All Creator features + custom AI tuning',
+        'Unlimited Code Studio projects',
+        'Unlimited image generations',
+        '25 HD AI avatar videos/month',
+        '10 GB storage',
+        'API access for integrations',
+        'Early access to new AI models',
+        'Dedicated chat support'
       ],
       color: 'from-[#00FFF0] to-[#8A2BE2]',
       popular: true
@@ -52,18 +69,16 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
     {
       name: 'Enterprise',
       icon: Crown,
-      price: { monthly: 99, annual: 990 },
-      description: 'For teams and organizations',
+      price: { monthly: null, annual: null },
+      description: 'For teams, schools, and organizations',
       features: [
-        'Unlimited tokens',
-        'All Pro features',
-        'Dedicated AI models',
-        '24/7 premium support',
-        'Custom integrations',
-        'Advanced analytics',
-        'SLA guarantee',
-        'White-label options',
-        'On-premise deployment'
+        'Everything in Pro',
+        'Multi-user organization dashboard',
+        'SSO and role-based access',
+        '100+ GB storage',
+        'Custom model deployment',
+        'Dedicated account manager & SLA',
+        'On-prem or private cloud setup'
       ],
       color: 'from-purple-500 to-pink-600',
       popular: false
@@ -144,11 +159,11 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       {/* Pricing Cards */}
       <section className="relative py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {plans.map((plan, idx) => {
               const Icon = plan.icon;
               const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.annual;
-              const savings = billingCycle === 'annual' ? (plan.price.monthly * 12 - plan.price.annual) : 0;
+              const savings = price && billingCycle === 'annual' && plan.price.monthly ? (plan.price.monthly * 12 - plan.price.annual) : 0;
 
               return (
                 <Floating3DCard key={idx} delay={idx * 100}>
@@ -181,8 +196,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
                       {/* Price */}
                       <div className="mb-8">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-5xl font-bold text-white">${price}</span>
-                          <span className="text-white/60">/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                          {price !== null ? (
+                            <>
+                              <span className="text-5xl font-bold text-white">${price}</span>
+                              <span className="text-white/60">/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                            </>
+                          ) : (
+                            <span className="text-5xl font-bold text-white">Custom</span>
+                          )}
                         </div>
                         {billingCycle === 'annual' && savings > 0 && (
                           <p className="text-green-400 text-sm mt-2">Save ${savings}/year</p>
@@ -209,7 +230,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
                           : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
                       }`}
                     >
-                      {plan.name === 'Free' ? 'Start Free' : `Get ${plan.name}`}
+                      {plan.name === 'Starter' ? 'Start Free' : plan.name === 'Enterprise' ? 'Contact Sales' : `Get ${plan.name}`}
                     </button>
                   </div>
                 </Floating3DCard>
