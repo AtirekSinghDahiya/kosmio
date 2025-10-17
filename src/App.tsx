@@ -86,8 +86,8 @@ const MainApp: React.FC = () => {
     <div className="h-screen overflow-hidden gradient-background relative">
       <CosmicBackground />
       <div className="relative z-10 h-screen">
-        {currentView === 'chat' ? (
-          <MainChat />
+        {currentView === 'chat' || currentView === 'settings' ? (
+          renderView()
         ) : (
           <div className="flex h-screen">
             <Sidebar currentView={currentView} onViewChange={(view) => navigateTo(view as any)} />

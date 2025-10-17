@@ -1,29 +1,122 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useToast } from '../../contexts/ToastContext';
 import { User, Bell, Shield, Trash2, Sun, Moon, ArrowLeft } from 'lucide-react';
 import { ChatSidebar } from '../Chat/ChatSidebar';
 import { getProjects, deleteProject, renameProject } from '../../lib/chatService';
+import { supabase } from '../../lib/supabaseClient';
+import { updateProfile } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
+
+interface NotificationSettings {
+  email_notifications: boolean;
+  product_updates: boolean;
+  marketing_emails: boolean;
+}
 
 export const SettingsView: React.FC = () => {
   const { userData, currentUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { navigateTo } = useNavigation();
-  const [notifications, setNotifications] = useState({
-    email: true,
-    updates: true,
-    marketing: false
+  const { showToast } = useToast();
+  const [displayName, setDisplayName] = useState('');
+  const [notifications, setNotifications] = useState<NotificationSettings>({
+    email_notifications: true,
+    product_updates: true,
+    marketing_emails: false
   });
-  const [projects, setProjects] = React.useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [isUpdatingNotifications, setIsUpdatingNotifications] = useState(false);
 
-  React.useEffect(() => {
-    const loadProjects = async () => {
+  // Load initial data
+  useEffect(() => {
+    const loadData = async () => {
+      // Load projects
       const loadedProjects = await getProjects();
       setProjects(loadedProjects);
+
+      // Load display name
+      if (userData?.displayName) {
+        setDisplayName(userData.displayName);
+      } else if (currentUser?.displayName) {
+        setDisplayName(currentUser.displayName);
+      }
+
+      // Load notification settings from Supabase
+      if (currentUser?.uid) {
+        const { data } = await supabase
+          .from('user_preferences')
+          .select('email_notifications, product_updates, marketing_emails')
+          .eq('user_id', currentUser.uid)
+          .maybeSingle();
+
+        if (data) {
+          setNotifications({
+            email_notifications: data.email_notifications ?? true,
+            product_updates: data.product_updates ?? true,
+            marketing_emails: data.marketing_emails ?? false
+          });
+        }
+      }
     };
-    loadProjects();
-  }, []);
+
+    loadData();
+  }, [userData, currentUser]);
+
+  // Update profile
+  const handleUpdateProfile = async () => {
+    if (!currentUser || !auth.currentUser) return;
+
+    setIsUpdatingProfile(true);
+    try {
+      // Update Firebase displayName
+      await updateProfile(auth.currentUser, {
+        displayName: displayName
+      });
+
+      // Update Supabase if needed
+      await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: currentUser.uid,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      showToast('Profile updated successfully!', 'success');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showToast('Failed to update profile', 'error');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  // Update notifications
+  const handleNotificationChange = async (key: keyof NotificationSettings, value: boolean) => {
+    if (!currentUser) return;
+
+    const newNotifications = { ...notifications, [key]: value };
+    setNotifications(newNotifications);
+
+    setIsUpdatingNotifications(true);
+    try {
+      await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: currentUser.uid,
+          [key]: value,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+      showToast('Failed to update notification settings', 'error');
+    } finally {
+      setIsUpdatingNotifications(false);
+    }
+  };
 
   const handleDeleteProject = async (projectId: string) => {
     await deleteProject(projectId);
@@ -75,7 +168,8 @@ export const SettingsView: React.FC = () => {
                 <label className="block text-sm font-medium text-white/70 mb-2">Display Name</label>
                 <input
                   type="text"
-                  defaultValue={userData?.displayName || ''}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:ring-2 focus:ring-[#00FFF0] focus:border-transparent transition-all"
                   placeholder="Your name"
                 />
@@ -91,8 +185,12 @@ export const SettingsView: React.FC = () => {
                 />
               </div>
 
-              <button className="px-6 py-3 bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 hover:from-[#00FFF0]/30 hover:to-[#8A2BE2]/30 text-white rounded-lg border border-white/10 hover:border-[#00FFF0]/50 transition-all font-medium">
-                Update Profile
+              <button
+                onClick={handleUpdateProfile}
+                disabled={isUpdatingProfile}
+                className="px-6 py-3 bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 hover:from-[#00FFF0]/30 hover:to-[#8A2BE2]/30 text-white rounded-lg border border-white/10 hover:border-[#00FFF0]/50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpdatingProfile ? 'Updating...' : 'Update Profile'}
               </button>
             </div>
           </div>
@@ -148,9 +246,10 @@ export const SettingsView: React.FC = () => {
                 </div>
                 <input
                   type="checkbox"
-                  checked={notifications.email}
-                  onChange={(e) => setNotifications({ ...notifications, email: e.target.checked })}
+                  checked={notifications.email_notifications}
+                  onChange={(e) => handleNotificationChange('email_notifications', e.target.checked)}
                   className="w-5 h-5 text-[#00FFF0] bg-white/10 border-white/20 rounded focus:ring-2 focus:ring-[#00FFF0]"
+                  disabled={isUpdatingNotifications}
                 />
               </label>
 
@@ -161,9 +260,10 @@ export const SettingsView: React.FC = () => {
                 </div>
                 <input
                   type="checkbox"
-                  checked={notifications.updates}
-                  onChange={(e) => setNotifications({ ...notifications, updates: e.target.checked })}
+                  checked={notifications.product_updates}
+                  onChange={(e) => handleNotificationChange('product_updates', e.target.checked)}
                   className="w-5 h-5 text-[#00FFF0] bg-white/10 border-white/20 rounded focus:ring-2 focus:ring-[#00FFF0]"
+                  disabled={isUpdatingNotifications}
                 />
               </label>
 
@@ -174,9 +274,10 @@ export const SettingsView: React.FC = () => {
                 </div>
                 <input
                   type="checkbox"
-                  checked={notifications.marketing}
-                  onChange={(e) => setNotifications({ ...notifications, marketing: e.target.checked })}
+                  checked={notifications.marketing_emails}
+                  onChange={(e) => handleNotificationChange('marketing_emails', e.target.checked)}
                   className="w-5 h-5 text-[#00FFF0] bg-white/10 border-white/20 rounded focus:ring-2 focus:ring-[#00FFF0]"
+                  disabled={isUpdatingNotifications}
                 />
               </label>
             </div>
