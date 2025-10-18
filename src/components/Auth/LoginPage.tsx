@@ -88,7 +88,7 @@ export const LoginPage: React.FC = () => {
         <div className="text-center mb-6 md:mb-8 space-y-3 md:space-y-4">
           <div className="inline-flex items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-3 md:p-4 animate-pulse-glow">
             <img
-              src="/logo.svg"
+              src="/kroniq-icon.svg"
               alt="KroniQ"
               className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,255,240,0.6)]"
             />

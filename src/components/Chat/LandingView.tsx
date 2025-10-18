@@ -46,7 +46,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         <div className={`text-center mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
           <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
             <img
-              src="/logo.svg"
+              src="/kroniq-icon.svg"
               alt="KroniQ"
               className="w-full h-full object-contain"
             />

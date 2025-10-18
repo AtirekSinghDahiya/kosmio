@@ -73,7 +73,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] rounded-full blur-3xl opacity-50 animate-pulse-slow" />
             <div className="relative w-40 h-40 mx-auto rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl backdrop-blur-xl border-2 border-white/20 p-6 floating-animation">
               <img
-                src="/logo.svg"
+                src="/kroniq-icon.svg"
                 alt="KroniQ"
                 className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,255,240,0.8)]"
               />

@@ -70,7 +70,7 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
               <div>
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2">
-                    <img src="/logo.svg" alt="KroniQ" className="w-full h-full object-contain" />
+                    <img src="/kroniq-icon.svg" alt="KroniQ" className="w-full h-full object-contain" />
                   </div>
                   <span className="text-xl font-bold text-white">KroniQ</span>
                 </div>

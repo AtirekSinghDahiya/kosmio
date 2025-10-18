@@ -45,7 +45,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
             <img
-              src="/logo.svg"
+              src="/kroniq-icon.svg"
               alt="KroniQ"
               className="w-full h-full object-contain"
             />

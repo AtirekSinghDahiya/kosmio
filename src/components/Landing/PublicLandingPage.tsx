@@ -112,7 +112,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
                 <div className="flex items-center gap-2 md:gap-3 min-w-0">
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-1.5 md:p-2 flex-shrink-0">
                     <img
-                      src="/logo.svg"
+                      src="/kroniq-icon.svg"
                       alt="KroniQ"
                       className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                     />
@@ -378,11 +378,8 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-1.5">
-                  <img src="/logo.svg" alt="KroniQ" className="w-full h-full object-contain" />
-                </div>
-                <span className="text-lg font-bold text-white">KroniQ</span>
+              <div className="mb-4">
+                <img src="/kroniq-full-logo.svg" alt="KroniQ" className="h-12 object-contain" />
               </div>
               <p className="text-white/60 text-sm">Crafted with intelligence</p>
             </div>

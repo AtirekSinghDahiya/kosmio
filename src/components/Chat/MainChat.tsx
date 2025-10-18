@@ -491,7 +491,7 @@ export const MainChat: React.FC = () => {
                           </svg>
                         </div>
                       ) : (
-                        <img src="/logo.svg" alt="KroniQ" className="w-8 h-8" />
+                        <img src="/kroniq-icon.svg" alt="KroniQ" className="w-8 h-8" />
                       )}
                     </div>
 
@@ -559,7 +559,7 @@ export const MainChat: React.FC = () => {
                 <div className="py-6 px-4">
                   <div className="max-w-3xl mx-auto flex gap-4">
                     <div className="flex-shrink-0 w-8 h-8">
-                      <img src="/logo.svg" alt="KroniQ" className="w-8 h-8 animate-pulse" />
+                      <img src="/kroniq-icon.svg" alt="KroniQ" className="w-8 h-8 animate-pulse" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-1">
