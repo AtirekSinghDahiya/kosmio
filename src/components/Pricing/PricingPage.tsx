@@ -21,6 +21,7 @@ interface PricingPlan {
   };
   is_active: boolean;
   sort_order: number;
+  stripe_payment_link?: string;
 }
 
 export const PricingPage: React.FC = () => {
@@ -53,7 +54,7 @@ export const PricingPage: React.FC = () => {
     }
   };
 
-  const handlePurchase = async (plan: PricingPlan) => {
+  const handlePurchase = (plan: PricingPlan) => {
     if (!currentUser) {
       navigateTo('login' as any);
       return;
@@ -64,29 +65,21 @@ export const PricingPage: React.FC = () => {
     }
 
     if (plan.name === 'enterprise') {
-      window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
+      window.open('mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry', '_blank');
+      return;
+    }
+
+    if (!plan.stripe_payment_link) {
+      alert('Payment link not configured for this plan');
       return;
     }
 
     setPurchasing(plan.id);
+    window.open(plan.stripe_payment_link, '_blank');
 
-    try {
-      const { data: planData, error } = await supabase
-        .from('pricing_plans')
-        .select('stripe_payment_link')
-        .eq('id', plan.id)
-        .maybeSingle();
-
-      if (error || !planData?.stripe_payment_link) {
-        throw new Error('Payment link not configured for this plan');
-      }
-
-      window.location.href = planData.stripe_payment_link;
-    } catch (error: any) {
-      console.error('Error initiating payment:', error);
-      alert(`Failed to start payment: ${error.message}`);
+    setTimeout(() => {
       setPurchasing(null);
-    }
+    }, 2000);
   };
 
   const getPlanIcon = (name: string) => {

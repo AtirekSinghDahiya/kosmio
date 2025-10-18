@@ -100,7 +100,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
     }
   };
 
-  const handlePurchase = async (plan: Plan) => {
+  const handlePurchase = (plan: Plan) => {
     if (!currentUser) {
       alert('Please sign in to purchase a plan');
       onClose();
@@ -112,29 +112,21 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
     }
 
     if (plan.name === 'Enterprise') {
-      window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
+      window.open('mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry', '_blank');
+      return;
+    }
+
+    if (!plan.stripe_payment_link) {
+      alert('Payment link not configured for this plan');
       return;
     }
 
     setPurchasing(plan.id);
+    window.open(plan.stripe_payment_link, '_blank');
 
-    try {
-      const { data: planData, error } = await supabase
-        .from('pricing_plans')
-        .select('stripe_payment_link')
-        .eq('name', plan.name.toLowerCase())
-        .maybeSingle();
-
-      if (error || !planData?.stripe_payment_link) {
-        throw new Error('Payment link not configured for this plan');
-      }
-
-      window.location.href = planData.stripe_payment_link;
-    } catch (error: any) {
-      console.error('Error initiating payment:', error);
-      alert(`Failed to start payment: ${error.message}`);
+    setTimeout(() => {
       setPurchasing(null);
-    }
+    }, 2000);
   };
 
   const useFallbackPlans = () => {
