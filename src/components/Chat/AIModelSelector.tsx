@@ -56,15 +56,20 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
 
   return (
     <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400/20 to-purple-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 border min-w-[220px] shadow-lg hover:shadow-xl ${
-          theme === 'light'
-            ? 'bg-white hover:bg-gray-50 border-gray-300 text-gray-900'
-            : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-cyan-400/40 text-white'
-        }`}
-      >
+      {/* Gradient Border Effect */}
+      <div className={`relative rounded-xl p-[2px] shadow-lg ${
+        theme === 'light'
+          ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
+          : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600'
+      }`}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`relative w-full flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 min-w-[220px] ${
+            theme === 'light'
+              ? 'bg-white hover:bg-gray-50 text-gray-900'
+              : 'bg-slate-900 hover:bg-slate-800 text-white'
+          }`}
+        >
         <div className="flex-1 text-left">
           <div className={`text-sm font-semibold ${
             theme === 'light' ? 'text-gray-900' : 'text-white/90'
@@ -77,6 +82,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
           theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
         } ${isOpen ? 'rotate-180' : ''}`} />
       </button>
+      </div>
 
       {isOpen && (
         <>

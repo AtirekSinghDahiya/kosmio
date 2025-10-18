@@ -479,7 +479,7 @@ export const MainChat: React.FC = () => {
               {messages.map((message, index) => (
                 <div
                   key={message.id}
-                  className={`group ${message.role === 'assistant' ? (theme === 'light' ? 'bg-gray-50' : 'bg-transparent') : ''} hover:bg-black/5 dark:hover:bg-white/5 transition-colors py-6 px-4`}
+                  className="group hover:bg-black/5 dark:hover:bg-white/5 transition-colors py-6 px-4"
                 >
                   <div className="max-w-3xl mx-auto flex gap-4">
                     {/* Avatar */}
@@ -582,8 +582,8 @@ export const MainChat: React.FC = () => {
         {!showLanding && (
           <div className={`border-t p-6 ${
             theme === 'light'
-              ? 'border-gray-200 bg-white/50 backdrop-blur-md'
-              : 'border-white/10 bg-slate-900/80 backdrop-blur-xl'
+              ? 'border-gray-200 bg-transparent'
+              : 'border-white/10 bg-transparent'
           }`}>
             <div className="max-w-4xl mx-auto">
               <div className="mb-4">
