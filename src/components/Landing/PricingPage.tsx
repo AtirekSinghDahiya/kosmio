@@ -9,7 +9,14 @@ interface PricingPageProps {
 export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const [mounted, setMounted] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
-  const [purchasing, setPurchasing] = useState<string | null>(null);
+
+  const getPaymentLink = (planName: string): string | null => {
+    const stripeLinks: Record<string, string> = {
+      'Creator': 'https://buy.stripe.com/test_dRm5kC9zc5ZZ88DekPcV200',
+      'Pro': 'https://buy.stripe.com/test_4gMdR8eTw9cbfB590vcV201'
+    };
+    return stripeLinks[planName] || null;
+  };
 
   const handlePlanClick = (planName: string) => {
     if (planName === 'Starter') {
@@ -20,23 +27,6 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
     if (planName === 'Enterprise') {
       window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
       return;
-    }
-
-    setPurchasing(planName);
-
-    // Direct Stripe payment links
-    const stripeLinks: Record<string, string> = {
-      'Creator': 'https://buy.stripe.com/test_dRm5kC9zc5ZZ88DekPcV200',
-      'Pro': 'https://buy.stripe.com/test_4gMdR8eTw9cbfB590vcV201'
-    };
-
-    const paymentLink = stripeLinks[planName];
-    if (paymentLink) {
-      window.location.href = paymentLink;
-    } else {
-      console.error('Payment link not found for plan:', planName);
-      onGetStarted();
-      setPurchasing(null);
     }
   };
 
@@ -252,17 +242,31 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
                     </div>
 
                     {/* CTA Button */}
-                    <button
-                      onClick={() => handlePlanClick(plan.name)}
-                      disabled={purchasing === plan.name}
-                      className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-wait ${
-                        plan.popular
-                          ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-lg hover:shadow-[#00FFF0]/30'
-                          : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
-                      }`}
-                    >
-                      {purchasing === plan.name ? 'Redirecting...' : plan.name === 'Starter' ? 'Start Free' : plan.name === 'Enterprise' ? 'Contact Sales' : `Get ${plan.name}`}
-                    </button>
+                    {getPaymentLink(plan.name) ? (
+                      <a
+                        href={getPaymentLink(plan.name)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center ${
+                          plan.popular
+                            ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-lg hover:shadow-[#00FFF0]/30'
+                            : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                        }`}
+                      >
+                        Get {plan.name}
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => handlePlanClick(plan.name)}
+                        className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 hover:scale-105 ${
+                          plan.popular
+                            ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-lg hover:shadow-[#00FFF0]/30'
+                            : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
+                        }`}
+                      >
+                        {plan.name === 'Starter' ? 'Start Free' : 'Contact Sales'}
+                      </button>
+                    )}
                   </div>
                 </Floating3DCard>
               );
