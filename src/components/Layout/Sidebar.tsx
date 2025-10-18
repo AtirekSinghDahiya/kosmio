@@ -80,10 +80,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
         onMouseLeave={() => !isMobile && setIsExpanded(false)}
       >
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-white/10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center flex-shrink-0 border border-white/20">
-            <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-8 h-8" />
-          </div>
+        <div className="p-4 border-b border-white/10 flex items-center gap-3 cursor-pointer" onClick={() => onViewChange('chat')}>
+          <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-10 h-10 flex-shrink-0" />
           {(isExpanded || isMobile) && (
             <div className="overflow-hidden">
               <p className="text-white font-bold text-sm whitespace-nowrap">KroniQ</p>

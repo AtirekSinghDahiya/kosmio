@@ -72,11 +72,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
         <div className={`max-w-7xl mx-auto text-center relative z-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
           {/* Logo Animation */}
           <div className="relative inline-block mb-8">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] blur-3xl opacity-30 animate-pulse-slow" />
             <img
               src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
               alt="KroniQ"
-              className="relative h-32 w-auto mx-auto object-contain drop-shadow-[0_0_30px_rgba(0,255,240,0.8)] floating-animation"
+              className="relative h-48 md:h-64 w-auto mx-auto object-contain drop-shadow-[0_0_30px_rgba(0,255,240,0.8)] floating-animation"
             />
           </div>
 

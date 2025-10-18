@@ -114,7 +114,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
                 <img
                   src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
                   alt="KroniQ"
-                  className="h-8 md:h-10 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
+                  className="h-10 md:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                 />
 
                 <div className="hidden lg:flex items-center gap-6">

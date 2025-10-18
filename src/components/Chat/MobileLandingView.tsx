@@ -48,7 +48,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
           <img
             src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
             alt="KroniQ"
-            className="h-12 w-auto object-contain mb-3"
+            className="h-20 w-auto object-contain mb-3 mx-auto"
           />
           <h1 className="text-2xl font-semibold text-white mb-2">
             Welcome to KroniQ

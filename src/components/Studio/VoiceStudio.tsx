@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Download, Volume2, Loader2, Upload, X, FileAudio, Mic } from 'lucide-react';
+import { Play, Pause, Download, Volume2, Loader2, Upload, X, FileAudio, Mic, Music } from 'lucide-react';
+import { SunoMusicGenerator } from './SunoMusicGenerator';
 
 export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
+  const [activeTab, setActiveTab] = useState<'voice' | 'music'>('voice');
   const [text, setText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -291,13 +293,44 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-900 via-blue-900 to-gray-900 p-6" onClick={() => setShowDownloadMenu(false)}>
       <div className="max-w-5xl mx-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Volume2 className="w-10 h-10 text-teal-300" />
-            <h1 className="text-4xl font-bold text-white">AI Voice Generator</h1>
-          </div>
-          <p className="text-teal-200">Transform text into lifelike speech or upload your audio files</p>
+        {/* Tabs */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            onClick={() => setActiveTab('voice')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+              activeTab === 'voice'
+                ? 'bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-lg'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            <Volume2 className="w-5 h-5" />
+            Voice Generator
+          </button>
+          <button
+            onClick={() => setActiveTab('music')}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+              activeTab === 'music'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
+            }`}
+          >
+            <Music className="w-5 h-5" />
+            AI Music (Suno)
+          </button>
         </div>
+
+        {/* Content based on active tab */}
+        {activeTab === 'music' ? (
+          <SunoMusicGenerator />
+        ) : (
+          <>
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <Volume2 className="w-10 h-10 text-teal-300" />
+                <h1 className="text-4xl font-bold text-white">AI Voice Generator</h1>
+              </div>
+              <p className="text-teal-200">Transform text into lifelike speech or upload your audio files</p>
+            </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -473,6 +506,8 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
             <strong>✨ Features:</strong> Download your audio in Original, MP3, or WAV format • Generate speech from text • Upload and play audio files • Full playback controls
           </p>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
