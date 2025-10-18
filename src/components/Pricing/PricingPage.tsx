@@ -69,13 +69,22 @@ export const PricingPage: React.FC = () => {
       return;
     }
 
-    if (!plan.stripe_payment_link) {
-      alert('Payment link not configured for this plan');
-      return;
-    }
-
     setPurchasing(plan.id);
-    window.location.href = plan.stripe_payment_link;
+
+    // Use plan's stripe link or fallback to hardcoded links
+    const stripeLinks: Record<string, string> = {
+      'creator': 'https://buy.stripe.com/test_dRm5kC9zc5ZZ88DekPcV200',
+      'pro': 'https://buy.stripe.com/test_4gMdR8eTw9cbfB590vcV201'
+    };
+
+    const paymentLink = plan.stripe_payment_link || stripeLinks[plan.name];
+
+    if (paymentLink) {
+      window.location.href = paymentLink;
+    } else {
+      alert('Payment link not configured for this plan');
+      setPurchasing(null);
+    }
   };
 
   const getPlanIcon = (name: string) => {

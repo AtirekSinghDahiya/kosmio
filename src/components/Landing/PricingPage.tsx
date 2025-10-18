@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Zap, Star, Crown, Sparkles } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
-import { supabase } from '../../lib/supabaseClient';
 
 interface PricingPageProps {
   onGetStarted: () => void;
@@ -12,7 +11,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [purchasing, setPurchasing] = useState<string | null>(null);
 
-  const handlePlanClick = async (planName: string) => {
+  const handlePlanClick = (planName: string) => {
     if (planName === 'Starter') {
       onGetStarted();
       return;
@@ -25,24 +24,18 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
 
     setPurchasing(planName);
 
-    try {
-      const { data: planData, error } = await supabase
-        .from('pricing_plans')
-        .select('stripe_payment_link')
-        .ilike('display_name', planName)
-        .single();
+    // Direct Stripe payment links
+    const stripeLinks: Record<string, string> = {
+      'Creator': 'https://buy.stripe.com/test_dRm5kC9zc5ZZ88DekPcV200',
+      'Pro': 'https://buy.stripe.com/test_4gMdR8eTw9cbfB590vcV201'
+    };
 
-      if (error || !planData?.stripe_payment_link) {
-        console.error('Payment link not found:', error);
-        onGetStarted();
-        return;
-      }
-
-      window.location.href = planData.stripe_payment_link;
-    } catch (error) {
-      console.error('Error loading payment link:', error);
+    const paymentLink = stripeLinks[planName];
+    if (paymentLink) {
+      window.location.href = paymentLink;
+    } else {
+      console.error('Payment link not found for plan:', planName);
       onGetStarted();
-    } finally {
       setPurchasing(null);
     }
   };
