@@ -111,18 +111,11 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
             <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/20 via-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative glass-panel rounded-full px-4 md:px-8 py-2.5 md:py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-1.5 md:p-2 flex-shrink-0">
-                    <img
-                      src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
-                      alt="KroniQ"
-                      className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
-                    />
-                  </div>
-                  <span className="text-base md:text-xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent truncate">
-                    KroniQ
-                  </span>
-                </div>
+                <img
+                  src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+                  alt="KroniQ"
+                  className="h-8 md:h-10 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
+                />
 
                 <div className="hidden lg:flex items-center gap-6">
                   <a href="#features" className="text-sm text-white/70 hover:text-white font-medium transition-colors whitespace-nowrap">

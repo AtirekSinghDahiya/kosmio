@@ -45,13 +45,11 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
       <div className="max-w-2xl w-full mx-auto flex flex-col items-center justify-center">
         {/* Logo and Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
-            <img
-              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
-              alt="KroniQ"
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <img
+            src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+            alt="KroniQ"
+            className="h-12 w-auto object-contain mb-3"
+          />
           <h1 className="text-2xl font-semibold text-white mb-2">
             Welcome to KroniQ
           </h1>

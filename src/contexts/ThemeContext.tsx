@@ -32,6 +32,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       document.documentElement.classList.remove('dark-theme');
       document.documentElement.classList.add('light-theme');
     }
+
+    // Update favicon based on theme
+    const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+    if (favicon) {
+      favicon.href = theme === 'dark'
+        ? '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png'
+        : '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview copy.png';
+    }
   }, [theme]);
 
   const toggleTheme = () => {

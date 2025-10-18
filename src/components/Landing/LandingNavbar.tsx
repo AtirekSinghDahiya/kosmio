@@ -46,16 +46,11 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
                 onClick={() => onNavigate('home')}
                 className="flex items-center gap-3 group/logo"
               >
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2 group-hover/logo:scale-110 transition-transform duration-300">
-                  <img
-                    src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
-                    alt="KroniQ"
-                    className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
-                  />
-                </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-                  KroniQ
-                </span>
+                <img
+                  src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+                  alt="KroniQ"
+                  className="h-10 w-auto object-contain group-hover/logo:scale-110 transition-transform duration-300 drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
+                />
               </button>
 
               {/* Desktop Navigation */}

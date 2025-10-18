@@ -70,11 +70,8 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
               <div>
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2">
-                    <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png" alt="KroniQ" className="w-full h-full object-contain" />
-                  </div>
-                  <span className="text-xl font-bold text-white">KroniQ</span>
+                <div className="mb-6">
+                  <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png" alt="KroniQ" className="h-12 w-auto object-contain" />
                 </div>
                 <p className="text-white/60 text-sm leading-relaxed">
                   Empowering creators with AI-powered tools for the future of digital creation.

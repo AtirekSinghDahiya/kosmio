@@ -46,13 +46,11 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
       <div className="max-w-3xl w-full mx-auto flex flex-col items-center justify-center">
         {/* Logo and Title */}
         <div className={`text-center mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
-            <img
-              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
-              alt="KroniQ"
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <img
+            src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+            alt="KroniQ"
+            className="h-16 w-auto object-contain mb-4"
+          />
           <h1 className="text-3xl font-semibold text-white mb-2">
             Welcome to KroniQ
           </h1>
