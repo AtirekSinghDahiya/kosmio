@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export interface AIModel {
   id: string;
@@ -47,6 +48,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   onModelChange,
   category = 'chat'
 }) => {
+  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
   const availableModels = AI_MODELS.filter(m => m.category === category);
@@ -57,13 +59,23 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
       <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400/20 to-purple-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center gap-3 px-5 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all duration-300 text-white border border-white/10 hover:border-cyan-400/40 min-w-[220px] shadow-lg hover:shadow-xl"
+        className={`relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 border min-w-[220px] shadow-lg hover:shadow-xl ${
+          theme === 'light'
+            ? 'bg-white hover:bg-gray-50 border-gray-300 text-gray-900'
+            : 'bg-white/5 hover:bg-white/10 border-white/10 hover:border-cyan-400/40 text-white'
+        }`}
       >
         <div className="flex-1 text-left">
-          <div className="text-sm font-semibold text-white/90">{selected.name}</div>
-          <div className="text-xs text-white/50 mt-0.5">{selected.provider}</div>
+          <div className={`text-sm font-semibold ${
+            theme === 'light' ? 'text-gray-900' : 'text-white/90'
+          }`}>{selected.name}</div>
+          <div className={`text-xs mt-0.5 ${
+            theme === 'light' ? 'text-gray-500' : 'text-white/50'
+          }`}>{selected.provider}</div>
         </div>
-        <ChevronDown className={`w-4 h-4 transition-all duration-300 text-cyan-400 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-all duration-300 ${
+          theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
+        } ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -72,7 +84,11 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-3 w-full glass-panel backdrop-blur-3xl border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in">
+          <div className={`absolute top-full left-0 mt-3 w-full backdrop-blur-3xl border rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in ${
+            theme === 'light'
+              ? 'bg-white/95 border-gray-200'
+              : 'glass-panel border-white/20'
+          }`}>
             <div className="p-2 max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => (
                 <button
@@ -84,18 +100,30 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                   style={{ animationDelay: `${index * 30}ms` }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
                     selectedModel === model.id
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
-                      : 'hover:bg-white/10 border border-transparent hover:border-white/10'
+                      ? theme === 'light'
+                        ? 'bg-blue-50 border border-blue-200'
+                        : 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
+                      : theme === 'light'
+                        ? 'hover:bg-gray-100 border border-transparent'
+                        : 'hover:bg-white/10 border border-transparent hover:border-white/10'
                   }`}
                 >
                   <div className="flex-1 text-left">
                     <div className={`text-sm font-semibold transition-colors ${
-                      selectedModel === model.id ? 'text-cyan-400' : 'text-white group-hover/item:text-cyan-300'
+                      selectedModel === model.id
+                        ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                        : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
                     }`}>{model.name}</div>
-                    <div className="text-xs text-white/50 mt-0.5 group-hover/item:text-white/70 transition-colors">{model.description}</div>
+                    <div className={`text-xs mt-0.5 transition-colors ${
+                      theme === 'light'
+                        ? 'text-gray-600 group-hover/item:text-gray-800'
+                        : 'text-white/50 group-hover/item:text-white/70'
+                    }`}>{model.description}</div>
                   </div>
                   {selectedModel === model.id && (
-                    <Check className="w-4 h-4 text-cyan-400 animate-fade-in" />
+                    <Check className={`w-4 h-4 animate-fade-in ${
+                      theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                    }`} />
                   )}
                 </button>
               ))}

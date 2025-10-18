@@ -25,9 +25,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className="space-y-3">
-      <div className={`relative flex items-end gap-2 rounded-3xl p-2 shadow-sm ${
+      <div className={`relative flex items-end gap-2 rounded-3xl p-2 shadow-lg ${
         theme === 'light'
-          ? 'bg-gray-100 border border-gray-200'
+          ? 'bg-white/80 backdrop-blur-md border border-gray-200'
           : 'bg-white/5 backdrop-blur-xl border border-white/10'
       }`}>
         <textarea

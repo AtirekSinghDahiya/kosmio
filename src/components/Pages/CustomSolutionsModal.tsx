@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { X, Building2, Users, Mail, Phone, Briefcase, FileText, DollarSign, Clock, Send } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface CustomSolutionsModalProps {
   onClose: () => void;
 }
 
 export const CustomSolutionsModal: React.FC<CustomSolutionsModalProps> = ({ onClose }) => {
+  const { theme } = useTheme();
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -164,14 +166,18 @@ export const CustomSolutionsModal: React.FC<CustomSolutionsModalProps> = ({ onCl
                 value={formData.company_size}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00FFF0]/50 transition-all"
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-[#00FFF0]/50 transition-all ${
+                  theme === 'light'
+                    ? 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-white/5 border-white/10 text-white'
+                }`}
               >
-                <option value="" className="bg-slate-900">Select size</option>
-                <option value="startup" className="bg-slate-900">Startup (1-10)</option>
-                <option value="small" className="bg-slate-900">Small (11-50)</option>
-                <option value="medium" className="bg-slate-900">Medium (51-200)</option>
-                <option value="large" className="bg-slate-900">Large (201-1000)</option>
-                <option value="enterprise" className="bg-slate-900">Enterprise (1000+)</option>
+                <option value="" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Select size</option>
+                <option value="startup" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Startup (1-10)</option>
+                <option value="small" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Small (11-50)</option>
+                <option value="medium" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Medium (51-200)</option>
+                <option value="large" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Large (201-1000)</option>
+                <option value="enterprise" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Enterprise (1000+)</option>
               </select>
             </div>
 
@@ -181,14 +187,29 @@ export const CustomSolutionsModal: React.FC<CustomSolutionsModalProps> = ({ onCl
                 <FileText className="w-4 h-4" />
                 Industry
               </label>
-              <input
-                type="text"
+              <select
                 name="industry"
                 value={formData.industry}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 transition-all"
-                placeholder="Technology, Healthcare, etc."
-              />
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-[#00FFF0]/50 transition-all ${
+                  theme === 'light'
+                    ? 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-white/5 border-white/10 text-white'
+                }`}
+              >
+                <option value="" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Select industry</option>
+                <option value="technology" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Technology</option>
+                <option value="healthcare" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Healthcare</option>
+                <option value="finance" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Finance & Banking</option>
+                <option value="education" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Education</option>
+                <option value="retail" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Retail & E-commerce</option>
+                <option value="manufacturing" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Manufacturing</option>
+                <option value="real_estate" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Real Estate</option>
+                <option value="media" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Media & Entertainment</option>
+                <option value="consulting" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Consulting</option>
+                <option value="legal" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Legal</option>
+                <option value="other" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Other</option>
+              </select>
             </div>
 
             {/* Use Case */}
@@ -235,14 +256,18 @@ export const CustomSolutionsModal: React.FC<CustomSolutionsModalProps> = ({ onCl
                 name="budget_range"
                 value={formData.budget_range}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00FFF0]/50 transition-all"
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-[#00FFF0]/50 transition-all ${
+                  theme === 'light'
+                    ? 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-white/5 border-white/10 text-white'
+                }`}
               >
-                <option value="" className="bg-slate-900">Select range</option>
-                <option value="under_10k" className="bg-slate-900">Under $10,000</option>
-                <option value="10k_50k" className="bg-slate-900">$10,000 - $50,000</option>
-                <option value="50k_100k" className="bg-slate-900">$50,000 - $100,000</option>
-                <option value="100k_500k" className="bg-slate-900">$100,000 - $500,000</option>
-                <option value="over_500k" className="bg-slate-900">$500,000+</option>
+                <option value="" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Select range</option>
+                <option value="under_10k" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Under $10,000</option>
+                <option value="10k_50k" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>$10,000 - $50,000</option>
+                <option value="50k_100k" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>$50,000 - $100,000</option>
+                <option value="100k_500k" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>$100,000 - $500,000</option>
+                <option value="over_500k" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>$500,000+</option>
               </select>
             </div>
 
@@ -256,14 +281,18 @@ export const CustomSolutionsModal: React.FC<CustomSolutionsModalProps> = ({ onCl
                 name="timeline"
                 value={formData.timeline}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-[#00FFF0]/50 transition-all"
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:border-[#00FFF0]/50 transition-all ${
+                  theme === 'light'
+                    ? 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-white/5 border-white/10 text-white'
+                }`}
               >
-                <option value="" className="bg-slate-900">Select timeline</option>
-                <option value="immediate" className="bg-slate-900">Immediate (ASAP)</option>
-                <option value="1_month" className="bg-slate-900">Within 1 month</option>
-                <option value="3_months" className="bg-slate-900">Within 3 months</option>
-                <option value="6_months" className="bg-slate-900">Within 6 months</option>
-                <option value="flexible" className="bg-slate-900">Flexible</option>
+                <option value="" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Select timeline</option>
+                <option value="immediate" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Immediate (ASAP)</option>
+                <option value="1_month" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Within 1 month</option>
+                <option value="3_months" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Within 3 months</option>
+                <option value="6_months" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Within 6 months</option>
+                <option value="flexible" className={theme === 'light' ? 'bg-white text-gray-900' : 'bg-slate-900 text-white'}>Flexible</option>
               </select>
             </div>
 

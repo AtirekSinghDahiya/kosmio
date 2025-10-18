@@ -582,7 +582,7 @@ export const MainChat: React.FC = () => {
         {!showLanding && (
           <div className={`border-t p-6 ${
             theme === 'light'
-              ? 'border-gray-200 bg-white'
+              ? 'border-gray-200 bg-white/50 backdrop-blur-md'
               : 'border-white/10 bg-slate-900/80 backdrop-blur-xl'
           }`}>
             <div className="max-w-4xl mx-auto">
