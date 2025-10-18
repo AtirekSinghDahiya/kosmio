@@ -73,7 +73,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="glass-panel rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-hidden border border-white/20 shadow-2xl animate-scale-in">
+      <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-hidden border border-white/20 shadow-2xl animate-scale-in">
         {/* Header */}
         <div className="relative bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 p-6 border-b border-white/10">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
@@ -110,7 +110,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="A majestic dragon soaring through stormy clouds, lightning strikes in background, epic fantasy art, highly detailed, 8k quality"
-                  className="w-full px-4 py-4 rounded-xl bg-white/5 border border-white/20 text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 min-h-[180px] resize-none transition-all"
+                  className="w-full px-4 py-4 rounded-xl bg-slate-700/50 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 min-h-[180px] resize-none transition-all"
                   disabled={isGenerating}
                   autoFocus
                 />

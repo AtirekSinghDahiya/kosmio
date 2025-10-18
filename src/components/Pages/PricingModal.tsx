@@ -119,33 +119,17 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
     setPurchasing(plan.id);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            planName: plan.name,
-            userId: currentUser.uid,
-            userEmail: currentUser.email || '',
-          }),
-        }
-      );
+      const { data: planData, error } = await supabase
+        .from('pricing_plans')
+        .select('stripe_payment_link')
+        .eq('name', plan.name.toLowerCase())
+        .maybeSingle();
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+      if (error || !planData?.stripe_payment_link) {
+        throw new Error('Payment link not configured for this plan');
       }
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error('No checkout URL returned');
-      }
+      window.location.href = planData.stripe_payment_link;
     } catch (error: any) {
       console.error('Error initiating payment:', error);
       alert(`Failed to start payment: ${error.message}`);

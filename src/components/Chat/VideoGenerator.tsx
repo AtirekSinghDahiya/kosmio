@@ -112,7 +112,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] animate-fade-in">
       <div className="relative w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="relative bg-gradient-to-br from-slate-900/98 via-slate-800/98 to-slate-900/98 backdrop-blur-2xl rounded-3xl border-2 border-orange-500/30 shadow-2xl shadow-orange-500/20 overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 backdrop-blur-2xl rounded-3xl border-2 border-orange-500/30 shadow-2xl shadow-orange-500/20 overflow-hidden">
 
           {/* Animated glow effect */}
           <div className="absolute -inset-[2px] bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-3xl blur-xl animate-pulse opacity-50" />
@@ -160,7 +160,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="Enter your script... e.g., 'Welcome to our AI-powered video studio!'"
-                      className="w-full h-40 px-5 py-4 bg-white/5 border-2 border-white/10 focus:border-orange-400/60 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-none transition-all text-base backdrop-blur-sm"
+                      className="w-full h-40 px-5 py-4 bg-slate-700/50 border-2 border-white/20 focus:border-orange-400/60 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-none transition-all text-base backdrop-blur-sm"
                       disabled={isGenerating}
                     />
                     <div className="absolute bottom-3 right-3 text-xs text-white/40">
@@ -183,7 +183,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                         value={duration}
                         onChange={(e) => setDuration(Number(e.target.value))}
                         disabled={isGenerating}
-                        className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 focus:border-cyan-400/60 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 bg-slate-700/50 border-2 border-white/20 focus:border-cyan-400/60 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value={5}>5 seconds</option>
                         <option value={10}>10 seconds</option>
@@ -207,7 +207,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                         value={aspectRatio}
                         onChange={(e) => setAspectRatio(e.target.value as any)}
                         disabled={isGenerating}
-                        className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 focus:border-blue-400/60 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 bg-slate-700/50 border-2 border-white/20 focus:border-blue-400/60 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="16:9">16:9 Landscape</option>
                         <option value="9:16">9:16 Portrait</option>

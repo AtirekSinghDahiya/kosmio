@@ -186,7 +186,7 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border border-white/10 animate-scale-in">
+      <div className="relative w-full max-w-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 rounded-2xl shadow-2xl border border-white/20 animate-scale-in">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors group z-10"
@@ -241,7 +241,7 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
                 <select
                   value={selectedVoice}
                   onChange={(e) => setSelectedVoice(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
                   disabled={isAnalyzing || isGenerating}
                 >
                   {VOICE_OPTIONS.map((voice) => (
@@ -261,7 +261,7 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Type or paste the text you want to convert to speech..."
-                className="w-full h-40 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
+                className="w-full h-40 px-4 py-3 bg-slate-700/50 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
                 maxLength={5000}
               />
               <div className="flex justify-between items-center mt-2">
@@ -270,7 +270,7 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
             </div>
 
             {audioUrl && (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+              <div className="bg-slate-700/30 border border-white/20 rounded-xl p-6">
                 <audio
                   ref={audioRef}
                   src={audioUrl}
