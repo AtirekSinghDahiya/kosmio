@@ -116,19 +116,36 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
       return;
     }
 
-    if (!plan.stripe_payment_link) {
-      alert('Payment link not configured for this plan');
-      return;
-    }
-
     setPurchasing(plan.id);
 
     try {
-      const checkoutUrl = new URL(plan.stripe_payment_link);
-      checkoutUrl.searchParams.append('client_reference_id', currentUser.uid);
-      checkoutUrl.searchParams.append('prefilled_email', currentUser.email || '');
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            planName: plan.name,
+            userId: currentUser.uid,
+            userEmail: currentUser.email || '',
+          }),
+        }
+      );
 
-      window.location.href = checkoutUrl.toString();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
     } catch (error: any) {
       console.error('Error initiating payment:', error);
       alert(`Failed to start payment: ${error.message}`);

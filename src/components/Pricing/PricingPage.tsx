@@ -71,23 +71,33 @@ export const PricingPage: React.FC = () => {
     setPurchasing(plan.id);
 
     try {
-      // Get the plan data with Stripe payment link
-      const { data: planData, error: planError } = await supabase
-        .from('pricing_plans')
-        .select('stripe_payment_link')
-        .eq('id', plan.id)
-        .single();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stripe-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            planName: plan.name,
+            userId: currentUser.uid,
+            userEmail: currentUser.email || '',
+          }),
+        }
+      );
 
-      if (planError || !planData?.stripe_payment_link) {
-        throw new Error('Payment link not configured for this plan');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
       }
 
-      // Redirect to Stripe checkout with user ID as reference
-      const checkoutUrl = new URL(planData.stripe_payment_link);
-      checkoutUrl.searchParams.append('client_reference_id', currentUser.uid);
-      checkoutUrl.searchParams.append('prefilled_email', currentUser.email || '');
-
-      window.location.href = checkoutUrl.toString();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
     } catch (error: any) {
       console.error('Error initiating payment:', error);
       alert(`Failed to start payment: ${error.message}`);
