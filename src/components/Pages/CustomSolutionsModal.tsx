@@ -204,7 +204,7 @@ export const CustomSolutionsModal: React.FC<CustomSolutionsModalProps> = ({ onCl
                 required
                 rows={3}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 transition-all resize-none"
-                placeholder="Describe how you plan to use Kroniq in your organization..."
+                placeholder="Describe how you plan to use KroniQ in your organization..."
               />
             </div>
 

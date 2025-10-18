@@ -85,9 +85,9 @@ export const CareersModal: React.FC<CareersModalProps> = ({ onClose }) => {
 
         <div className="p-6 overflow-y-auto scrollbar-thin max-h-[calc(90vh-100px)]">
           <div className="glass-panel rounded-2xl p-6 mb-6 bg-gradient-to-r from-cyan-500/10 to-blue-600/10 border-cyan-500/20">
-            <h3 className="text-xl font-bold text-white mb-3">Why Kroniq?</h3>
+            <h3 className="text-xl font-bold text-white mb-3">Why KroniQ?</h3>
             <p className="text-white/70 text-sm leading-relaxed mb-4">
-              At Kroniq, we're building the next generation of AI tools that empower creators, developers, and businesses worldwide.
+              At KroniQ, we're building the next generation of AI tools that empower creators, developers, and businesses worldwide.
               Join a team of passionate innovators who are shaping the future of technology.
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

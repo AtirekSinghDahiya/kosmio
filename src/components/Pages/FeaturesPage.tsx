@@ -69,7 +69,7 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onClose }) => {
         <div className="sticky top-0 glass-panel backdrop-blur-3xl border-b border-white/10 p-6 flex items-center justify-between z-10">
           <div>
             <h2 className="text-3xl font-bold text-white">Features</h2>
-            <p className="text-white/60 text-sm mt-1">Discover what makes Kroniq powerful</p>
+            <p className="text-white/60 text-sm mt-1">Discover what makes KroniQ powerful</p>
           </div>
           <button
             onClick={onClose}
@@ -119,7 +119,7 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onClose }) => {
                   <div className="w-2 h-2 rounded-full bg-cyan-400 mt-2" />
                   <div>
                     <p className="font-medium text-white">API Access</p>
-                    <p className="text-sm text-white/60">Integrate Kroniq into your own applications</p>
+                    <p className="text-sm text-white/60">Integrate KroniQ into your own applications</p>
                   </div>
                 </div>
               </div>

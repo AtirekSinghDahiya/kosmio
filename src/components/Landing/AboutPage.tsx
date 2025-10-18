@@ -40,14 +40,14 @@ export const AboutPage: React.FC = () => {
     {
       name: 'Atirek Singh',
       role: 'CTO & Founder',
-      bio: 'The visionary behind Kroniq. Started working on this groundbreaking idea in grade 9, bringing together his team to turn a dream into reality. Leads design and implementation.',
+      bio: 'The visionary behind KroniQ. Started working on this groundbreaking idea in grade 9, bringing together his team to turn a dream into reality. Leads design and implementation.',
       image: 'from-cyan-500 to-blue-600',
       icon: Lightbulb
     },
     {
       name: 'Jitender Singh Dahiya',
       role: 'CEO & Founder',
-      bio: 'The strategic mastermind behind Kroniq\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
+      bio: 'The strategic mastermind behind KroniQ\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
       image: 'from-emerald-500 to-teal-600',
       icon: Globe
     },
@@ -87,7 +87,7 @@ export const AboutPage: React.FC = () => {
           </h1>
 
           <p className="text-xl md:text-2xl text-white/80 leading-relaxed max-w-4xl mx-auto font-light">
-            We believe that powerful AI tools should be accessible to everyone. Kroniq empowers creators, developers, and businesses to harness the full potential of artificial intelligence without complexity.
+            We believe that powerful AI tools should be accessible to everyone. KroniQ empowers creators, developers, and businesses to harness the full potential of artificial intelligence without complexity.
           </p>
         </div>
       </section>

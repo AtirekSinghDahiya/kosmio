@@ -47,12 +47,12 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
             <img
               src="/logo.svg"
-              alt="Kroniq"
+              alt="KroniQ"
               className="w-full h-full object-contain"
             />
           </div>
           <h1 className="text-3xl font-semibold text-white mb-2">
-            Welcome to Kroniq
+            Welcome to KroniQ
           </h1>
           <p className="text-white/60 text-sm">
             How can I help you today?
@@ -105,7 +105,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Message Kroniq..."
+                placeholder="Message KroniQ..."
                 className="flex-1 bg-transparent px-5 py-4 text-white text-sm placeholder-white/40 focus:outline-none"
               />
               <button
@@ -118,7 +118,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
             </div>
 
             <p className="text-xs text-white/30 text-center mt-3">
-              Kroniq can make mistakes. Check important info.
+              KroniQ can make mistakes. Check important info.
             </p>
           </form>
         </div>

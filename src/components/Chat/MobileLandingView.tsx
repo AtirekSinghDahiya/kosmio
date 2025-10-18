@@ -46,12 +46,12 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
           <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
             <img
               src="/logo.svg"
-              alt="Kroniq"
+              alt="KroniQ"
               className="w-full h-full object-contain"
             />
           </div>
           <h1 className="text-2xl font-semibold text-white mb-2">
-            Welcome to Kroniq
+            Welcome to KroniQ
           </h1>
           <p className="text-white/60 text-sm">
             How can I help you today?
@@ -93,7 +93,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Message Kroniq..."
+                placeholder="Message KroniQ..."
                 className="flex-1 bg-transparent px-4 py-3 text-white text-sm placeholder-white/40 focus:outline-none"
               />
               <button
@@ -106,7 +106,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
             </div>
 
             <p className="text-xs text-white/30 text-center mt-2">
-              Kroniq can make mistakes. Check important info.
+              KroniQ can make mistakes. Check important info.
             </p>
           </form>
         </div>

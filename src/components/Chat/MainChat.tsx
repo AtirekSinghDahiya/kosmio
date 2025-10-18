@@ -556,7 +556,7 @@ export const MainChat: React.FC = () => {
                   onChange={setInputValue}
                   onSend={() => handleSendMessage()}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask Kroniq anything..."
+                  placeholder="Ask KroniQ anything..."
                   disabled={isLoading}
                   selectedModel={selectedModel}
                 />

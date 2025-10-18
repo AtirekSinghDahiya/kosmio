@@ -89,14 +89,14 @@ export const LoginPage: React.FC = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-3 md:p-4 animate-pulse-glow">
             <img
               src="/logo.svg"
-              alt="Kroniq"
+              alt="KroniQ"
               className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,255,240,0.6)]"
             />
           </div>
 
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-1 md:mb-2">
-              <span className="text-glow-teal">Kroniq</span>
+              <span className="text-glow-teal">KroniQ</span>
             </h1>
             <p className="text-white/70 text-xs md:text-sm font-light tracking-wide">
               AI Development Studio
@@ -235,7 +235,7 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div className="text-center mt-6 space-y-3">
-          <p className="text-white/40 text-xs">Kroniq © 2025 — Crafted with intelligence</p>
+          <p className="text-white/40 text-xs">KroniQ © 2025 — Crafted with intelligence</p>
 
           <button
             onClick={() => setShowDebug(!showDebug)}

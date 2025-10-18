@@ -144,7 +144,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         ],
         button: 'Current Plan',
         disabled: true,
-        description: 'New users exploring Kroniq',
+        description: 'New users exploring KroniQ',
       },
       {
         id: 'creator',

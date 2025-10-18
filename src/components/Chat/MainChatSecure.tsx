@@ -141,7 +141,7 @@ export const MainChat: React.FC = () => {
           <Sparkles className="w-10 h-10 text-white" />
         </div>
         <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-          Welcome to Kroniq AI
+          Welcome to KroniQ AI
         </h1>
         <p className="text-gray-400 text-lg mb-8">
           Start a conversation or describe what you want to create
