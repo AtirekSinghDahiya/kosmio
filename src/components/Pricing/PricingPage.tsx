@@ -59,76 +59,38 @@ export const PricingPage: React.FC = () => {
       return;
     }
 
+    if (plan.name === 'starter') {
+      return;
+    }
+
+    if (plan.name === 'enterprise') {
+      window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
+      return;
+    }
+
     setPurchasing(plan.id);
 
     try {
-      // Create subscription record
-      const { data: subscription, error: subError } = await supabase
-        .from('user_subscriptions')
-        .upsert({
-          user_id: currentUser.uid,
-          plan_id: plan.id,
-          plan_name: plan.name,
-          status: 'active',
-          started_at: new Date().toISOString(),
-          expires_at: plan.billing_period === 'monthly'
-            ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-            : null,
-          auto_renew: false
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
+      // Get the plan data with Stripe payment link
+      const { data: planData, error: planError } = await supabase
+        .from('pricing_plans')
+        .select('stripe_payment_link')
+        .eq('id', plan.id)
         .single();
 
-      if (subError) throw subError;
-
-      // Create transaction record
-      const { error: txError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: currentUser.uid,
-          plan_id: plan.id,
-          plan_name: plan.name,
-          amount: parseFloat(plan.price),
-          status: 'completed',
-          transaction_type: 'purchase',
-          metadata: {
-            plan_display_name: plan.display_name,
-            billing_period: plan.billing_period
-          }
-        });
-
-      if (txError) throw txError;
-
-      // Initialize usage tracking for the current period
-      const periodStart = new Date();
-      const periodEnd = new Date();
-      periodEnd.setDate(periodEnd.getDate() + 30);
-
-      const resourceTypes = ['chat_messages', 'code_projects', 'code_lines', 'images', 'videos', 'storage_mb'];
-
-      for (const resourceType of resourceTypes) {
-        await supabase
-          .from('usage_tracking')
-          .insert({
-            user_id: currentUser.uid,
-            resource_type: resourceType,
-            amount: 0,
-            period_start: periodStart.toISOString(),
-            period_end: periodEnd.toISOString()
-          });
+      if (planError || !planData?.stripe_payment_link) {
+        throw new Error('Payment link not configured for this plan');
       }
 
-      // Show success message
-      alert(`🎉 Successfully subscribed to ${plan.display_name}! Your new features are now active.`);
+      // Redirect to Stripe checkout with user ID as reference
+      const checkoutUrl = new URL(planData.stripe_payment_link);
+      checkoutUrl.searchParams.append('client_reference_id', currentUser.uid);
+      checkoutUrl.searchParams.append('prefilled_email', currentUser.email || '');
 
-      // Refresh user data
-      window.location.reload();
+      window.location.href = checkoutUrl.toString();
     } catch (error: any) {
-      console.error('Error purchasing plan:', error);
-      alert(`Failed to purchase plan: ${error.message}`);
-    } finally {
+      console.error('Error initiating payment:', error);
+      alert(`Failed to start payment: ${error.message}`);
       setPurchasing(null);
     }
   };

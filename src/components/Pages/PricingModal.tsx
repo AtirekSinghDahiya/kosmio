@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { X, Check, Sparkles, Zap, Star, Crown } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { CustomSolutionsModal } from './CustomSolutionsModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PricingModalProps {
   onClose: () => void;
 }
 
 interface Plan {
+  id: string;
   name: string;
   icon: any;
   price: string;
@@ -18,12 +20,15 @@ interface Plan {
   button: string;
   disabled: boolean;
   description: string;
+  stripe_payment_link?: string;
 }
 
 export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
+  const { currentUser } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showCustomSolutions, setShowCustomSolutions] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
 
   useEffect(() => {
     loadPricingFromDatabase();
@@ -49,6 +54,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           const displayName = plan.display_name || plan.name;
 
           return {
+            id: plan.id,
             name: displayName,
             icon: getIconForPlan(displayName),
             price: priceNum === 0 ? '$0' : priceNum < 0 ? 'Custom' : `$${Math.round(priceNum)}`,
@@ -58,7 +64,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
             features: Array.isArray(plan.features) ? plan.features : [],
             button: displayName === 'Starter' ? 'Current Plan' : displayName === 'Enterprise' ? 'Contact Sales' : `Get ${displayName}`,
             disabled: displayName === 'Starter',
-            description: plan.description || ''
+            description: plan.description || '',
+            stripe_payment_link: plan.stripe_payment_link
           };
         });
         setPlans(formattedPlans);
@@ -93,9 +100,46 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
     }
   };
 
+  const handlePurchase = async (plan: Plan) => {
+    if (!currentUser) {
+      alert('Please sign in to purchase a plan');
+      onClose();
+      return;
+    }
+
+    if (plan.name === 'Starter') {
+      return;
+    }
+
+    if (plan.name === 'Enterprise') {
+      window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
+      return;
+    }
+
+    if (!plan.stripe_payment_link) {
+      alert('Payment link not configured for this plan');
+      return;
+    }
+
+    setPurchasing(plan.id);
+
+    try {
+      const checkoutUrl = new URL(plan.stripe_payment_link);
+      checkoutUrl.searchParams.append('client_reference_id', currentUser.uid);
+      checkoutUrl.searchParams.append('prefilled_email', currentUser.email || '');
+
+      window.location.href = checkoutUrl.toString();
+    } catch (error: any) {
+      console.error('Error initiating payment:', error);
+      alert(`Failed to start payment: ${error.message}`);
+      setPurchasing(null);
+    }
+  };
+
   const useFallbackPlans = () => {
     setPlans([
       {
+        id: 'starter',
         name: 'Starter',
         icon: Sparkles,
         price: '$0',
@@ -114,6 +158,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         description: 'New users exploring Kroniq',
       },
       {
+        id: 'creator',
         name: 'Creator',
         icon: Zap,
         price: '$9',
@@ -131,8 +176,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         button: 'Get Creator',
         disabled: false,
         description: 'Students, creators, and freelancers',
+        stripe_payment_link: 'https://buy.stripe.com/test_dRm5kC9zc5ZZ88DekPcV200',
       },
       {
+        id: 'pro',
         name: 'Pro',
         icon: Star,
         price: '$29',
@@ -152,8 +199,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         button: 'Get Pro',
         disabled: false,
         description: 'Professionals and startups',
+        stripe_payment_link: 'https://buy.stripe.com/test_4gMdR8eTw9cbfB590vcV201',
       },
       {
+        id: 'enterprise',
         name: 'Enterprise',
         icon: Crown,
         price: 'Custom',
@@ -234,14 +283,17 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                   </ul>
 
                   <button
-                    disabled={plan.disabled}
+                    onClick={() => handlePurchase(plan)}
+                    disabled={plan.disabled || purchasing === plan.id}
                     className={`w-full py-3 rounded-xl font-semibold transition-all ${
                       plan.disabled
                         ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                        : purchasing === plan.id
+                        ? 'bg-white/10 text-white/50 cursor-wait'
                         : 'bg-gradient-to-r ' + plan.gradient + ' text-white hover:shadow-lg hover:shadow-cyan-500/20 button-press'
                     }`}
                   >
-                    {plan.button}
+                    {purchasing === plan.id ? 'Redirecting...' : plan.button}
                   </button>
                 </div>
               );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Zap, Star, Crown, Sparkles } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
+import { supabase } from '../../lib/supabaseClient';
 
 interface PricingPageProps {
   onGetStarted: () => void;
@@ -9,6 +10,42 @@ interface PricingPageProps {
 export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const [mounted, setMounted] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+
+  const handlePlanClick = async (planName: string) => {
+    if (planName === 'Starter') {
+      onGetStarted();
+      return;
+    }
+
+    if (planName === 'Enterprise') {
+      window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
+      return;
+    }
+
+    setPurchasing(planName);
+
+    try {
+      const { data: planData, error } = await supabase
+        .from('pricing_plans')
+        .select('stripe_payment_link')
+        .ilike('display_name', planName)
+        .single();
+
+      if (error || !planData?.stripe_payment_link) {
+        console.error('Payment link not found:', error);
+        onGetStarted();
+        return;
+      }
+
+      window.location.href = planData.stripe_payment_link;
+    } catch (error) {
+      console.error('Error loading payment link:', error);
+      onGetStarted();
+    } finally {
+      setPurchasing(null);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -223,14 +260,15 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
 
                     {/* CTA Button */}
                     <button
-                      onClick={onGetStarted}
-                      className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 hover:scale-105 ${
+                      onClick={() => handlePlanClick(plan.name)}
+                      disabled={purchasing === plan.name}
+                      className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-wait ${
                         plan.popular
                           ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-lg hover:shadow-[#00FFF0]/30'
                           : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
                       }`}
                     >
-                      {plan.name === 'Starter' ? 'Start Free' : plan.name === 'Enterprise' ? 'Contact Sales' : `Get ${plan.name}`}
+                      {purchasing === plan.name ? 'Redirecting...' : plan.name === 'Starter' ? 'Start Free' : plan.name === 'Enterprise' ? 'Contact Sales' : `Get ${plan.name}`}
                     </button>
                   </div>
                 </Floating3DCard>
