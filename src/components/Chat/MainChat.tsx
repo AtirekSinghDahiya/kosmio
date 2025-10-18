@@ -4,8 +4,10 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { getAIResponse as callSimpleAI } from '../../lib/simpleAI';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
@@ -35,6 +37,7 @@ import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionServic
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
   const { navigateTo } = useNavigation();
+  const { theme } = useTheme();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -472,61 +475,98 @@ export const MainChat: React.FC = () => {
           ) : (
             <>
               {/* Messages Area */}
-              <div className="px-6 py-8 space-y-6 pb-32">
-              {messages.map((message) => (
+              <div className="max-w-4xl mx-auto py-8 space-y-1 pb-32">
+              {messages.map((message, index) => (
                 <div
                   key={message.id}
-                  className={`flex gap-2 md:gap-4 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                  className={`group ${message.role === 'assistant' ? (theme === 'light' ? 'bg-gray-50' : 'bg-transparent') : ''} hover:bg-black/5 dark:hover:bg-white/5 transition-colors py-6 px-4`}
                 >
-                  {/* Avatar */}
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2]'
-                      : 'bg-gradient-to-br from-purple-500 to-pink-500'
-                  }`}>
-                    {message.role === 'user' ? (
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                        <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                      </svg>
-                    )}
-                  </div>
-
-                  {/* Message Content */}
-                  <div className={`flex-1 max-w-full md:max-w-3xl ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
-                    <div className={`inline-block rounded-2xl px-5 py-3 shadow-lg ${
-                      message.role === 'user'
-                        ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'
-                        : 'bg-white/5 backdrop-blur-xl border border-white/10 text-white'
-                    }`}>
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
+                  <div className="max-w-3xl mx-auto flex gap-4">
+                    {/* Avatar */}
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
+                      {message.role === 'user' ? (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <img src="/logo.svg" alt="KroniQ" className="w-8 h-8" />
+                      )}
                     </div>
-                    <div className={`text-xs mt-1.5 px-1 ${
-                      message.role === 'user' ? 'text-white/50' : 'text-white/40'
-                    }`}>
-                      {message.created_at && new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                    {/* Message Content */}
+                    <div className="flex-1 space-y-3">
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+                        {message.content}
+                      </div>
+
+                      {/* Action Buttons - Only for AI messages */}
+                      {message.role === 'assistant' && (
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(message.content);
+                              showToast('success', 'Copied', 'Message copied to clipboard');
+                            }}
+                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                            title="Copy"
+                          >
+                            <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          </button>
+                          <button
+                            onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
+                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                            title="Good response"
+                          >
+                            <ThumbsUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          </button>
+                          <button
+                            onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
+                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                            title="Bad response"
+                          >
+                            <ThumbsDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Find the user message that prompted this response
+                              const userMessage = messages[index - 1];
+                              if (userMessage && userMessage.role === 'user') {
+                                handleSendMessage(userMessage.content);
+                              }
+                            }}
+                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                            title="Retry"
+                          >
+                            <RotateCw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          </button>
+                          <button
+                            onClick={() => showToast('info', 'Coming Soon', 'More actions coming soon!')}
+                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                            title="More actions"
+                          >
+                            <MoreHorizontal className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
 
               {isLoading && (
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                      <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                    </svg>
-                  </div>
-                  <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 shadow-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="py-6 px-4">
+                  <div className="max-w-3xl mx-auto flex gap-4">
+                    <div className="flex-shrink-0 w-8 h-8">
+                      <img src="/logo.svg" alt="KroniQ" className="w-8 h-8 animate-pulse" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -540,7 +580,11 @@ export const MainChat: React.FC = () => {
 
         {/* Input Area - Full Width */}
         {!showLanding && (
-          <div className="border-t border-white/10 bg-slate-900/80 backdrop-blur-xl p-6">
+          <div className={`border-t p-6 ${
+            theme === 'light'
+              ? 'border-gray-200 bg-white'
+              : 'border-white/10 bg-slate-900/80 backdrop-blur-xl'
+          }`}>
             <div className="max-w-4xl mx-auto">
               <div className="mb-4">
                 <AIModelSelector

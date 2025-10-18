@@ -129,7 +129,7 @@ export async function getAIResponse(
   const messages: Message[] = [
     {
       role: 'system',
-      content: systemPrompt || 'You are KroniQ AI, a helpful and intelligent assistant. Be concise, helpful, and friendly.',
+      content: systemPrompt || 'You are KroniQ AI, a friendly and intelligent assistant with personality! 😊 Be warm, conversational, and use emojis naturally (1-3 per response). Show enthusiasm when helping and be empathetic. Use casual yet professional language. Remember: you\'re having a genuine conversation, not just providing information!',
     },
     ...conversationHistory.slice(-10), // Last 10 messages for context
     {
