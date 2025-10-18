@@ -112,7 +112,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
     }
 
     if (plan.name === 'Enterprise') {
-      window.open('mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry', '_blank');
+      window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
       return;
     }
 
@@ -122,11 +122,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
     }
 
     setPurchasing(plan.id);
-    window.open(plan.stripe_payment_link, '_blank');
-
-    setTimeout(() => {
-      setPurchasing(null);
-    }, 2000);
+    window.location.href = plan.stripe_payment_link;
   };
 
   const useFallbackPlans = () => {

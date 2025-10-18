@@ -39,22 +39,22 @@ export const AboutPage: React.FC = () => {
   const team = [
     {
       name: 'Atirek Singh',
-      role: 'CTO & Founder',
-      bio: 'The visionary behind Kroniq. Started working on this groundbreaking idea in grade 9, bringing together his father and friend to turn a dream into reality. Leads design and implementation.',
+      role: 'Founder',
+      bio: 'The visionary behind Kroniq. Started working on this groundbreaking idea in grade 9, bringing together his team to turn a dream into reality. Leads design and implementation.',
       image: 'from-cyan-500 to-blue-600',
       icon: Lightbulb
     },
     {
       name: 'Jitender Singh Dahiya',
-      role: 'CEO & Co-Founder',
-      bio: 'Father of Atirek Singh and the strategic mastermind behind Kroniq\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
+      role: 'Founder',
+      bio: 'The strategic mastermind behind Kroniq\'s business vision. Drives marketing initiatives and business development with decades of expertise.',
       image: 'from-emerald-500 to-teal-600',
       icon: Globe
     },
     {
       name: 'Aditya Narayan Uniyal',
-      role: 'Co-CTO & Co-Founder',
-      bio: 'Atirek\'s grade 9 classmate and friend. Engineered the AI systems and backend architecture alongside Atirek, bringing technical excellence to every layer of the platform.',
+      role: 'Founder',
+      bio: 'Engineered the AI systems and backend architecture alongside Atirek, bringing technical excellence to every layer of the platform.',
       image: 'from-blue-500 to-cyan-600',
       icon: Brain
     }
