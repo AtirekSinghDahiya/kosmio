@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface LandingNavbarProps {
   currentPage: 'home' | 'about' | 'pricing' | 'contact';
@@ -8,6 +9,7 @@ interface LandingNavbarProps {
 }
 
 export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNavigate, onGetStarted }) => {
+  const { theme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -46,7 +48,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
               >
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2 group-hover/logo:scale-110 transition-transform duration-300">
                   <img
-                    src="/kroniq-icon.svg"
+                    src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
                     alt="KroniQ"
                     className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                   />

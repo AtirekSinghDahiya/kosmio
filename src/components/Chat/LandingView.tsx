@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Code, Palette, Video, Volume2, Send, Sparkles, ArrowRight } from 'lucide-react';
 import { AIModelSelector } from './AIModelSelector';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface LandingViewProps {
   onQuickAction: (prompt: string) => void;
@@ -9,6 +10,7 @@ interface LandingViewProps {
 }
 
 export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selectedModel = 'gpt-4o', onModelChange }) => {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState('');
 
@@ -46,7 +48,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         <div className={`text-center mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
           <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
             <img
-              src="/kroniq-icon.svg"
+              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
               alt="KroniQ"
               className="w-full h-full object-contain"
             />

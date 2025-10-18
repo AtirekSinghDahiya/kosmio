@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, Globe, Shield } from 'lucide-react';
 import { CosmicBackground } from '../Layout/CosmicBackground';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface PublicLandingPageProps {
   onGetStarted: () => void;
 }
 
 export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStarted }) => {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
@@ -112,7 +114,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
                 <div className="flex items-center gap-2 md:gap-3 min-w-0">
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-1.5 md:p-2 flex-shrink-0">
                     <img
-                      src="/kroniq-icon.svg"
+                      src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
                       alt="KroniQ"
                       className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                     />
@@ -379,7 +381,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="mb-4">
-                <img src="/kroniq-full-logo.svg" alt="KroniQ" className="h-12 object-contain" />
+                <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png" alt="KroniQ" className="h-12 object-contain" />
               </div>
               <p className="text-white/60 text-sm">Crafted with intelligence</p>
             </div>

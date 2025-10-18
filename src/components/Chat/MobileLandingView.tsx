@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Code, Palette, Video, Volume2, Send, ArrowRight } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface MobileLandingViewProps {
   onQuickAction: (prompt: string) => void;
@@ -15,6 +16,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
   setInput,
   onSendMessage,
 }) => {
+  const { theme } = useTheme();
   const suggestions = [
     {
       icon: Code,
@@ -45,7 +47,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 mb-3">
             <img
-              src="/kroniq-icon.svg"
+              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
               alt="KroniQ"
               className="w-full h-full object-contain"
             />

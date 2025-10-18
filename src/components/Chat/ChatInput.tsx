@@ -70,8 +70,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       }`}>
         <div className={`flex items-end gap-2 rounded-3xl p-2 ${
           theme === 'light'
-            ? 'bg-white'
-            : 'bg-slate-900'
+            ? 'bg-white/95 backdrop-blur-xl'
+            : 'bg-slate-900/95 backdrop-blur-xl'
         }`}>
           {/* Left Action Buttons */}
           <div className="flex items-center gap-1 pb-2">

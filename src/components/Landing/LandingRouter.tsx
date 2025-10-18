@@ -6,12 +6,14 @@ import { PricingPage } from './PricingPage';
 import { ContactPage } from './ContactPage';
 import { FloatingElements } from './FloatingElements';
 import { CosmicBackground } from '../Layout/CosmicBackground';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface LandingRouterProps {
   onGetStarted: () => void;
 }
 
 export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
+  const { theme } = useTheme();
   const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact'>('home');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +72,7 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
               <div>
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center p-2">
-                    <img src="/kroniq-icon.svg" alt="KroniQ" className="w-full h-full object-contain" />
+                    <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png" alt="KroniQ" className="w-full h-full object-contain" />
                   </div>
                   <span className="text-xl font-bold text-white">KroniQ</span>
                 </div>

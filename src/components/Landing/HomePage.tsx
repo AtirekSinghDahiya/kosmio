@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, Star, TrendingUp, Users } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HomePageProps {
   onGetStarted: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
 
@@ -73,7 +75,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] rounded-full blur-3xl opacity-50 animate-pulse-slow" />
             <div className="relative w-40 h-40 mx-auto rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl backdrop-blur-xl border-2 border-white/20 p-6 floating-animation">
               <img
-                src="/kroniq-icon.svg"
+                src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
                 alt="KroniQ"
                 className="w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,255,240,0.8)]"
               />

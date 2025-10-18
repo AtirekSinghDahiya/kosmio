@@ -35,6 +35,22 @@ const MainApp: React.FC = () => {
     }
   }, [currentUser]);
 
+  // Dynamic page title based on current view
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      chat: 'KroniQ - AI Chat',
+      projects: 'KroniQ - My Projects',
+      voice: 'KroniQ - Voice Studio',
+      code: 'KroniQ - Code Studio',
+      design: 'KroniQ - Design Studio',
+      video: 'KroniQ - Video Studio',
+      billing: 'KroniQ - Billing',
+      admin: 'KroniQ - Admin Dashboard',
+      settings: 'KroniQ - Settings',
+    };
+    document.title = titles[currentView] || 'KroniQ - AI Development Studio';
+  }, [currentView]);
+
   // Show public landing page for non-authenticated users
   if (!currentUser) {
     if (showLogin) {
