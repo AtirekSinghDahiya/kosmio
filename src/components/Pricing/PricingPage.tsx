@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Check, Zap, Crown, Building2, ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from '../../contexts/NavigationContext';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { supabase } from '../../lib/supabaseClient';
 
 interface PricingPlan {
@@ -25,7 +25,7 @@ interface PricingPlan {
 
 export const PricingPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const { navigateTo } = useNavigate();
+  const { navigateTo } = useNavigation();
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<string | null>(null);

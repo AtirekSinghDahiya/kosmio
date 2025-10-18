@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { User, Mail, Zap, Crown, X, Camera, MapPin, Phone, Calendar, FileText, Sparkles, Sliders } from 'lucide-react';
+import { User, Mail, Zap, Crown, X, Camera, MapPin, Phone, Calendar, FileText, Sparkles, Sliders, CreditCard, XCircle } from 'lucide-react';
+import { getUserSubscription, cancelSubscription } from '../../lib/subscriptionService';
 
 interface ProfilePageProps {
   onClose: () => void;
@@ -23,8 +24,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'ai'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'ai' | 'subscription'>('profile');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (userData) {
@@ -38,8 +41,31 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
       setAiPersonality(userData.aiPersonality || 'balanced');
       setAiCreativityLevel(userData.aiCreativityLevel || 5);
       setAiResponseLength(userData.aiResponseLength || 'medium');
+      loadSubscription();
     }
   }, [userData]);
+
+  const loadSubscription = async () => {
+    const sub = await getUserSubscription();
+    setSubscription(sub);
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel your subscription? You will still have access until the end of your billing period.')) {
+      return;
+    }
+
+    setCancelling(true);
+    const result = await cancelSubscription();
+
+    if (result.success) {
+      showToast('success', 'Subscription Cancelled', result.message);
+      await loadSubscription();
+    } else {
+      showToast('error', 'Cancellation Failed', result.message);
+    }
+    setCancelling(false);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -226,25 +252,36 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
           <div className="flex gap-2 mb-6 glass-panel rounded-2xl p-1">
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all text-sm blur-transition flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 px-3 rounded-xl font-medium transition-all text-sm blur-transition flex items-center justify-center gap-2 ${
                 activeTab === 'profile'
                   ? 'bg-gradient-to-r from-[#00FFF0]/30 to-[#8A2BE2]/30 text-white shadow-lg border border-[#00FFF0]/50'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
               <User className="w-4 h-4" />
-              Profile Info
+              <span className="hidden sm:inline">Profile</span>
             </button>
             <button
               onClick={() => setActiveTab('ai')}
-              className={`flex-1 py-2.5 px-4 rounded-xl font-medium transition-all text-sm blur-transition flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 px-3 rounded-xl font-medium transition-all text-sm blur-transition flex items-center justify-center gap-2 ${
                 activeTab === 'ai'
                   ? 'bg-gradient-to-r from-[#00FFF0]/30 to-[#8A2BE2]/30 text-white shadow-lg border border-[#00FFF0]/50'
                   : 'text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
               <Sparkles className="w-4 h-4" />
-              AI Preferences
+              <span className="hidden sm:inline">AI</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('subscription')}
+              className={`flex-1 py-2.5 px-3 rounded-xl font-medium transition-all text-sm blur-transition flex items-center justify-center gap-2 ${
+                activeTab === 'subscription'
+                  ? 'bg-gradient-to-r from-[#00FFF0]/30 to-[#8A2BE2]/30 text-white shadow-lg border border-[#00FFF0]/50'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <CreditCard className="w-4 h-4" />
+              <span className="hidden sm:inline">Billing</span>
             </button>
           </div>
 
@@ -347,6 +384,78 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onClose }) => {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'subscription' && (
+              <div className="glass-panel rounded-2xl p-6 border border-white/10 animate-fade-in-up">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-cyan-400" />
+                  Subscription Management
+                </h3>
+                <div className="space-y-4">
+                  {subscription && subscription.status === 'active' ? (
+                    <>
+                      <div className="glass-panel rounded-xl p-4 border border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-white/70 text-sm">Current Plan</span>
+                          <span className="text-white font-bold capitalize">{subscription.plan_name}</span>
+                        </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-white/70 text-sm">Status</span>
+                          <span className="px-3 py-1 bg-green-500/20 border border-green-500/50 text-green-200 rounded-full text-xs font-semibold">
+                            {subscription.status}
+                          </span>
+                        </div>
+                        {subscription.expires_at && (
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-white/70 text-sm">Expires</span>
+                            <span className="text-white text-sm">
+                              {new Date(subscription.expires_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/70 text-sm">Auto Renew</span>
+                          <span className="text-white text-sm">
+                            {subscription.auto_renew ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {subscription.auto_renew && (
+                        <button
+                          onClick={handleCancelSubscription}
+                          disabled={cancelling}
+                          className="w-full flex items-center justify-center gap-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-200 py-3 px-4 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
+                        </button>
+                      )}
+
+                      {!subscription.auto_renew && (
+                        <div className="bg-yellow-500/20 border border-yellow-500/50 text-yellow-200 px-4 py-3 rounded-xl text-sm">
+                          Your subscription will not renew. You'll have access until {new Date(subscription.expires_at).toLocaleDateString()}.
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="glass-panel rounded-xl p-6 border border-white/10 text-center">
+                      <Crown className="w-12 h-12 text-cyan-400 mx-auto mb-3" />
+                      <p className="text-white font-semibold mb-2">No Active Subscription</p>
+                      <p className="text-white/60 text-sm mb-4">
+                        Upgrade to unlock premium features and remove limits.
+                      </p>
+                      <button
+                        onClick={onClose}
+                        className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white py-2 px-6 rounded-xl font-medium hover:shadow-xl transition-all text-sm"
+                      >
+                        View Plans
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

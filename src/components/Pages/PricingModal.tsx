@@ -161,7 +161,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         id: 'creator',
         name: 'Creator',
         icon: Zap,
-        price: '$9',
+        price: '$9.99',
         period: 'per month',
         gradient: 'from-blue-500 to-cyan-500',
         features: [

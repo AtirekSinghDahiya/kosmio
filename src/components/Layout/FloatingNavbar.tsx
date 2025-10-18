@@ -109,45 +109,18 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
       </nav>
 
       <div className="fixed top-3 md:top-5 right-3 md:right-4 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
-        <div className="relative group">
+        <button
+          onClick={() => setShowPricing(true)}
+          className="relative group overflow-hidden"
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/10 to-[#8A2BE2]/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="relative bg-black/30 backdrop-blur-xl border border-white/10 group-hover:border-white/20 rounded-2xl px-2 md:px-5 py-1.5 md:py-3 flex items-center gap-2 md:gap-4 shadow-xl transition-all duration-300">
-            <div className="hidden md:flex items-center gap-2.5">
-              <div className="relative">
-                <Zap className="w-4 h-4 text-cyan-400" />
-                <div className="absolute inset-0 bg-cyan-400 blur-sm opacity-50 animate-pulse" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold text-white/90">
-                  {userData?.tokensUsed?.toLocaleString() || 0}
-                </span>
-                <span className="text-[10px] text-white/50 tracking-wide">TOKENS</span>
-              </div>
+          <div className="relative bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] hover:from-[#00FFF0]/90 hover:to-[#8A2BE2]/90 rounded-xl px-4 md:px-6 py-2 md:py-2.5 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-white" />
+              <span className="text-sm font-bold text-white">Get Plus</span>
             </div>
-
-            <div className="hidden md:block w-px h-8 bg-white/20" />
-
-            <button
-              onClick={handleProfileClick}
-              className="flex items-center gap-1.5 md:gap-2.5 hover:bg-white/10 rounded-xl px-1 md:px-2 py-1 md:py-1.5 transition-all duration-300 active:scale-95 group/profile"
-            >
-              <div className="relative w-7 h-7 md:w-9 md:h-9 rounded-full bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 flex items-center justify-center ring-2 ring-white/10 group-hover/profile:ring-white/30 transition-all duration-300">
-                {userData?.photoURL ? (
-                  <img src={userData.photoURL} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <User className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                )}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400/20 to-purple-600/20 animate-pulse" />
-              </div>
-              <div className="hidden sm:flex flex-col">
-                <span className="text-xs font-semibold text-white/90 capitalize tracking-wide">
-                  {userData?.plan || 'Free'}
-                </span>
-                <span className="text-[10px] text-white/50 tracking-wider">PLAN</span>
-              </div>
-            </button>
           </div>
-        </div>
+        </button>
       </div>
 
       {showProfile && <ProfilePage onClose={() => setShowProfile(false)} />}

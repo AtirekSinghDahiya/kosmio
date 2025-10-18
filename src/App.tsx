@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { checkSubscriptionExpiration } from './lib/subscriptionService';
 import { ToastProvider } from './contexts/ToastContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -23,6 +24,16 @@ const MainApp: React.FC = () => {
   const { currentUser, userData } = useAuth();
   const { currentView, activeProject, navigateTo } = useNavigation();
   const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      checkSubscriptionExpiration();
+      const interval = setInterval(() => {
+        checkSubscriptionExpiration();
+      }, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
 
   // Show public landing page for non-authenticated users
   if (!currentUser) {

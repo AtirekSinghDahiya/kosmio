@@ -30,6 +30,7 @@ import {
   Message,
 } from '../../lib/chatService';
 import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../../lib/userPreferences';
+import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionService';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
@@ -158,6 +159,12 @@ export const MainChat: React.FC = () => {
 
     if (!textToSend || isLoading) {
       console.warn('⚠️ BLOCKED: textToSend empty or already loading');
+      return;
+    }
+
+    const messageAccess = await checkFeatureAccess('chat_messages_daily');
+    if (!messageAccess.allowed) {
+      showToast('error', 'Daily Limit Reached', `You've reached your daily message limit of ${messageAccess.limit} messages. Upgrade your plan to send more messages.`);
       return;
     }
 
@@ -318,6 +325,9 @@ export const MainChat: React.FC = () => {
       console.log('💾 Saving AI response to database...');
       await addMessage(projectId, 'assistant', aiContent);
       console.log('✅ AI response saved successfully');
+
+      await incrementUsage('chat_messages_daily', 1);
+      console.log('✅ Message usage incremented');
 
     } catch (error: any) {
       console.error('❌❌❌ AI ERROR ❌❌❌');
