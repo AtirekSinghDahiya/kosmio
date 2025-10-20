@@ -47,22 +47,30 @@ export async function generateSunoMusic(
   request: SunoGenerationRequest,
   apiKey: string
 ): Promise<string> {
+  const requestBody: any = {
+    prompt: request.prompt,
+    style: request.style,
+    title: request.title,
+    customMode: request.customMode ?? true,
+    instrumental: request.instrumental ?? false,
+    model: request.model ?? 'V3_5',
+  };
+
+  if (request.callBackUrl) {
+    requestBody.callBackUrl = request.callBackUrl;
+  }
+
+  if (request.negativeTags) {
+    requestBody.negativeTags = request.negativeTags;
+  }
+
   const response = await fetch(`${SUNO_API_BASE}/generate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      prompt: request.prompt,
-      style: request.style,
-      title: request.title,
-      customMode: request.customMode ?? true,
-      instrumental: request.instrumental ?? false,
-      model: request.model ?? 'V3_5',
-      callBackUrl: request.callBackUrl ?? '',
-      negativeTags: request.negativeTags ?? '',
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
