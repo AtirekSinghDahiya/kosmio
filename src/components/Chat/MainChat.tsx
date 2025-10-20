@@ -216,6 +216,20 @@ export const MainChat: React.FC = () => {
       return;
     }
 
+    // Auto-detect music generation requests
+    const musicKeywords = /\b(generate|create|make|compose|produce|write)\b.*\b(music|song|track|tune|beat|melody|soundtrack|audio|composition)\b/i;
+    const musicRequestPattern = /\b(music|song|track|tune) (about|for|with|depicting)\b/i;
+
+    if (musicKeywords.test(textToSend) || musicRequestPattern.test(textToSend)) {
+      console.log('🎵 Music generation detected!');
+      setInputValue('');
+
+      // Navigate to Voice Studio (which has Music tab)
+      navigateTo('voice');
+      showToast('info', 'Music Studio', 'Opening Voice Studio - switch to AI Music (Suno) tab');
+      return;
+    }
+
     // Auto-detect image generation requests
     const imageKeywords = /\b(generate|create|make|draw|design|show|paint|illustrate|render)\b.*\b(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\b/i;
     const imageRequestPattern = /\b(image|picture|photo|illustration) (of|about|showing|with|depicting)\b/i;
