@@ -54,11 +54,8 @@ export async function generateSunoMusic(
     customMode: request.customMode ?? true,
     instrumental: request.instrumental ?? false,
     model: request.model ?? 'V3_5',
+    callBackUrl: request.callBackUrl || 'https://example.com/callback',
   };
-
-  if (request.callBackUrl) {
-    requestBody.callBackUrl = request.callBackUrl;
-  }
 
   if (request.negativeTags) {
     requestBody.negativeTags = request.negativeTags;
