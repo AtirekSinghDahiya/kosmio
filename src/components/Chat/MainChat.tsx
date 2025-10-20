@@ -20,6 +20,7 @@ import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
+import { MusicGenerator } from './MusicGenerator';
 import {
   createProject,
   addMessage,
@@ -54,6 +55,8 @@ export const MainChat: React.FC = () => {
   const [videoPrompt, setVideoPrompt] = useState('');
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
+  const [showMusicGenerator, setShowMusicGenerator] = useState(false);
+  const [musicPrompt, setMusicPrompt] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -224,9 +227,14 @@ export const MainChat: React.FC = () => {
       console.log('🎵 Music generation detected!');
       setInputValue('');
 
-      // Navigate to Voice Studio (which has Music tab)
-      navigateTo('voice');
-      showToast('info', 'Music Studio', 'Opening Voice Studio - switch to AI Music (Suno) tab');
+      // Extract the prompt (remove command words)
+      const cleanPrompt = textToSend
+        .replace(/^(generate|create|make|compose|produce|write)\s+(an?\s+)?(music|song|track|tune|beat|melody|soundtrack|audio|composition)\s+(about|for|with|depicting)?\s*/i, '')
+        .trim();
+
+      setMusicPrompt(cleanPrompt || textToSend);
+      setShowMusicGenerator(true);
+
       return;
     }
 
@@ -659,6 +667,16 @@ export const MainChat: React.FC = () => {
             setVideoPrompt('');
           }}
           initialPrompt={videoPrompt}
+        />
+      )}
+
+      {showMusicGenerator && (
+        <MusicGenerator
+          onClose={() => {
+            setShowMusicGenerator(false);
+            setMusicPrompt('');
+          }}
+          initialPrompt={musicPrompt}
         />
       )}
 
