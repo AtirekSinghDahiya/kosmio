@@ -58,9 +58,24 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initial
 
       setGeneratedTracks(tracks);
       showToast('success', 'Success!', 'Music generated successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Suno generation error:', error);
-      showToast('error', 'Generation Failed', error instanceof Error ? error.message : 'Failed to generate music');
+
+      let errorMessage = 'Failed to generate music';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      // Check for specific error types
+      if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
+        errorMessage = 'Invalid API key. Please check your KIE.ai API key.';
+      } else if (error?.message?.includes('429')) {
+        errorMessage = 'Rate limit exceeded. Please try again later.';
+      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+
+      showToast('error', 'Generation Failed', errorMessage);
     } finally {
       setIsGenerating(false);
       setProgressMessage('');

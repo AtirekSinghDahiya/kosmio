@@ -66,12 +66,15 @@ export async function generateSunoMusic(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to generate music: ${response.statusText}`);
+    const errorText = await response.text().catch(() => response.statusText);
+    console.error('Suno API error:', response.status, errorText);
+    throw new Error(`API Error (${response.status}): ${errorText}`);
   }
 
   const data: SunoGenerationResponse = await response.json();
 
   if (data.code !== 200) {
+    console.error('Suno generation failed:', data);
     throw new Error(data.message || 'Failed to generate music');
   }
 
@@ -96,12 +99,15 @@ export async function checkSunoStatus(
   );
 
   if (!response.ok) {
-    throw new Error(`Failed to check status: ${response.statusText}`);
+    const errorText = await response.text().catch(() => response.statusText);
+    console.error('Suno status check error:', response.status, errorText);
+    throw new Error(`Status Check Error (${response.status}): ${errorText}`);
   }
 
   const data: SunoStatusResponse = await response.json();
 
   if (data.code !== 200) {
+    console.error('Suno status check failed:', data);
     throw new Error(data.message || 'Failed to check status');
   }
 
