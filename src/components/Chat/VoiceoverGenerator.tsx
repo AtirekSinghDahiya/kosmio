@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, Download, X, Loader, Play, Pause, Sparkles, Users } from 'lucide-react';
 import { generateVoiceover } from '../../lib/voiceoverService';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { analyzeScript, DialogueLine } from '../../lib/scriptAnalyzer';
 
 interface VoiceoverGeneratorProps {
@@ -23,6 +24,7 @@ const VOICE_OPTIONS = [
 ];
 
 export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose, initialText = '' }) => {
+  const { theme } = useTheme();
   const { showToast } = useToast();
   const [text, setText] = useState(initialText);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -186,12 +188,16 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 rounded-2xl shadow-2xl border border-white/20 animate-scale-in">
+      <div className={`relative w-full max-w-2xl rounded-2xl shadow-2xl animate-scale-in ${
+        theme === 'light'
+          ? 'bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-gray-200'
+          : 'bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 border border-white/20'
+      }`}>
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors group z-10"
         >
-          <X className="w-5 h-5 text-gray-400 group-hover:text-white" />
+          <X className={`w-5 h-5 ${theme === 'light' ? 'text-gray-600 group-hover:text-gray-900' : 'text-gray-400 group-hover:text-white'}`} />
         </button>
 
         <div className="p-8">
@@ -200,8 +206,8 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
               <Volume2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">AI Voiceover Generator</h2>
-              <p className="text-sm text-gray-400">Convert your text to natural speech</p>
+              <h2 className={`text-2xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AI Voiceover Generator</h2>
+              <p className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>Convert your text to natural speech</p>
             </div>
           </div>
 

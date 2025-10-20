@@ -497,7 +497,7 @@ export const MainChat: React.FC = () => {
 
                     {/* Message Content */}
                     <div className="flex-1 space-y-3">
-                      <div className="text-sm leading-relaxed whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+                      <div className="text-[15px] leading-[1.7] whitespace-pre-wrap text-gray-900 dark:text-gray-100 font-normal tracking-normal">
                         {message.content}
                       </div>
 

@@ -42,16 +42,16 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
   ];
 
   return (
-    <div className="h-full flex flex-col items-center justify-center p-6">
-      <div className="max-w-3xl w-full mx-auto flex flex-col items-center justify-center">
+    <div className="h-full flex flex-col p-6">
+      <div className="flex-1 flex flex-col items-center justify-center max-w-3xl w-full mx-auto">
         {/* Logo and Title */}
         <div className={`text-center mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
           <img
             src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
             alt="KroniQ"
-            className="h-24 md:h-32 w-auto object-contain mb-4 mx-auto"
+            className="h-40 md:h-56 w-auto object-contain mb-6 mx-auto"
           />
-          <h1 className="text-3xl font-semibold text-white mb-2">
+          <h1 className="text-2xl md:text-3xl font-medium text-white mb-2">
             Welcome to KroniQ
           </h1>
           <p className="text-white/60 text-sm">
@@ -60,26 +60,29 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         </div>
 
         {/* Suggestion Cards */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full mb-8 ${mounted ? 'opacity-100 transition-opacity duration-700 delay-200' : 'opacity-0'}`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full ${mounted ? 'opacity-100 transition-opacity duration-700 delay-200' : 'opacity-0'}`}>
           {suggestions.map((suggestion, index) => {
             const Icon = suggestion.icon;
             return (
               <button
                 key={index}
                 onClick={() => onQuickAction(suggestion.prompt)}
-                className="group flex flex-col items-start gap-2 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-left"
+                className="group flex flex-col items-start gap-3 p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 text-left"
               >
-                <Icon className="w-5 h-5 text-white/80 group-hover:text-white transition-colors" />
-                <span className="text-sm text-white/80 group-hover:text-white transition-colors font-medium">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20">
+                  <Icon className="w-5 h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+                </div>
+                <span className="text-sm text-white/90 group-hover:text-white transition-colors font-medium leading-snug">
                   {suggestion.title}
                 </span>
               </button>
             );
           })}
         </div>
+      </div>
 
-        {/* Input Area */}
-        <div className={`w-full ${mounted ? 'opacity-100 transition-opacity duration-700 delay-400' : 'opacity-0'}`}>
+      {/* Input Area - Fixed at Bottom */}
+      <div className={`w-full max-w-3xl mx-auto mt-auto ${mounted ? 'opacity-100 transition-opacity duration-700 delay-400' : 'opacity-0'}`}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -122,7 +125,6 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
             </p>
           </form>
         </div>
-      </div>
     </div>
   );
 };

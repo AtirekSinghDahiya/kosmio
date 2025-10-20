@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
   const menuItems = [
     { id: 'chat', label: 'AI Chat', icon: Sparkles },
     { id: 'projects', label: 'Projects', icon: FolderOpen },
-    { id: 'voice', label: 'Voice Studio', icon: Mic },
+    { id: 'voice', label: 'Voice & Music Studio', icon: Mic },
     { id: 'billing', label: 'Billing', icon: CreditCard },
   ];
 
