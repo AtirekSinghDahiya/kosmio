@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Download, Volume2, Loader2, Upload, X, FileAudio, Mic, Music } from 'lucide-react';
 import { SunoMusicGenerator } from './SunoMusicGenerator';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<'voice' | 'music'>('voice');
   const [text, setText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -291,7 +293,11 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-900 via-blue-900 to-gray-900 p-6" onClick={() => setShowDownloadMenu(false)}>
+    <div className={`min-h-screen p-6 ${
+      theme === 'light'
+        ? 'bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50'
+        : 'bg-gradient-to-br from-teal-900 via-blue-900 to-gray-900'
+    }`} onClick={() => setShowDownloadMenu(false)}>
       <div className="max-w-5xl mx-auto" onClick={(e) => e.stopPropagation()}>
         {/* Tabs */}
         <div className="flex justify-center gap-4 mb-8">
@@ -326,17 +332,21 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
           <>
             <div className="text-center mb-8">
               <div className="flex items-center justify-center gap-3 mb-3">
-                <Volume2 className="w-10 h-10 text-teal-300" />
-                <h1 className="text-4xl font-bold text-white">AI Voice Generator</h1>
+                <Volume2 className={`w-10 h-10 ${theme === 'light' ? 'text-teal-600' : 'text-teal-300'}`} />
+                <h1 className={`text-4xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AI Voice Generator</h1>
               </div>
-              <p className="text-teal-200">Transform text into lifelike speech or upload your audio files</p>
+              <p className={theme === 'light' ? 'text-gray-700' : 'text-teal-200'}>Transform text into lifelike speech or upload your audio files</p>
             </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
+              theme === 'light'
+                ? 'bg-white/70 border border-gray-200 shadow-lg'
+                : 'bg-white/10 border border-white/20'
+            }`}>
               <div className="flex items-center justify-between mb-4">
-                <label className="flex items-center gap-2 text-white font-semibold">
+                <label className={`flex items-center gap-2 font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                   <FileAudio className="w-5 h-5" />
                   Upload Audio File
                 </label>
@@ -365,7 +375,11 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
               )}
             </div>
 
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
+              theme === 'light'
+                ? 'bg-white/70 border border-gray-200 shadow-lg'
+                : 'bg-white/10 border border-white/20'
+            }`}>
               <div className="flex items-center gap-2 mb-3">
                 <Mic className="w-5 h-5 text-white" />
                 <label className="text-white font-semibold">Enter Text to Generate Speech</label>
@@ -387,7 +401,11 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
             </div>
 
             {audioUrl && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              <div className={`backdrop-blur-lg rounded-2xl p-6 ${
+              theme === 'light'
+                ? 'bg-white/70 border border-gray-200 shadow-lg'
+                : 'bg-white/10 border border-white/20'
+            }`}>
                 <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                   <Volume2 className="w-5 h-5" />
                   {uploadedFile ? 'Playing: ' + uploadedFile.name : 'Generated Audio'}
@@ -461,7 +479,11 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
+              theme === 'light'
+                ? 'bg-white/70 border border-gray-200 shadow-lg'
+                : 'bg-white/10 border border-white/20'
+            }`}>
               <h3 className="text-white font-semibold mb-4">Select Voice</h3>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {voices.length > 0 ? (
@@ -477,7 +499,11 @@ export const VoiceStudio: React.FC<{ projectId?: string }> = () => {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className={`backdrop-blur-lg rounded-2xl p-6 ${
+              theme === 'light'
+                ? 'bg-white/70 border border-gray-200 shadow-lg'
+                : 'bg-white/10 border border-white/20'
+            }`}>
               <h3 className="text-white font-semibold mb-4">Voice Settings</h3>
 
               <div className="space-y-4">

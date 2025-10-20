@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Image, Download, Wand2, X, Loader, Sparkles, RefreshCw } from 'lucide-react';
 import { generateImageFree, GeneratedImage } from '../../lib/imageService';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ImageGeneratorProps {
   onClose: () => void;
@@ -15,6 +16,7 @@ interface ImageGeneratorProps {
 }
 
 export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImageGenerated, initialPrompt = '' }) => {
+  const { theme } = useTheme();
   const { showToast } = useToast();
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -73,9 +75,17 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-hidden border border-white/20 shadow-2xl animate-scale-in">
+      <div className={`rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-hidden shadow-2xl animate-scale-in ${
+        theme === 'light'
+          ? 'bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-gray-200'
+          : 'bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 border border-white/20'
+      }`}>
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 p-6 border-b border-white/10">
+        <div className={`relative p-6 ${
+          theme === 'light'
+            ? 'bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-b border-gray-200'
+            : 'bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 border-b border-white/10'
+        }`}>
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -83,8 +93,8 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">AI Image Studio</h2>
-                <p className="text-sm text-white/70 mt-1">Transform your imagination into reality</p>
+                <h2 className={`text-2xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AI Image Studio</h2>
+                <p className={`text-sm mt-1 ${theme === 'light' ? 'text-gray-600' : 'text-white/70'}`}>Transform your imagination into reality</p>
               </div>
             </div>
             <button

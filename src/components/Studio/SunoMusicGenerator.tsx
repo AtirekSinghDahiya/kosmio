@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Music, Loader2, Play, Download, Sparkles } from 'lucide-react';
 import { generateAndWaitForMusic } from '../../lib/sunoService';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const SunoMusicGenerator: React.FC = () => {
+  const { theme } = useTheme();
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('');
   const [title, setTitle] = useState('');
@@ -68,15 +70,19 @@ export const SunoMusicGenerator: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 to-indigo-900 p-6 overflow-y-auto">
+    <div className={`h-full flex flex-col p-6 overflow-y-auto ${
+      theme === 'light'
+        ? 'bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50'
+        : 'bg-gradient-to-br from-slate-900 to-indigo-900'
+    }`}>
       <div className="max-w-4xl mx-auto w-full space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2">
-            <Music className="w-8 h-8 text-cyan-400" />
-            <h1 className="text-3xl font-bold text-white">Suno AI Music Generator</h1>
+            <Music className={`w-8 h-8 ${theme === 'light' ? 'text-cyan-600' : 'text-cyan-400'}`} />
+            <h1 className={`text-3xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Suno AI Music Generator</h1>
           </div>
-          <p className="text-white/60">Generate custom AI music with Suno V3.5</p>
+          <p className={theme === 'light' ? 'text-gray-700' : 'text-white/60'}>Generate custom AI music with Suno V3.5</p>
           <a
             href="https://kie.ai"
             target="_blank"
@@ -89,9 +95,13 @@ export const SunoMusicGenerator: React.FC = () => {
         </div>
 
         {/* Input Form */}
-        <div className="glass-panel rounded-2xl p-6 space-y-4">
+        <div className={`rounded-2xl p-6 space-y-4 ${
+          theme === 'light'
+            ? 'bg-white/80 border border-gray-200 shadow-lg'
+            : 'glass-panel'
+        }`}>
           <div>
-            <label className="block text-white/90 font-semibold mb-2">
+            <label className={`block font-semibold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
               API Key
               <span className="text-white/50 font-normal ml-2">(Required)</span>
             </label>
@@ -100,12 +110,16 @@ export const SunoMusicGenerator: React.FC = () => {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your KIE.ai API key"
-              className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
+              className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:border-cyan-500/50 ${
+                theme === 'light'
+                  ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'
+                  : 'bg-slate-800/50 border border-white/10 text-white placeholder-white/30'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-white/90 font-semibold mb-2">
+            <label className={`block font-semibold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
               Music Description (Prompt)
               <span className="text-white/50 font-normal ml-2">(Max 3000 characters)</span>
             </label>
@@ -121,7 +135,7 @@ export const SunoMusicGenerator: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-white/90 font-semibold mb-2">
+            <label className={`block font-semibold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
               Style/Genre
               <span className="text-white/50 font-normal ml-2">(Max 200 characters)</span>
             </label>
@@ -131,12 +145,16 @@ export const SunoMusicGenerator: React.FC = () => {
               onChange={(e) => setStyle(e.target.value)}
               placeholder="e.g., Classical, Jazz, Pop, Electronic, Rock"
               maxLength={200}
-              className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
+              className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:border-cyan-500/50 ${
+                theme === 'light'
+                  ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'
+                  : 'bg-slate-800/50 border border-white/10 text-white placeholder-white/30'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-white/90 font-semibold mb-2">
+            <label className={`block font-semibold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
               Title
               <span className="text-white/50 font-normal ml-2">(Max 80 characters)</span>
             </label>
@@ -146,7 +164,11 @@ export const SunoMusicGenerator: React.FC = () => {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Peaceful Piano Meditation"
               maxLength={80}
-              className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-cyan-500/50"
+              className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:border-cyan-500/50 ${
+                theme === 'light'
+                  ? 'bg-white border border-gray-300 text-gray-900 placeholder-gray-400'
+                  : 'bg-slate-800/50 border border-white/10 text-white placeholder-white/30'
+              }`}
             />
           </div>
 
@@ -177,7 +199,11 @@ export const SunoMusicGenerator: React.FC = () => {
 
         {/* Generated Tracks */}
         {generatedTracks.length > 0 && (
-          <div className="glass-panel rounded-2xl p-6 space-y-4">
+          <div className={`rounded-2xl p-6 space-y-4 ${
+          theme === 'light'
+            ? 'bg-white/80 border border-gray-200 shadow-lg'
+            : 'glass-panel'
+        }`}>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
               <Music className="w-6 h-6 text-cyan-400" />
               Generated Tracks

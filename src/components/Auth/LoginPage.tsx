@@ -87,21 +87,18 @@ export const LoginPage: React.FC = () => {
       </div>
 
       <div className={`w-full max-w-md relative z-10 px-2 ${mounted ? 'animate-scale-in' : 'opacity-0'}`}>
-        <div className="text-center mb-6 md:mb-8 space-y-3 md:space-y-4">
+        <div className="text-center mb-6 md:mb-8 flex flex-col items-center">
           <img
             src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
             alt="KroniQ"
-            className="h-32 md:h-40 w-auto object-contain mx-auto"
+            className="h-24 md:h-28 w-auto object-contain mb-3"
           />
-
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-1 md:mb-2">
-              <span className="text-glow-teal">KroniQ</span>
-            </h1>
-            <p className="text-white/70 text-xs md:text-sm font-light tracking-wide">
-              AI Development Studio
-            </p>
-          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
+            <span className="text-glow-teal">KroniQ</span>
+          </h1>
+          <p className="text-white/70 text-xs md:text-sm font-light tracking-wide">
+            AI Development Studio
+          </p>
         </div>
 
         <div className="glass-panel rounded-2xl md:rounded-3xl shadow-2xl p-4 md:p-6 border border-white/20 backdrop-blur-2xl">
