@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Music, Loader2, Download, X, Sparkles } from 'lucide-react';
+import { Music, Loader2, Download, X } from 'lucide-react';
 import { generateAndWaitForMusic } from '../../lib/sunoService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -15,7 +15,6 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initial
   const [prompt, setPrompt] = useState(initialPrompt);
   const [style, setStyle] = useState('');
   const [title, setTitle] = useState('');
-  const [apiKey, setApiKey] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [progressMessage, setProgressMessage] = useState('');
   const [generatedTracks, setGeneratedTracks] = useState<Array<{ audioUrl: string; title: string }>>([]);
@@ -33,8 +32,9 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initial
       return;
     }
 
-    if (!apiKey.trim()) {
-      showToast('warning', 'API Key Required', 'Please enter your KIE.ai API key');
+    const apiKey = import.meta.env.VITE_SUNO_API_KEY;
+    if (!apiKey) {
+      showToast('error', 'Configuration Error', 'Music generation is not configured. Please contact support.');
       return;
     }
 
@@ -134,51 +134,6 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initial
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-4">
-          {/* API Key Notice */}
-          <div className={`rounded-xl p-4 border ${
-            theme === 'light'
-              ? 'bg-blue-50 border-blue-200'
-              : 'bg-blue-500/10 border-blue-500/20'
-          }`}>
-            <div className="flex items-start gap-2">
-              <Sparkles className={`w-5 h-5 mt-0.5 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} />
-              <div>
-                <p className={`font-medium ${theme === 'light' ? 'text-blue-900' : 'text-blue-300'}`}>
-                  API Key Required
-                </p>
-                <p className={`text-sm mt-1 ${theme === 'light' ? 'text-blue-700' : 'text-blue-400/80'}`}>
-                  Get your free API key at{' '}
-                  <a
-                    href="https://kie.ai"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:no-underline"
-                  >
-                    KIE.ai
-                  </a>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* API Key Input */}
-          <div>
-            <label className={`block font-medium mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
-              API Key <span className={theme === 'light' ? 'text-red-600' : 'text-red-400'}>*</span>
-            </label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your KIE.ai API key"
-              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all ${
-                theme === 'light'
-                  ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-violet-500'
-                  : 'bg-slate-800/50 border-white/10 text-white placeholder-white/30 focus:ring-violet-500'
-              }`}
-            />
-          </div>
-
           {/* Music Description */}
           <div>
             <label className={`block font-medium mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
