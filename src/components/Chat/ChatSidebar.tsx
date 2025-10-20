@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
 
@@ -24,6 +25,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 }) => {
   const { signOut, userData } = useAuth();
   const { navigateTo } = useNavigation();
+  const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,8 +109,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         id="mobile-sidebar"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`h-screen glass-panel border-r border-white/10 flex flex-col transition-all duration-500 ease-out z-50
+        className={`h-screen backdrop-blur-xl border-r flex flex-col transition-all duration-500 ease-out z-50
           md:relative fixed top-0 left-0
+          ${theme === 'light'
+            ? 'bg-white/90 border-gray-200'
+            : 'bg-black/20 border-white/10'
+          }
           ${
             isMobileOpen
               ? 'translate-x-0 w-72 shadow-2xl shadow-[#00FFF0]/5'
@@ -116,13 +122,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           }
         `}
       >
-      <div className="p-3 border-b border-white/10 flex items-center justify-between">
+      <div className={`p-3 border-b flex items-center justify-between ${theme === 'light' ? 'border-gray-200' : 'border-white/10'}`}>
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 flex items-center justify-center flex-shrink-0 p-1">
+          <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
             <img
-              src="/Black Geometric Tech Business Logo.png"
+              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
               alt="KroniQ"
-              className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
+              className="w-10 h-10 object-contain"
             />
           </div>
           {(isMobileOpen || isHovered) && (

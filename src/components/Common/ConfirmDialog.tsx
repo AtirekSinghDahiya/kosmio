@@ -22,10 +22,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-      <div className="bg-black/70 backdrop-blur-2xl border border-white/20 rounded-xl shadow-2xl max-w-sm w-full animate-scale-in overflow-hidden">
+      <div className="bg-slate-900/95 backdrop-blur-2xl border border-white/20 rounded-xl shadow-2xl max-w-sm w-full animate-scale-in overflow-hidden">
         <div className="p-6 space-y-4">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          <p className="text-sm text-white/70 leading-relaxed whitespace-pre-line">{message}</p>
+          <p className="text-sm text-white/90 leading-relaxed whitespace-pre-line">{message}</p>
         </div>
         <div className="flex gap-3 px-6 pb-6 pt-2">
           <button

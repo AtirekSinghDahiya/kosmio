@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code, Palette, MessageSquare, Video, ArrowRight, X } from 'lucide-react';
+import { Code, Palette, MessageSquare, Video, ArrowRight, X, Mic, Music, Image } from 'lucide-react';
 import { IntentResult } from '../../lib/intentClassifier';
 
 interface IntentDialogProps {
@@ -17,6 +17,12 @@ export const IntentDialog: React.FC<IntentDialogProps> = ({ intent, onConfirm, o
         return <Palette className="w-8 h-8 text-pink-400" />;
       case 'video':
         return <Video className="w-8 h-8 text-purple-400" />;
+      case 'voice':
+        return <Mic className="w-8 h-8 text-teal-400" />;
+      case 'music':
+        return <Music className="w-8 h-8 text-violet-400" />;
+      case 'image':
+        return <Image className="w-8 h-8 text-rose-400" />;
       default:
         return <MessageSquare className="w-8 h-8 text-blue-400" />;
     }
@@ -30,6 +36,12 @@ export const IntentDialog: React.FC<IntentDialogProps> = ({ intent, onConfirm, o
         return 'from-pink-500/20 to-purple-500/20';
       case 'video':
         return 'from-purple-500/20 to-indigo-500/20';
+      case 'voice':
+        return 'from-teal-500/20 to-cyan-500/20';
+      case 'music':
+        return 'from-violet-500/20 to-purple-500/20';
+      case 'image':
+        return 'from-rose-500/20 to-pink-500/20';
       default:
         return 'from-blue-500/20 to-cyan-500/20';
     }

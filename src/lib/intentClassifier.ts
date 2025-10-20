@@ -1,7 +1,7 @@
 export interface IntentResult {
-  intent: 'chat' | 'code' | 'design' | 'video' | 'voice';
+  intent: 'chat' | 'code' | 'design' | 'video' | 'voice' | 'music' | 'image';
   confidence: number;
-  suggestedStudio: 'Chat Studio' | 'Code Studio' | 'Design Studio' | 'Video Studio' | 'Voice Studio';
+  suggestedStudio: 'Chat Studio' | 'Code Studio' | 'Design Studio' | 'Video Studio' | 'Voice Studio' | 'Music Studio' | 'Image Studio';
   reasoning: string;
 }
 
@@ -37,11 +37,25 @@ const VIDEO_KEYWORDS = [
 ];
 
 const VOICE_KEYWORDS = [
-  'voice', 'audio', 'speech', 'tts', 'text-to-speech', 'speak', 'narrator',
-  'voiceover', 'narrate', 'sound', 'mp3', 'wav', 'generate voice',
-  'voice generation', 'ai voice', 'voice over', 'read aloud', 'pronunciation',
-  'elevenlabs', 'voice synthesis', 'vocal', 'microphone', 'recording',
-  'podcast', 'audiobook', 'dubbing', 'voice acting'
+  'voice', 'speech', 'tts', 'text-to-speech', 'speak', 'narrator',
+  'voiceover', 'narrate', 'generate voice', 'voice generation',
+  'ai voice', 'voice over', 'read aloud', 'pronunciation',
+  'elevenlabs', 'voice synthesis', 'vocal', 'audiobook', 'dubbing', 'voice acting'
+];
+
+const MUSIC_KEYWORDS = [
+  'music', 'song', 'track', 'tune', 'melody', 'beat', 'rhythm', 'composition',
+  'soundtrack', 'audio', 'sound', 'mp3', 'wav', 'instrument', 'musical',
+  'genre', 'pop', 'rock', 'jazz', 'classical', 'electronic', 'hip hop',
+  'rap', 'country', 'blues', 'folk', 'ambient', 'techno', 'house',
+  'suno', 'music generation', 'ai music', 'compose', 'album', 'single',
+  'jingle', 'background music', 'bgm', 'soundtrack', 'score'
+];
+
+const IMAGE_KEYWORDS = [
+  'image', 'picture', 'photo', 'generate image', 'create image', 'ai image',
+  'dall-e', 'midjourney', 'stable diffusion', 'generate picture',
+  'create picture', 'illustration', 'drawing', 'art', 'visual'
 ];
 
 const CODE_PHRASES = [
@@ -65,10 +79,24 @@ const VIDEO_PHRASES = [
 ];
 
 const VOICE_PHRASES = [
-  'generate voice', 'create audio', 'text to speech', 'make voice',
-  'generate audio', 'voice generation', 'ai voice', 'voice over',
+  'generate voice', 'text to speech', 'make voice',
+  'voice generation', 'ai voice', 'voice over',
   'convert text to speech', 'read this aloud', 'narrate this',
   'create voiceover', 'generate speech', 'say this', 'speak this'
+];
+
+const MUSIC_PHRASES = [
+  'generate music', 'create music', 'make music', 'compose music',
+  'music generation', 'ai music', 'generate song', 'create song',
+  'make a song', 'compose a song', 'create a track', 'generate a track',
+  'music for', 'song about', 'create soundtrack', 'generate beat',
+  'make a beat', 'compose soundtrack', 'background music for'
+];
+
+const IMAGE_PHRASES = [
+  'generate image', 'create image', 'make image', 'generate picture',
+  'create picture', 'make picture', 'image of', 'picture of',
+  'draw me', 'show me', 'visualize', 'create visual', 'generate visual'
 ];
 
 export const classifyIntent = (prompt: string): IntentResult => {
@@ -78,6 +106,8 @@ export const classifyIntent = (prompt: string): IntentResult => {
   let designScore = 0;
   let videoScore = 0;
   let voiceScore = 0;
+  let musicScore = 0;
+  let imageScore = 0;
 
   CODE_KEYWORDS.forEach(keyword => {
     const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
@@ -111,6 +141,22 @@ export const classifyIntent = (prompt: string): IntentResult => {
     }
   });
 
+  MUSIC_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      musicScore += matches.length * 2;
+    }
+  });
+
+  IMAGE_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      imageScore += matches.length * 2;
+    }
+  });
+
   CODE_PHRASES.forEach(phrase => {
     if (lowerPrompt.includes(phrase)) {
       codeScore += 5;
@@ -132,6 +178,18 @@ export const classifyIntent = (prompt: string): IntentResult => {
   VOICE_PHRASES.forEach(phrase => {
     if (lowerPrompt.includes(phrase)) {
       voiceScore += 5;
+    }
+  });
+
+  MUSIC_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      musicScore += 5;
+    }
+  });
+
+  IMAGE_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      imageScore += 5;
     }
   });
 
@@ -159,8 +217,8 @@ export const classifyIntent = (prompt: string): IntentResult => {
     voiceScore += 10;
   }
 
-  const totalScore = codeScore + designScore + videoScore + voiceScore;
-  const maxScore = Math.max(codeScore, designScore, videoScore, voiceScore);
+  const totalScore = codeScore + designScore + videoScore + voiceScore + musicScore + imageScore;
+  const maxScore = Math.max(codeScore, designScore, videoScore, voiceScore, musicScore, imageScore);
 
   // Require higher score threshold to avoid false positives
   if (totalScore === 0 || maxScore < 8) {
@@ -175,33 +233,47 @@ export const classifyIntent = (prompt: string): IntentResult => {
   // More conservative confidence calculation
   const confidence = totalScore > 0 ? maxScore / (totalScore + 10) : 0;
 
-  if (voiceScore > codeScore && voiceScore > designScore && voiceScore > videoScore) {
+  if (musicScore === maxScore && musicScore > 0) {
+    return {
+      intent: 'music',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Music Studio',
+      reasoning: `Detected music generation intent with score ${musicScore}`
+    };
+  } else if (imageScore === maxScore && imageScore > 0) {
+    return {
+      intent: 'image',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Image Studio',
+      reasoning: `Detected image generation intent with score ${imageScore}`
+    };
+  } else if (voiceScore === maxScore && voiceScore > 0) {
     return {
       intent: 'voice',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Voice Studio',
-      reasoning: `Detected voice generation intent with score ${voiceScore} (code: ${codeScore}, design: ${designScore}, video: ${videoScore})`
+      reasoning: `Detected voice generation intent with score ${voiceScore}`
     };
-  } else if (videoScore > codeScore && videoScore > designScore && videoScore > voiceScore) {
+  } else if (videoScore === maxScore && videoScore > 0) {
     return {
       intent: 'video',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Video Studio',
-      reasoning: `Detected video editing intent with score ${videoScore} (code: ${codeScore}, design: ${designScore}, voice: ${voiceScore})`
+      reasoning: `Detected video editing intent with score ${videoScore}`
     };
-  } else if (codeScore > designScore && codeScore > videoScore && codeScore > voiceScore) {
+  } else if (codeScore === maxScore && codeScore > 0) {
     return {
       intent: 'code',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Code Studio',
-      reasoning: `Detected coding intent with score ${codeScore} (design: ${designScore}, video: ${videoScore}, voice: ${voiceScore})`
+      reasoning: `Detected coding intent with score ${codeScore}`
     };
-  } else if (designScore > codeScore && designScore > videoScore && designScore > voiceScore) {
+  } else if (designScore === maxScore && designScore > 0) {
     return {
       intent: 'design',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Design Studio',
-      reasoning: `Detected design intent with score ${designScore} (code: ${codeScore}, video: ${videoScore}, voice: ${voiceScore})`
+      reasoning: `Detected design intent with score ${designScore}`
     };
   }
 

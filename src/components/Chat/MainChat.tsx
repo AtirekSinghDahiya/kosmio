@@ -260,7 +260,7 @@ export const MainChat: React.FC = () => {
       }
 
       // Handle studio intents
-      if ((intent.intent === 'code' || intent.intent === 'design' || intent.intent === 'video' || intent.intent === 'voice') && !activeProjectId) {
+      if ((intent.intent === 'code' || intent.intent === 'design' || intent.intent === 'video' || intent.intent === 'voice' || intent.intent === 'music' || intent.intent === 'image') && !activeProjectId) {
         if (shouldShowConfirmation(intent)) {
           setPendingIntent({ intent, message: textToSend });
           setShowIntentDialog(true);
@@ -370,6 +370,8 @@ export const MainChat: React.FC = () => {
           design: 'design',
           video: 'video',
           voice: 'voice',
+          music: 'voice',
+          image: 'chat',
         };
         const destination = studioMap[intent.intent as keyof typeof studioMap];
         if (destination) {
