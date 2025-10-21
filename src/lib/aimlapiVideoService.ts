@@ -10,12 +10,14 @@ interface AimlapiVideoRequest {
   seed?: number;
 }
 
-interface AimlapiVideoResponse {
-  id: string;
-  model: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+interface AimlapiGenerationResponse {
+  generation_id?: string;
+  id?: string;
+  status?: string;
   video_url?: string;
+  output?: string;
   error?: string;
+  message?: string;
 }
 
 const AIMLAPI_BASE = 'https://api.aimlapi.com/v2/generate/video/google';
@@ -26,7 +28,7 @@ const AIMLAPI_BASE = 'https://api.aimlapi.com/v2/generate/video/google';
 export async function generateAimlapiVideo(
   request: AimlapiVideoRequest,
   apiKey: string
-): Promise<AimlapiVideoResponse> {
+): Promise<string> {
   const requestBody = {
     model: 'google/veo-3.1-t2v-fast',
     prompt: request.prompt,
@@ -47,15 +49,34 @@ export async function generateAimlapiVideo(
   });
 
   const responseText = await response.text();
-  console.log('📥 AIMLAPI response:', responseText);
+  console.log('📥 AIMLAPI raw response:', responseText);
 
   if (!response.ok) {
-    console.error('AIMLAPI error:', response.status, responseText);
+    console.error('❌ AIMLAPI error:', response.status, responseText);
     throw new Error(`API Error (${response.status}): ${responseText}`);
   }
 
-  const data = JSON.parse(responseText);
-  return data;
+  let data: AimlapiGenerationResponse;
+  try {
+    data = JSON.parse(responseText);
+  } catch (e) {
+    console.error('❌ Failed to parse response:', responseText);
+    throw new Error('Invalid API response format');
+  }
+
+  console.log('📊 AIMLAPI parsed response:', data);
+
+  if (data.error || data.message?.includes('error')) {
+    throw new Error(data.error || data.message || 'Video generation failed');
+  }
+
+  const generationId = data.generation_id || data.id;
+  if (!generationId) {
+    console.error('❌ No generation ID in response:', data);
+    throw new Error('No generation ID received from API');
+  }
+
+  return generationId;
 }
 
 /**
@@ -64,7 +85,9 @@ export async function generateAimlapiVideo(
 export async function checkAimlapiVideoStatus(
   generationId: string,
   apiKey: string
-): Promise<AimlapiVideoResponse> {
+): Promise<AimlapiGenerationResponse> {
+  console.log('🔍 Checking status for:', generationId);
+
   const response = await fetch(`${AIMLAPI_BASE}/generation/${generationId}`, {
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -74,11 +97,12 @@ export async function checkAimlapiVideoStatus(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => response.statusText);
-    console.error('AIMLAPI status check error:', response.status, errorText);
+    console.error('❌ AIMLAPI status check error:', response.status, errorText);
     throw new Error(`Status Check Error (${response.status}): ${errorText}`);
   }
 
   const data = await response.json();
+  console.log('📊 Status response:', data);
   return data;
 }
 
@@ -90,7 +114,11 @@ export async function generateAndWaitForAimlapiVideo(
   apiKey: string,
   onProgress?: (status: string, percent: number) => void
 ): Promise<string> {
-  const result = await generateAimlapiVideo(request, apiKey);
+  console.log('🎬 Starting AIMLAPI video generation...');
+
+  const generationId = await generateAimlapiVideo(request, apiKey);
+  console.log('✅ Generation started with ID:', generationId);
+
   onProgress?.('Video generation started...', 10);
 
   const maxAttempts = 120;
@@ -98,20 +126,38 @@ export async function generateAndWaitForAimlapiVideo(
 
   while (attempts < maxAttempts) {
     await new Promise(resolve => setTimeout(resolve, 5000));
-
-    const status = await checkAimlapiVideoStatus(result.id, apiKey);
-    const progressPercent = 10 + (attempts / maxAttempts) * 80;
-
-    if (status.status === 'completed' && status.video_url) {
-      onProgress?.('Video generation complete!', 100);
-      return status.video_url;
-    } else if (status.status === 'failed') {
-      throw new Error(status.error || 'Video generation failed');
-    } else {
-      onProgress?.(`Generating video... (${status.status})`, progressPercent);
-    }
-
     attempts++;
+
+    try {
+      const status = await checkAimlapiVideoStatus(generationId, apiKey);
+      const progressPercent = 10 + (attempts / maxAttempts) * 80;
+
+      console.log(`📈 Attempt ${attempts}/${maxAttempts} - Status:`, status);
+
+      const videoUrl = status.video_url || status.output;
+      const currentStatus = status.status?.toLowerCase();
+
+      if (videoUrl) {
+        console.log('✅ Video ready!', videoUrl);
+        onProgress?.('Video generation complete!', 100);
+        return videoUrl;
+      }
+
+      if (currentStatus === 'failed' || status.error) {
+        throw new Error(status.error || status.message || 'Video generation failed');
+      }
+
+      if (currentStatus === 'completed' && !videoUrl) {
+        throw new Error('Video completed but no URL provided');
+      }
+
+      const statusText = currentStatus || 'processing';
+      onProgress?.(`Generating video... (${statusText})`, progressPercent);
+
+    } catch (error: any) {
+      console.error('❌ Status check failed:', error);
+      throw error;
+    }
   }
 
   throw new Error('Video generation timed out after 10 minutes');

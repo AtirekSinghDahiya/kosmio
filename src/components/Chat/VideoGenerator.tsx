@@ -166,8 +166,6 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
     showToast('success', 'Downloaded!', 'Video saved to your device');
   };
 
-  const veo3Available = Boolean(kieApiKey);
-
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] animate-fade-in">
       <div className="relative w-full max-w-7xl mx-auto px-4 py-6">
