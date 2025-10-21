@@ -30,7 +30,7 @@ export async function generateAimlapiVideo(
   apiKey: string
 ): Promise<string> {
   const requestBody = {
-    model: 'google/veo-3.1-t2v-fast',
+    model: 'google/veo-3.0-fast',
     prompt: request.prompt,
     aspect_ratio: request.aspectRatio || '16:9',
     duration: request.duration || 4,
