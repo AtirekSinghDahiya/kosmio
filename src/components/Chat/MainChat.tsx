@@ -499,98 +499,107 @@ export const MainChat: React.FC = () => {
           ) : (
             <>
               {/* Messages Area */}
-              <div className="max-w-4xl mx-auto py-8 space-y-1 pb-32">
+              <div className="max-w-4xl mx-auto py-8 space-y-6 pb-32">
               {messages.map((message, index) => (
                 <div
                   key={message.id}
-                  className="group hover:bg-black/5 dark:hover:bg-white/5 transition-colors py-6 px-4"
+                  className={`group flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="max-w-3xl mx-auto flex gap-4">
-                    {/* Avatar */}
+                  {/* Avatar - Left for AI, Right for User */}
+                  {message.role === 'assistant' && (
                     <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
-                      {message.role === 'user' ? (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      ) : (
-                        <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-12 h-12" />
-                      )}
+                      <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-8 h-8" />
                     </div>
+                  )}
 
-                    {/* Message Content */}
-                    <div className="flex-1 space-y-3">
-                      <div className="text-[15px] leading-[1.7] whitespace-pre-wrap text-gray-900 dark:text-gray-100 font-normal tracking-normal">
+                  {/* Message Bubble */}
+                  <div className={`flex flex-col max-w-[75%] ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`rounded-2xl px-4 py-3 ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white rounded-br-md'
+                        : theme === 'light'
+                        ? 'bg-gray-100 text-gray-900 rounded-bl-md'
+                        : 'bg-gray-800/50 text-gray-100 rounded-bl-md'
+                    } backdrop-blur-sm shadow-lg`}>
+                      <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
                         {message.content}
                       </div>
-
-                      {/* Action Buttons - Only for AI messages */}
-                      {message.role === 'assistant' && (
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(message.content);
-                              showToast('success', 'Copied', 'Message copied to clipboard');
-                            }}
-                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
-                            title="Copy"
-                          >
-                            <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                          <button
-                            onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
-                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
-                            title="Good response"
-                          >
-                            <ThumbsUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                          <button
-                            onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
-                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
-                            title="Bad response"
-                          >
-                            <ThumbsDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              // Find the user message that prompted this response
-                              const userMessage = messages[index - 1];
-                              if (userMessage && userMessage.role === 'user') {
-                                handleSendMessage(userMessage.content);
-                              }
-                            }}
-                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
-                            title="Retry"
-                          >
-                            <RotateCw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                          <button
-                            onClick={() => showToast('info', 'Coming Soon', 'More actions coming soon!')}
-                            className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
-                            title="More actions"
-                          >
-                            <MoreHorizontal className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Action Buttons - Only for AI messages */}
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(message.content);
+                            showToast('success', 'Copied', 'Message copied to clipboard');
+                          }}
+                          className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                          title="Copy"
+                        >
+                          <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
+                          className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                          title="Good response"
+                        >
+                          <ThumbsUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
+                          className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                          title="Bad response"
+                        >
+                          <ThumbsDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Find the user message that prompted this response
+                            const userMessage = messages[index - 1];
+                            if (userMessage && userMessage.role === 'user') {
+                              handleSendMessage(userMessage.content);
+                            }
+                          }}
+                          className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                          title="Retry"
+                        >
+                          <RotateCw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => showToast('info', 'Coming Soon', 'More actions coming soon!')}
+                          className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                          title="More actions"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Avatar - Right for User */}
+                  {message.role === 'user' && (
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
               ))}
 
               {isLoading && (
-                <div className="py-6 px-4">
-                  <div className="max-w-3xl mx-auto flex gap-4">
-                    <div className="flex-shrink-0 w-12 h-12">
-                      <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-12 h-12 animate-pulse" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                      </div>
+                <div className="flex gap-3 justify-start">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
+                    <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-8 h-8 animate-pulse" />
+                  </div>
+                  <div className={`rounded-2xl rounded-bl-md px-4 py-3 ${
+                    theme === 'light' ? 'bg-gray-100' : 'bg-gray-800/50'
+                  } backdrop-blur-sm shadow-lg`}>
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                     </div>
                   </div>
                 </div>
