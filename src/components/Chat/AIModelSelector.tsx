@@ -11,23 +11,37 @@ export interface AIModel {
 }
 
 export const AI_MODELS: AIModel[] = [
-  // Chat Models (All via OpenRouter)
-  { id: 'grok-2', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
-  { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
-  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Advanced reasoning with images', category: 'chat' },
-  { id: 'nemotron', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning and coding', category: 'chat' },
-  { id: 'qwen', name: 'Qwen3 235B Thinking', provider: 'Qwen', description: 'Advanced reasoning with thinking process', category: 'chat' },
-  { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
-  { id: 'gemini', name: 'Gemini 2.5 Flash', provider: 'Google', description: 'Fast multimodal AI with images', category: 'chat' },
-  { id: 'kimi', name: 'Kimi K2', provider: 'Moonshot', description: 'Long context understanding', category: 'chat' },
-  { id: 'chatgpt-image', name: 'GPT-5 Image Mini', provider: 'OpenAI', description: 'Optimized for image analysis', category: 'chat' },
+  // Free Chat Models
+  { id: 'grok-4-fast', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
+  { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Efficient and smart (Free)', category: 'chat' },
+  { id: 'nemotron-nano-free', name: 'Nemotron Nano 9B V2', provider: 'NVIDIA', description: 'Fast nano model (Free)', category: 'chat' },
+  { id: 'qwen-vl-30b-free', name: 'Qwen3 VL 30B Thinking', provider: 'Qwen', description: 'Visual & thinking model (Free)', category: 'chat' },
+  { id: 'claude-haiku-free', name: 'Claude Haiku 4.5', provider: 'Anthropic', description: 'Fast Claude model (Free)', category: 'chat' },
+  { id: 'gemini-flash-lite-free', name: 'Gemini 2.5 Flash Lite', provider: 'Google', description: 'Fast multimodal AI (Free)', category: 'chat' },
+  { id: 'kimi-k2-free', name: 'Kimi K2 Free', provider: 'Moonshot', description: 'Long context (Free)', category: 'chat' },
+  { id: 'llama-4-maverick-free', name: 'Llama 4 Maverick Free', provider: 'Meta', description: 'Latest Llama (Free)', category: 'chat' },
+  { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding (Free)', category: 'chat' },
+  { id: 'lfm2-8b', name: 'LiquidAI LFM2-8B', provider: 'LiquidAI', description: 'Efficient model (Free)', category: 'chat' },
+  { id: 'granite-4.0', name: 'Granite 4.0 Micro', provider: 'IBM', description: 'Micro model (Free)', category: 'chat' },
+  { id: 'ernie-4.5', name: 'ERNIE 4.5 21B Thinking', provider: 'Baidu', description: 'Thinking model (Free)', category: 'chat' },
+
+  // Paid Chat Models
+  { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images (Paid)', category: 'chat' },
+  { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Most advanced DeepSeek (Paid)', category: 'chat' },
+  { id: 'nemotron-super', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning (Paid)', category: 'chat' },
+  { id: 'qwen-vl-32b', name: 'Qwen3 VL 32B Instruct', provider: 'Qwen', description: 'Visual model (Paid)', category: 'chat' },
+  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Advanced reasoning (Paid)', category: 'chat' },
+  { id: 'gemini-flash-image', name: 'Gemini 2.5 Flash Image', provider: 'Google', description: 'Image focused (Paid)', category: 'chat' },
+  { id: 'kimi-k2', name: 'Kimi K2', provider: 'Moonshot', description: 'Long context (Paid)', category: 'chat' },
+  { id: 'llama-4-maverick', name: 'Llama 4 Maverick', provider: 'Meta', description: 'Latest Llama (Paid)', category: 'chat' },
+  { id: 'glm-4.6', name: 'GLM 4.6', provider: 'Z.AI', description: 'Advanced model (Paid)', category: 'chat' },
 
   // Code Models
-  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Best for coding', category: 'code' },
-  { id: 'nemotron', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Excellent for complex code', category: 'code' },
-  { id: 'qwen', name: 'Qwen3 235B Thinking', provider: 'Qwen', description: 'Reasoning for complex problems', category: 'code' },
-  { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Advanced code generation', category: 'code' },
-  { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code', category: 'code' },
+  { id: 'gpt-5-codex', name: 'GPT-5 Codex', provider: 'OpenAI', description: 'Best for coding (Paid)', category: 'code' },
+  { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding (Free)', category: 'code' },
+  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Excellent for code (Paid)', category: 'code' },
+  { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code (Paid)', category: 'code' },
+  { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Code model (Free)', category: 'code' },
 
   // Image Models
   { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', description: 'High quality images', category: 'image' },

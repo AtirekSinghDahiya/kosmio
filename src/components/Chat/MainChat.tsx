@@ -48,7 +48,7 @@ export const MainChat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showIntentDialog, setShowIntentDialog] = useState(false);
   const [pendingIntent, setPendingIntent] = useState<any>(null);
-  const [selectedModel, setSelectedModel] = useState('grok-2');
+  const [selectedModel, setSelectedModel] = useState('grok-4-fast');
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [imagePrompt, setImagePrompt] = useState('');
   const [showVideoGenerator, setShowVideoGenerator] = useState(false);

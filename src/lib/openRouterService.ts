@@ -14,30 +14,32 @@ interface AIResponse {
   model: string;
 }
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = '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';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 const MODEL_MAP: Record<string, string> = {
-  'claude-sonnet': 'anthropic/claude-sonnet-4.5',
-  'claude-3.5-sonnet': 'anthropic/claude-sonnet-4.5',
-  'gpt-5': 'openai/gpt-5-chat',
   'gpt-5-chat': 'openai/gpt-5-chat',
-  'chatgpt': 'openai/gpt-5-chat',
-  'gpt-5-image': 'openai/gpt-5-image-mini',
-  'chatgpt-image': 'openai/gpt-5-image-mini',
-  'grok-2': 'x-ai/grok-4-fast',
-  'grok-4': 'x-ai/grok-4-fast',
-  'grok': 'x-ai/grok-4-fast',
-  'deepseek': 'deepseek/deepseek-v3.2-exp',
-  'deepseek-v3': 'deepseek/deepseek-v3.2-exp',
-  'gemini': 'google/gemini-2.5-flash-image',
-  'gemini-flash': 'google/gemini-2.5-flash-image',
-  'kimi': 'moonshotai/kimi-k2-0905',
-  'kimi-k2': 'moonshotai/kimi-k2-0905',
-  'nemotron': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+  'gpt-5-codex': 'openai/gpt-5-codex',
+  'codex-mini': 'openai/codex-mini',
+  'deepseek-v3.2': 'deepseek/deepseek-v3.2-exp',
+  'deepseek-v3.1-free': 'deepseek/deepseek-chat-v3.1:free',
   'nemotron-super': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
-  'qwen': 'qwen/qwen3-235b-a22b-thinking-2507',
-  'qwen-thinking': 'qwen/qwen3-235b-a22b-thinking-2507',
+  'nemotron-nano-free': 'nvidia/nemotron-nano-9b-v2:free',
+  'qwen-vl-32b': 'qwen/qwen3-vl-32b-instruct',
+  'qwen-vl-30b-free': 'qwen/qwen3-vl-30b-a3b-thinking',
+  'claude-haiku-free': 'anthropic/claude-haiku-4.5',
+  'claude-sonnet': 'anthropic/claude-sonnet-4.5',
+  'gemini-flash-image': 'google/gemini-2.5-flash-image',
+  'gemini-flash-lite-free': 'google/gemini-2.5-flash-lite-preview-09-2025',
+  'kimi-k2': 'moonshotai/kimi-k2-0905:exacto',
+  'kimi-k2-free': 'moonshotai/kimi-k2:free',
+  'llama-4-maverick': 'meta-llama/llama-4-maverick',
+  'llama-4-maverick-free': 'meta-llama/llama-4-maverick:free',
+  'grok-4-fast': 'x-ai/grok-4-fast',
+  'lfm2-8b': 'liquid/lfm2-8b-a1b',
+  'granite-4.0': 'ibm-granite/granite-4.0-h-micro',
+  'ernie-4.5': 'baidu/ernie-4.5-21b-a3b-thinking',
+  'glm-4.6': 'z-ai/glm-4.6',
 };
 
 function log(level: 'info' | 'success' | 'error', message: string) {
@@ -52,7 +54,7 @@ export async function callOpenRouter(
   messages: Message[],
   modelId: string
 ): Promise<AIResponse> {
-  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-2'];
+  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';
 
   log('info', `Calling model: ${openRouterModel} (requested: ${modelId})`);
   log('info', `API Key: ${OPENROUTER_API_KEY.substring(0, 15)}...`);
@@ -102,13 +104,18 @@ export async function callOpenRouter(
     const providerName = openRouterModel.split('/')[0];
     const displayName = {
       'anthropic': 'Claude',
-      'openai': 'ChatGPT',
+      'openai': 'OpenAI',
       'x-ai': 'Grok',
       'deepseek': 'DeepSeek',
       'google': 'Gemini',
       'moonshotai': 'Kimi',
       'nvidia': 'NVIDIA',
       'qwen': 'Qwen',
+      'meta-llama': 'Meta',
+      'liquid': 'LiquidAI',
+      'ibm-granite': 'IBM',
+      'baidu': 'Baidu',
+      'z-ai': 'Z.AI',
     }[providerName] || providerName;
 
     return {
@@ -134,7 +141,7 @@ export async function getOpenRouterResponse(
   userMessage: string,
   conversationHistory: Message[] = [],
   systemPrompt?: string,
-  selectedModel: string = 'grok-2'
+  selectedModel: string = 'grok-4-fast'
 ): Promise<string> {
   log('info', `Getting response for model: ${selectedModel}`);
   log('info', `History length: ${conversationHistory.length}`);
