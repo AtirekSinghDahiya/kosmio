@@ -58,7 +58,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     };
   }, [isMobileOpen]);
 
-  // Fetch token balance from Supabase with real-time updates
+  // Fetch token balance from Supabase
   useEffect(() => {
     const loadTokenInfo = async () => {
       if (currentUser?.uid) {
@@ -72,22 +72,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     };
 
     loadTokenInfo();
-    // Refresh every 5 seconds for real-time updates (especially after purchases)
-    const interval = setInterval(loadTokenInfo, 5000);
+    // Refresh every 30 seconds
+    const interval = setInterval(loadTokenInfo, 30000);
 
     return () => clearInterval(interval);
-  }, [currentUser?.uid]);
-
-  // Listen for token purchase events
-  useEffect(() => {
-    const handleTokenPurchase = () => {
-      if (currentUser?.uid) {
-        getUserTokenInfo(currentUser.uid).then(info => setTokenInfo(info));
-      }
-    };
-
-    window.addEventListener('token-purchase-complete', handleTokenPurchase);
-    return () => window.removeEventListener('token-purchase-complete', handleTokenPurchase);
   }, [currentUser?.uid]);
 
   const getProjectIcon = (type: string) => {

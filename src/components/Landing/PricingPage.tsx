@@ -24,106 +24,68 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       features: [
         '1,000 tokens daily',
         'Auto-resets at midnight UTC',
-        'NO rollover (resets to 1,000)',
         'Access to all AI models',
-        'No credit card required'
+        'No credit card required',
+        'Perfect for testing'
       ],
       color: 'from-green-500 to-emerald-600',
       popular: false,
       isFree: true
     },
     {
-      name: 'Micro',
+      name: 'Starter',
       icon: Sparkles,
       tokens: 10000,
       bonusTokens: 0,
       price: 2.00,
-      description: 'Quick boost for light usage',
+      description: 'Perfect for getting started',
       features: [
         '10,000 KQ Tokens',
-        'Tokens NEVER expire',
-        'Rollover unused tokens',
+        'No bonus tokens',
         'Access to all AI models',
-        'Valid for 12 months'
+        'Valid for 12 months',
+        'No monthly commitment'
       ],
-      color: 'from-gray-400 to-gray-600',
+      color: 'from-gray-500 to-gray-700',
       popular: false,
       isFree: false
     },
     {
-      name: 'Mini',
+      name: 'Creator',
       icon: Zap,
-      tokens: 25000,
-      bonusTokens: 0,
-      price: 4.00,
-      description: 'Great for casual users',
-      features: [
-        '25,000 KQ Tokens',
-        'Tokens NEVER expire',
-        'Rollover unused tokens',
-        'Access to all AI models',
-        'Valid for 12 months'
-      ],
-      color: 'from-blue-400 to-blue-600',
-      popular: false,
-      isFree: false
-    },
-    {
-      name: 'Standard',
-      icon: Star,
       tokens: 50000,
       bonusTokens: 5000,
-      price: 8.00,
-      description: 'Most popular for regular users',
+      price: 10.00,
+      description: 'For students, creators, and freelancers',
       features: [
         '50,000 base tokens',
         '+5,000 bonus tokens',
         '55,000 total tokens',
-        'Tokens NEVER expire',
-        'Rollover unused tokens',
+        'Access to all AI models',
+        'Valid for 12 months',
         'Best value per token'
       ],
-      color: 'from-cyan-500 to-blue-500',
-      popular: true,
-      isFree: false
-    },
-    {
-      name: 'Power',
-      icon: Zap,
-      tokens: 100000,
-      bonusTokens: 15000,
-      price: 16.00,
-      description: 'For power users',
-      features: [
-        '100,000 base tokens',
-        '+15,000 bonus tokens',
-        '115,000 total tokens',
-        'Tokens NEVER expire',
-        'Rollover unused tokens',
-        'Priority support'
-      ],
-      color: 'from-purple-500 to-pink-500',
+      color: 'from-blue-500 to-cyan-500',
       popular: false,
       isFree: false
     },
     {
       name: 'Pro',
-      icon: Crown,
-      tokens: 250000,
-      bonusTokens: 50000,
-      price: 40.00,
-      description: 'For professionals',
+      icon: Star,
+      tokens: 150000,
+      bonusTokens: 20000,
+      price: 29.00,
+      description: 'For professionals and startups',
       features: [
-        '250,000 base tokens',
-        '+50,000 bonus tokens',
-        '300,000 total tokens',
-        'Tokens NEVER expire',
-        'Rollover unused tokens',
-        'Priority support',
-        'Early access to new features'
+        '150,000 base tokens',
+        '+20,000 bonus tokens',
+        '170,000 total tokens',
+        'Access to all AI models',
+        'Valid for 12 months',
+        'Priority support'
       ],
       color: 'from-[#00FFF0] to-[#8A2BE2]',
-      popular: false,
+      popular: true,
       isFree: false
     },
     {
@@ -135,14 +97,14 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       description: 'For teams, schools, and organizations',
       features: [
         'Everything in Pro',
-        'Custom token packages',
-        'Tokens NEVER expire',
-        'Multi-user dashboard',
+        'Multi-user organization dashboard',
         'SSO and role-based access',
-        'Dedicated account manager',
-        'Custom model deployment'
+        '100+ GB storage',
+        'Custom model deployment',
+        'Dedicated account manager & SLA',
+        'On-prem or private cloud setup'
       ],
-      color: 'from-orange-500 to-red-600',
+      color: 'from-purple-500 to-pink-600',
       popular: false,
       isFree: false
     }
@@ -154,12 +116,16 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       return;
     }
 
+    if (packName === 'Starter') {
+      onGetStarted();
+      return;
+    }
+
     if (packName === 'Enterprise') {
       window.location.href = 'mailto:sales@kroniq.ai?subject=Enterprise%20Plan%20Inquiry';
       return;
     }
 
-    // For all other paid packs, navigate to purchase
     onGetStarted();
   };
 
@@ -172,19 +138,15 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const faqs = [
     {
       question: 'What is the Free Pack?',
-      answer: 'Get 1,000 tokens every day for free! Your balance resets to 1,000 at midnight UTC (no rollover). Perfect for testing KroniQ. No credit card required.'
-    },
-    {
-      question: 'Do unused free tokens roll over?',
-      answer: 'No, free pack tokens reset to 1,000 daily with NO rollover. But all paid pack tokens NEVER expire and unused tokens always roll over!'
+      answer: 'Get 1,000 tokens every day for free! Perfect for testing KroniQ. Your balance resets automatically at midnight UTC. No credit card required.'
     },
     {
       question: 'What are KQ Tokens?',
       answer: 'KQ Tokens are our internal currency for AI usage. 1 USD = 10,000 tokens. Each AI request deducts tokens based on the actual provider cost plus a small $0.005 margin.'
     },
     {
-      question: 'Do purchased tokens expire?',
-      answer: 'Purchased tokens NEVER expire and unused tokens always roll over. They are valid for 12 months from purchase date. Free daily tokens reset to 1,000 every midnight UTC with no rollover.'
+      question: 'Do tokens expire?',
+      answer: 'Purchased tokens are valid for 12 months from purchase date. Free daily tokens (1,000/day) refresh automatically at midnight UTC.'
     },
     {
       question: 'How much do different AI models cost?',
