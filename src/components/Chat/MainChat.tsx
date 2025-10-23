@@ -8,7 +8,6 @@ import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-rea
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { getOpenRouterResponse } from '../../lib/openRouterService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
@@ -36,13 +35,12 @@ import {
 } from '../../lib/chatService';
 import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../../lib/userPreferences';
 import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionService';
-import { getUserTokenBalance, estimateTokenCost, checkAndRefreshDailyTokens, deductTokensForRequest, getUserTokenInfo } from '../../lib/tokenService';
+import { getUserTokenBalance, estimateTokenCost, checkAndRefreshDailyTokens, deductTokensForRequest } from '../../lib/tokenService';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
-  const { currentUser } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -135,18 +133,6 @@ export const MainChat: React.FC = () => {
         suggestedStudio: 'Chat Studio',
         reasoning: 'Defaulted to chat due to classification error'
       };
-    }
-  };
-
-  // Check if user is a paid user (has purchased tokens)
-  const checkIfPaidUser = async (userId: string): Promise<boolean> => {
-    try {
-      const tokenInfo = await getUserTokenInfo(userId);
-      // User is considered "paid" if they've ever purchased tokens
-      return tokenInfo.lifetimePurchased > 0;
-    } catch (error) {
-      console.error('Error checking paid user status:', error);
-      return false; // Default to free if error
     }
   };
 
@@ -405,12 +391,8 @@ export const MainChat: React.FC = () => {
       console.log('🎯 Using custom preferences:', !!systemPrompt);
       console.log('🤖 Using model:', selectedModel);
 
-      // Check if user is a paid user (has purchased tokens)
-      const isPaidUser = currentUser?.uid ? await checkIfPaidUser(currentUser.uid) : false;
-      console.log('💳 User status:', isPaidUser ? 'PAID' : 'FREE');
-
-      // Call OpenRouter service with selected model and user status
-      const aiResponse = await getOpenRouterResponse(userMessage, conversationHistory, systemPrompt, selectedModel, isPaidUser);
+      // Call OpenRouter service with selected model
+      const aiResponse = await getOpenRouterResponse(userMessage, conversationHistory, systemPrompt, selectedModel);
 
       console.log('✅ AI Response received! Length:', aiResponse.content.length);
       console.log('✅ First 100 chars:', aiResponse.content.substring(0, 100));
@@ -448,7 +430,7 @@ export const MainChat: React.FC = () => {
       console.error('Error stack:', error.stack);
 
       const errorMessage = error.message || 'Unknown error occurred';
-      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n**Troubleshooting:**\n1. Check that VITE_OPENAI_API_KEY is set in .env file\n2. Make sure the API key is valid (get key at openrouter.ai)\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page\n\n**Your message:** "${userMessage}"`;
+      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n**Troubleshooting:**\n1. Check that VITE_GROQ_API_KEY is set in .env file\n2. Make sure the API key is valid (get free key at console.groq.com)\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page\n\n**Your message:** "${userMessage}"`;
 
       console.log('💾 Saving error message to chat...');
       await addMessage(projectId, 'assistant', fallback);

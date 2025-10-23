@@ -1,6 +1,6 @@
 /**
  * OpenRouter AI Service
- * All models via OpenRouter with free/paid tier routing
+ * All models (Claude, GPT, Grok, DeepSeek, Gemini, Kimi) via OpenRouter
  */
 
 interface Message {
@@ -20,116 +20,30 @@ interface AIResponse {
   cost?: number;
 }
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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';
+const OPENROUTER_API_KEY = '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';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
-// Validate API key on module load
-if (!OPENROUTER_API_KEY || !OPENROUTER_API_KEY.startsWith('sk-or-v1-')) {
-  console.error('❌ [OpenRouter] Invalid or missing API key. Please set VITE_OPENAI_API_KEY in .env file');
-}
-
-// Model mappings: free tier vs paid tier
-const MODEL_MAP: Record<string, { free: string; paid: string }> = {
-  'claude-sonnet': {
-    free: 'anthropic/claude-haiku-4.5',
-    paid: 'anthropic/claude-sonnet-4.5'
-  },
-  'claude-3.5-sonnet': {
-    free: 'anthropic/claude-haiku-4.5',
-    paid: 'anthropic/claude-sonnet-4.5'
-  },
-  'gpt-5': {
-    free: 'openai/codex-mini',
-    paid: 'openai/gpt-5-chat'
-  },
-  'gpt-5-chat': {
-    free: 'openai/codex-mini',
-    paid: 'openai/gpt-5-chat'
-  },
-  'gpt-5-codex': {
-    free: 'openai/codex-mini',
-    paid: 'openai/gpt-5-codex'
-  },
-  'chatgpt': {
-    free: 'openai/codex-mini',
-    paid: 'openai/gpt-5-chat'
-  },
-  'grok-2': {
-    free: 'x-ai/grok-4-fast',
-    paid: 'x-ai/grok-4-fast'
-  },
-  'grok-4': {
-    free: 'x-ai/grok-4-fast',
-    paid: 'x-ai/grok-4-fast'
-  },
-  'grok': {
-    free: 'x-ai/grok-4-fast',
-    paid: 'x-ai/grok-4-fast'
-  },
-  'deepseek': {
-    free: 'deepseek/deepseek-chat-v3.1:free',
-    paid: 'deepseek/deepseek-v3.2-exp'
-  },
-  'deepseek-v3': {
-    free: 'deepseek/deepseek-chat-v3.1:free',
-    paid: 'deepseek/deepseek-v3.2-exp'
-  },
-  'gemini': {
-    free: 'google/gemini-2.5-flash-lite-preview-09-2025',
-    paid: 'google/gemini-2.5-flash-image'
-  },
-  'gemini-flash': {
-    free: 'google/gemini-2.5-flash-lite-preview-09-2025',
-    paid: 'google/gemini-2.5-flash-image'
-  },
-  'kimi': {
-    free: 'moonshotai/kimi-k2:free',
-    paid: 'moonshotai/kimi-k2-0905:exacto'
-  },
-  'kimi-k2': {
-    free: 'moonshotai/kimi-k2:free',
-    paid: 'moonshotai/kimi-k2-0905:exacto'
-  },
-  'nemotron': {
-    free: 'nvidia/nemotron-nano-9b-v2:free',
-    paid: 'nvidia/llama-3.3-nemotron-super-49b-v1.5'
-  },
-  'nemotron-super': {
-    free: 'nvidia/nemotron-nano-9b-v2:free',
-    paid: 'nvidia/llama-3.3-nemotron-super-49b-v1.5'
-  },
-  'qwen': {
-    free: 'qwen/qwen3-vl-30b-a3b-thinking',
-    paid: 'qwen/qwen3-vl-32b-instruct'
-  },
-  'qwen-thinking': {
-    free: 'qwen/qwen3-vl-30b-a3b-thinking',
-    paid: 'qwen/qwen3-vl-32b-instruct'
-  },
-  'llama': {
-    free: 'meta-llama/llama-4-maverick:free',
-    paid: 'meta-llama/llama-4-maverick'
-  },
-  'llama-4': {
-    free: 'meta-llama/llama-4-maverick:free',
-    paid: 'meta-llama/llama-4-maverick'
-  },
-  'liquid': {
-    free: 'liquid/lfm2-8b-a1b',
-    paid: 'liquid/lfm2-8b-a1b'
-  },
-  'granite': {
-    free: 'ibm-granite/granite-4.0-h-micro',
-    paid: 'ibm-granite/granite-4.0-h-micro'
-  },
-  'ernie': {
-    free: 'baidu/ernie-4.5-21b-a3b-thinking',
-    paid: 'baidu/ernie-4.5-21b-a3b-thinking'
-  },
-  'glm': {
-    free: 'z-ai/glm-4.6',
-    paid: 'z-ai/glm-4.6'
-  },
+const MODEL_MAP: Record<string, string> = {
+  'claude-sonnet': 'anthropic/claude-sonnet-4.5',
+  'claude-3.5-sonnet': 'anthropic/claude-sonnet-4.5',
+  'gpt-5': 'openai/gpt-5-chat',
+  'gpt-5-chat': 'openai/gpt-5-chat',
+  'chatgpt': 'openai/gpt-5-chat',
+  'gpt-5-image': 'openai/gpt-5-image-mini',
+  'chatgpt-image': 'openai/gpt-5-image-mini',
+  'grok-2': 'x-ai/grok-4-fast',
+  'grok-4': 'x-ai/grok-4-fast',
+  'grok': 'x-ai/grok-4-fast',
+  'deepseek': 'deepseek/deepseek-v3.2-exp',
+  'deepseek-v3': 'deepseek/deepseek-v3.2-exp',
+  'gemini': 'google/gemini-2.5-flash-image',
+  'gemini-flash': 'google/gemini-2.5-flash-image',
+  'kimi': 'moonshotai/kimi-k2-0905',
+  'kimi-k2': 'moonshotai/kimi-k2-0905',
+  'nemotron': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+  'nemotron-super': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+  'qwen': 'qwen/qwen3-235b-a22b-thinking-2507',
+  'qwen-thinking': 'qwen/qwen3-235b-a22b-thinking-2507',
 };
 
 function log(level: 'info' | 'success' | 'error', message: string) {
@@ -138,30 +52,16 @@ function log(level: 'info' | 'success' | 'error', message: string) {
 }
 
 /**
- * Get the appropriate model based on user's payment status
- */
-function getModelForUser(modelId: string, isPaidUser: boolean): string {
-  const modelMapping = MODEL_MAP[modelId] || MODEL_MAP['grok-2'];
-  const selectedModel = isPaidUser ? modelMapping.paid : modelMapping.free;
-
-  log('info', `User tier: ${isPaidUser ? 'PAID' : 'FREE'}`);
-  log('info', `Selected model: ${selectedModel} (requested: ${modelId})`);
-
-  return selectedModel;
-}
-
-/**
  * Call OpenRouter API with the selected model
  */
 export async function callOpenRouter(
   messages: Message[],
-  modelId: string,
-  isPaidUser: boolean = false
+  modelId: string
 ): Promise<AIResponse> {
-  const openRouterModel = getModelForUser(modelId, isPaidUser);
+  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-2'];
 
-  log('info', `Calling model: ${openRouterModel}`);
-  log('info', `API Key: ${OPENROUTER_API_KEY.substring(0, 20)}...`);
+  log('info', `Calling model: ${openRouterModel} (requested: ${modelId})`);
+  log('info', `API Key: ${OPENROUTER_API_KEY.substring(0, 15)}...`);
 
   try {
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
@@ -192,16 +92,6 @@ export async function callOpenRouter(
       } catch {}
 
       const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
-
-      // Provide helpful error messages for common issues
-      if (response.status === 401 || errorMessage.includes('User not found')) {
-        throw new Error('OpenRouter: Invalid API key. Please check VITE_OPENAI_API_KEY in your .env file.');
-      } else if (response.status === 429) {
-        throw new Error('OpenRouter: Rate limit exceeded. Please wait a moment and try again.');
-      } else if (response.status === 402) {
-        throw new Error('OpenRouter: Insufficient credits. Please add credits to your OpenRouter account.');
-      }
-
       throw new Error(`OpenRouter: ${errorMessage}`);
     }
 
@@ -225,11 +115,6 @@ export async function callOpenRouter(
       'moonshotai': 'Kimi',
       'nvidia': 'NVIDIA',
       'qwen': 'Qwen',
-      'meta-llama': 'Llama',
-      'liquid': 'LiquidAI',
-      'ibm-granite': 'IBM Granite',
-      'baidu': 'ERNIE',
-      'z-ai': 'GLM',
     }[providerName] || providerName;
 
     const usage = data.usage ? {
@@ -265,11 +150,9 @@ export async function getOpenRouterResponse(
   userMessage: string,
   conversationHistory: Message[] = [],
   systemPrompt?: string,
-  selectedModel: string = 'grok-2',
-  isPaidUser: boolean = false
+  selectedModel: string = 'grok-2'
 ): Promise<AIResponse> {
   log('info', `Getting response for model: ${selectedModel}`);
-  log('info', `User tier: ${isPaidUser ? 'PAID' : 'FREE'}`);
   log('info', `History length: ${conversationHistory.length}`);
 
   const messages: Message[] = [
@@ -284,7 +167,7 @@ export async function getOpenRouterResponse(
     },
   ];
 
-  const response = await callOpenRouter(messages, selectedModel, isPaidUser);
+  const response = await callOpenRouter(messages, selectedModel);
   return response;
 }
 
@@ -300,21 +183,20 @@ export function supportsImageGeneration(modelId: string): boolean {
  * Check if a model supports images
  */
 export function supportsImages(modelId: string): boolean {
-  const imageModels = ['claude-sonnet', 'gpt-5-image', 'chatgpt-image', 'grok', 'gemini', 'qwen', 'llama'];
+  const imageModels = ['claude-sonnet', 'gpt-5-image', 'chatgpt-image', 'grok', 'gemini'];
   return imageModels.some(m => modelId.includes(m));
 }
 
 /**
- * Generate image using AI models that support image generation
+ * Generate image using AI models that support image generation (GPT-5, Gemini)
  */
 export async function generateImageWithAI(
   prompt: string,
-  modelId: string = 'gpt-5-image',
-  isPaidUser: boolean = false
+  modelId: string = 'gpt-5-image'
 ): Promise<{ url: string; model: string }> {
   log('info', `Generating image with model: ${modelId}`);
 
-  const openRouterModel = getModelForUser(modelId, isPaidUser);
+  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['gpt-5-image'];
 
   try {
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
