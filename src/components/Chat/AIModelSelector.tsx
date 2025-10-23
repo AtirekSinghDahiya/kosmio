@@ -11,19 +11,19 @@ export interface AIModel {
 }
 
 export const AI_MODELS: AIModel[] = [
-  // Chat Models
-  { id: 'grok-2', name: 'Groq Llama 3.3', provider: 'Groq', description: 'Fast and powerful (Recommended)', category: 'chat' },
-  { id: 'deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', description: 'Efficient chat model', category: 'chat' },
-  { id: 'gemini-pro', name: 'Gemini Pro', provider: 'Google', description: 'Multimodal AI', category: 'chat' },
-  { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI', description: 'Most capable chat model', category: 'chat' },
-  { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', provider: 'OpenAI', description: 'Fast and efficient', category: 'chat' },
-  { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', description: 'Advanced reasoning', category: 'chat' },
-  { id: 'moonshot-v1', name: 'Kimi', provider: 'Moonshot', description: 'Long context chat', category: 'chat' },
+  // Chat Models (All via OpenRouter)
+  { id: 'grok-2', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
+  { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
+  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Advanced reasoning with images', category: 'chat' },
+  { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
+  { id: 'gemini', name: 'Gemini 2.5 Flash', provider: 'Google', description: 'Fast multimodal AI with images', category: 'chat' },
+  { id: 'kimi', name: 'Kimi K2', provider: 'Moonshot', description: 'Long context understanding', category: 'chat' },
+  { id: 'chatgpt-image', name: 'GPT-5 Image Mini', provider: 'OpenAI', description: 'Optimized for image analysis', category: 'chat' },
 
   // Code Models
-  { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', description: 'Best for coding', category: 'code' },
-  { id: 'gpt-4', name: 'GPT-4', provider: 'OpenAI', description: 'Advanced code generation', category: 'code' },
-  { id: 'deepseek-coder', name: 'DeepSeek Coder', provider: 'DeepSeek', description: 'Specialized code model', category: 'code' },
+  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Best for coding', category: 'code' },
+  { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Advanced code generation', category: 'code' },
+  { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code', category: 'code' },
 
   // Image Models
   { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', description: 'High quality images', category: 'image' },

@@ -8,7 +8,7 @@ import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-rea
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getAIResponse as callSimpleAI } from '../../lib/simpleAI';
+import { getOpenRouterResponse } from '../../lib/openRouterService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
@@ -339,9 +339,10 @@ export const MainChat: React.FC = () => {
         : undefined;
 
       console.log('🎯 Using custom preferences:', !!systemPrompt);
+      console.log('🤖 Using model:', selectedModel);
 
-      // Call simple AI service with user preferences
-      const aiContent = await callSimpleAI(userMessage, conversationHistory, systemPrompt);
+      // Call OpenRouter service with selected model
+      const aiContent = await getOpenRouterResponse(userMessage, conversationHistory, systemPrompt, selectedModel);
 
       console.log('✅ AI Response received! Length:', aiContent.length);
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
