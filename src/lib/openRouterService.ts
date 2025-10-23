@@ -16,6 +16,8 @@ interface AIResponse {
 
 const OPENROUTER_API_KEY = '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';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+const SITE_URL = 'https://kroniq.ai';
+const SITE_NAME = 'KroniQ AI Platform';
 
 const MODEL_MAP: Record<string, string> = {
   'gpt-5-chat': 'openai/gpt-5-chat',
@@ -57,38 +59,53 @@ export async function callOpenRouter(
   const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';
 
   log('info', `Calling model: ${openRouterModel} (requested: ${modelId})`);
-  log('info', `API Key: ${OPENROUTER_API_KEY.substring(0, 15)}...`);
+  log('info', `API Key length: ${OPENROUTER_API_KEY.length}`);
+  log('info', `API Key prefix: ${OPENROUTER_API_KEY.substring(0, 20)}...`);
+  log('info', `API Base URL: ${OPENROUTER_BASE_URL}`);
 
   try {
+    const requestBody = {
+      model: openRouterModel,
+      messages: messages,
+    };
+
+    log('info', `Request body: ${JSON.stringify(requestBody).substring(0, 200)}`);
+
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://kroniq.ai',
-        'X-Title': 'KroniQ AI Platform',
+        'HTTP-Referer': SITE_URL,
+        'X-Title': SITE_NAME,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: openRouterModel,
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 4000,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     log('info', `Response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
-      log('error', `API error (${response.status}): ${errorText.substring(0, 300)}`);
+      log('error', `HTTP Status: ${response.status}`);
+      log('error', `Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()))}`);
+      log('error', `Error Response Body: ${errorText}`);
 
       let errorData: any = {};
       try {
         errorData = JSON.parse(errorText);
-      } catch {}
+        log('error', `Parsed error data: ${JSON.stringify(errorData)}`);
+      } catch (e) {
+        log('error', `Could not parse error response as JSON`);
+      }
 
       const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}: ${errorText.substring(0, 100)}`;
-      throw new Error(`OpenRouter: ${errorMessage}`);
+
+      // Add more context to the error
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(`OpenRouter Authentication Error: ${errorMessage}. Please check your API key.`);
+      }
+
+      throw new Error(`OpenRouter API Error: ${errorMessage}`);
     }
 
     const data = await response.json();
@@ -190,29 +207,29 @@ export async function generateImageWithAI(
   const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['gpt-5-image'];
 
   try {
+    const requestBody = {
+      model: openRouterModel,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an AI image generator. When given a prompt, generate a detailed, high-quality image. Respond with a description of the generated image.',
+        },
+        {
+          role: 'user',
+          content: `Generate an image: ${prompt}`,
+        },
+      ],
+    };
+
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://kroniq.ai',
-        'X-Title': 'KroniQ AI Platform',
+        'HTTP-Referer': SITE_URL,
+        'X-Title': SITE_NAME,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: openRouterModel,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an AI image generator. When given a prompt, generate a detailed, high-quality image. Respond with a description of the generated image.',
-          },
-          {
-            role: 'user',
-            content: `Generate an image: ${prompt}`,
-          },
-        ],
-        temperature: 0.9,
-        max_tokens: 1000,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

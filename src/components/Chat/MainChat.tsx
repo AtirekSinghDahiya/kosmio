@@ -380,7 +380,14 @@ export const MainChat: React.FC = () => {
       console.error('Error stack:', error.stack);
 
       const errorMessage = error.message || 'Unknown error occurred';
-      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n**Troubleshooting:**\n1. Check your internet connection\n2. Try selecting a different AI model from the dropdown\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page\n\n**Your message:** "${userMessage}"`;
+
+      let troubleshooting = `**Troubleshooting:**\n1. Check your internet connection\n2. Try selecting a different AI model from the dropdown\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page`;
+
+      if (errorMessage.includes('User not found') || errorMessage.includes('Authentication')) {
+        troubleshooting = `**This appears to be an API key issue.**\n\n**To fix:**\n1. Go to https://openrouter.ai/ and sign up/login\n2. Get your API key from https://openrouter.ai/keys\n3. Update the key in src/lib/openRouterService.ts (line 17)\n4. The current key may be invalid or expired\n\n**For developers:**\nCheck the browser console (F12) for detailed error information.`;
+      }
+
+      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n${troubleshooting}\n\n**Your message:** "${userMessage}"`;
 
       console.log('💾 Saving error message to chat...');
       await addMessage(projectId, 'assistant', fallback);
