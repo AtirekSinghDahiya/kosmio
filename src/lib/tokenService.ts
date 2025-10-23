@@ -105,11 +105,14 @@ export async function checkAndRefreshDailyTokens(userId: string): Promise<void> 
   try {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('last_token_refresh, daily_free_tokens, is_token_user')
+      .select('last_token_refresh, daily_free_tokens, is_token_user, tokens_lifetime_purchased, tokens_balance')
       .eq('id', userId)
       .maybeSingle();
 
     if (!profile || !profile.is_token_user) return;
+
+    // Only refresh for free users (who haven't purchased tokens)
+    if (profile.tokens_lifetime_purchased > 0) return;
 
     const lastRefresh = profile.last_token_refresh
       ? new Date(profile.last_token_refresh)
@@ -118,9 +121,23 @@ export async function checkAndRefreshDailyTokens(userId: string): Promise<void> 
     const now = new Date();
     const hoursSinceRefresh = (now.getTime() - lastRefresh.getTime()) / (1000 * 60 * 60);
 
+    // Refresh if 24 hours have passed
     if (hoursSinceRefresh >= 24) {
-      const { error } = await supabase.rpc('refresh_daily_tokens');
-      if (error) console.error('Error refreshing daily tokens:', error);
+      console.log(`⏰ Refreshing daily tokens for user ${userId}...`);
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          tokens_balance: profile.daily_free_tokens,
+          last_token_refresh: now.toISOString()
+        })
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error refreshing daily tokens:', error);
+      } else {
+        console.log(`✅ Daily tokens refreshed to ${profile.daily_free_tokens}`);
+      }
     }
   } catch (error) {
     console.error('Error in checkAndRefreshDailyTokens:', error);

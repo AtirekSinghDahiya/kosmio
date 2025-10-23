@@ -5,6 +5,7 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
+import { getUserTokenInfo, UserTokenInfo } from '../../lib/tokenService';
 
 interface ChatSidebarProps {
   projects: Project[];
@@ -23,11 +24,12 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onDeleteProject,
   onRenameProject,
 }) => {
-  const { signOut, userData } = useAuth();
+  const { signOut, userData, currentUser } = useAuth();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [tokenInfo, setTokenInfo] = useState<UserTokenInfo | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -55,6 +57,26 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       document.body.style.overflow = '';
     };
   }, [isMobileOpen]);
+
+  // Fetch token balance from Supabase
+  useEffect(() => {
+    const loadTokenInfo = async () => {
+      if (currentUser?.uid) {
+        try {
+          const info = await getUserTokenInfo(currentUser.uid);
+          setTokenInfo(info);
+        } catch (error) {
+          console.error('Error loading token info:', error);
+        }
+      }
+    };
+
+    loadTokenInfo();
+    // Refresh every 30 seconds
+    const interval = setInterval(loadTokenInfo, 30000);
+
+    return () => clearInterval(interval);
+  }, [currentUser?.uid]);
 
   const getProjectIcon = (type: string) => {
     switch (type) {
@@ -263,27 +285,39 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       </div>
 
       <div className="p-3 border-t border-white/10 space-y-2">
-        {userData && (isMobileOpen || isHovered) && (
+        {tokenInfo && (isMobileOpen || isHovered) && (
           <div className="glass-panel rounded-xl p-3 border-white/10 animate-fade-in">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/70 font-medium">Token Usage</span>
+              <span className="text-xs text-white/70 font-medium">Token Balance</span>
               <span className="text-xs font-bold text-[#00FFF0] uppercase tracking-wide">
-                {userData.plan}
+                {tokenInfo.isFreeUser ? 'FREE' : 'PRO'}
               </span>
             </div>
             <div className="space-y-2">
-              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] h-2 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.min(((userData.tokensUsed || 0) / (userData.tokensLimit || 1)) * 100, 100)}%`
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs text-white/50">
-                <span>{(userData.tokensUsed || 0).toLocaleString()}</span>
-                <span>{(userData.tokensLimit || 0).toLocaleString()}</span>
-              </div>
+              {tokenInfo.isFreeUser && (
+                <>
+                  <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min((tokenInfo.balance / tokenInfo.dailyFreeTokens) * 100, 100)}%`
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-white/50">
+                    <span>{tokenInfo.balance.toLocaleString()}</span>
+                    <span>{tokenInfo.dailyFreeTokens.toLocaleString()} / day</span>
+                  </div>
+                </>
+              )}
+              {!tokenInfo.isFreeUser && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#00FFF0]">
+                    {tokenInfo.balance.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-white/50">tokens remaining</div>
+                </div>
+              )}
             </div>
           </div>
         )}
