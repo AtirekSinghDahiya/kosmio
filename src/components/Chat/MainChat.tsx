@@ -16,7 +16,6 @@ import { MobileLandingView } from './MobileLandingView';
 import { IntentDialog } from './IntentDialog';
 import { FloatingNavbar } from '../Layout/FloatingNavbar';
 import { AIModelSelector } from './AIModelSelector';
-import { TokenBalanceDisplay } from './TokenBalanceDisplay';
 import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
@@ -35,7 +34,6 @@ import {
 } from '../../lib/chatService';
 import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../../lib/userPreferences';
 import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionService';
-import { getUserTokenBalance, estimateTokenCost, checkAndRefreshDailyTokens, deductTokensForRequest } from '../../lib/tokenService';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
@@ -168,36 +166,6 @@ export const MainChat: React.FC = () => {
     if (!textToSend || isLoading) {
       console.warn('⚠️ BLOCKED: textToSend empty or already loading');
       return;
-    }
-
-    if (currentUser?.uid) {
-      try {
-        await checkAndRefreshDailyTokens(currentUser.uid);
-
-        const tokenBalance = await getUserTokenBalance(currentUser.uid);
-        const { tokens: estimatedCost } = estimateTokenCost(selectedModel, textToSend, 500);
-
-        if (tokenBalance < estimatedCost) {
-          showToast(
-            'error',
-            'Insufficient Tokens',
-            tokenBalance === 0
-              ? 'You have no tokens left. Please purchase tokens or wait for your daily free tokens to reset.'
-              : `You need ${estimatedCost} tokens but only have ${tokenBalance}. Please purchase more tokens.`
-          );
-          return;
-        }
-
-        if (tokenBalance < 200) {
-          showToast(
-            'warning',
-            'Low Token Balance',
-            `You have ${tokenBalance} tokens remaining. Consider purchasing more tokens.`
-          );
-        }
-      } catch (error) {
-        console.error('Error checking token balance:', error);
-      }
     }
 
     const messageAccess = await checkFeatureAccess('chat_messages_daily');
@@ -392,32 +360,14 @@ export const MainChat: React.FC = () => {
       console.log('🤖 Using model:', selectedModel);
 
       // Call OpenRouter service with selected model
-      const aiResponse = await getOpenRouterResponse(userMessage, conversationHistory, systemPrompt, selectedModel);
+      const aiContent = await getOpenRouterResponse(userMessage, conversationHistory, systemPrompt, selectedModel);
 
-      console.log('✅ AI Response received! Length:', aiResponse.content.length);
-      console.log('✅ First 100 chars:', aiResponse.content.substring(0, 100));
-
-      // Deduct tokens for the request
-      if (currentUser?.uid && aiResponse.cost) {
-        console.log('💰 Deducting tokens for request...');
-        const deductResult = await deductTokensForRequest(
-          currentUser.uid,
-          selectedModel,
-          aiResponse.provider,
-          aiResponse.cost,
-          'chat'
-        );
-
-        if (!deductResult.success) {
-          console.error('Failed to deduct tokens:', deductResult.error);
-        } else {
-          console.log('✅ Tokens deducted. New balance:', deductResult.balance);
-        }
-      }
+      console.log('✅ AI Response received! Length:', aiContent.length);
+      console.log('✅ First 100 chars:', aiContent.substring(0, 100));
 
       // Save AI response
       console.log('💾 Saving AI response to database...');
-      await addMessage(projectId, 'assistant', aiResponse.content);
+      await addMessage(projectId, 'assistant', aiContent);
       console.log('✅ AI response saved successfully');
 
       await incrementUsage('chat_messages_daily', 1);
@@ -688,15 +638,12 @@ export const MainChat: React.FC = () => {
               : 'border-white/10 bg-transparent'
           }`}>
             <div className="max-w-4xl mx-auto">
-              <div className="flex items-center justify-between gap-4 mb-4">
-                <div className="flex-1">
-                  <AIModelSelector
-                    selectedModel={selectedModel}
-                    onModelChange={setSelectedModel}
-                    category="chat"
-                  />
-                </div>
-                <TokenBalanceDisplay />
+              <div className="mb-4">
+                <AIModelSelector
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
+                  category="chat"
+                />
               </div>
               {/* Hide chat input on mobile when landing view is active (it has its own input) */}
               <div className={showLanding ? 'hidden md:block' : ''}>
