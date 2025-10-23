@@ -432,7 +432,7 @@ export const MainChat: React.FC = () => {
       console.error('Error stack:', error.stack);
 
       const errorMessage = error.message || 'Unknown error occurred';
-      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n**Troubleshooting:**\n1. Check that VITE_GROQ_API_KEY is set in .env file\n2. Make sure the API key is valid (get free key at console.groq.com)\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page\n\n**Your message:** "${userMessage}"`;
+      const fallback = `⚠️ **AI Error**\n\n${errorMessage}\n\n**Troubleshooting:**\n1. Check that VITE_OPENAI_API_KEY is set in .env file\n2. Make sure the API key is valid (get key at openrouter.ai)\n3. Check browser console (F12) for detailed error logs\n4. Try refreshing the page\n\n**Your message:** "${userMessage}"`;
 
       console.log('💾 Saving error message to chat...');
       await addMessage(projectId, 'assistant', fallback);

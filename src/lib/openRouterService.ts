@@ -20,8 +20,13 @@ interface AIResponse {
   cost?: number;
 }
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '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';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+
+// Validate API key on module load
+if (!OPENROUTER_API_KEY || !OPENROUTER_API_KEY.startsWith('sk-or-v1-')) {
+  console.error('❌ [OpenRouter] Invalid or missing API key. Please set VITE_OPENAI_API_KEY in .env file');
+}
 
 const MODEL_MAP: Record<string, string> = {
   'claude-sonnet': 'anthropic/claude-sonnet-4.5',
@@ -92,6 +97,16 @@ export async function callOpenRouter(
       } catch {}
 
       const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
+
+      // Provide helpful error messages for common issues
+      if (response.status === 401 || errorMessage.includes('User not found')) {
+        throw new Error('OpenRouter: Invalid API key. Please check VITE_OPENAI_API_KEY in your .env file.');
+      } else if (response.status === 429) {
+        throw new Error('OpenRouter: Rate limit exceeded. Please wait a moment and try again.');
+      } else if (response.status === 402) {
+        throw new Error('OpenRouter: Insufficient credits. Please add credits to your OpenRouter account.');
+      }
+
       throw new Error(`OpenRouter: ${errorMessage}`);
     }
 
