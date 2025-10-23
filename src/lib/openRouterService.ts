@@ -80,14 +80,14 @@ export async function callOpenRouter(
 
     if (!response.ok) {
       const errorText = await response.text();
-      log('error', `API error: ${errorText.substring(0, 200)}`);
+      log('error', `API error (${response.status}): ${errorText.substring(0, 300)}`);
 
       let errorData: any = {};
       try {
         errorData = JSON.parse(errorText);
       } catch {}
 
-      const errorMessage = errorData.error?.message || `HTTP ${response.status}`;
+      const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}: ${errorText.substring(0, 100)}`;
       throw new Error(`OpenRouter: ${errorMessage}`);
     }
 
