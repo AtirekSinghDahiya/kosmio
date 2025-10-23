@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { Project } from '../types';
 
-type ViewType = 'chat' | 'projects' | 'voice' | 'code' | 'design' | 'video' | 'billing' | 'admin' | 'settings';
+type ViewType = 'chat' | 'projects' | 'voice' | 'code' | 'design' | 'video' | 'ppt' | 'billing' | 'admin' | 'settings';
 
 interface NavigationContextType {
   currentView: ViewType;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Code, Palette, Video, Volume2, Send, Sparkles, ArrowRight } from 'lucide-react';
+import { Code, Palette, Video, Volume2, Send, Sparkles, ArrowRight, Presentation } from 'lucide-react';
 import { AIModelSelector } from './AIModelSelector';
 import { useTheme } from '../../contexts/ThemeContext';
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderOpen, CreditCard, Settings, LogOut, BarChart3, Sparkles, Mic, Menu, X } from 'lucide-react';
+import { FolderOpen, CreditCard, Settings, LogOut, BarChart3, Sparkles, Mic, Menu, X, Presentation } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
     { id: 'chat', label: 'AI Chat', icon: Sparkles },
     { id: 'projects', label: 'Projects', icon: FolderOpen },
     { id: 'voice', label: 'Voice & Music Studio', icon: Mic },
+    { id: 'ppt', label: 'PPT Studio', icon: Presentation },
     { id: 'billing', label: 'Billing', icon: CreditCard },
   ];
 

@@ -15,6 +15,7 @@ import { VoiceStudio } from './components/Studio/VoiceStudio';
 import { CodeStudio } from './components/Studio/CodeStudio';
 import { DesignStudio } from './components/Studio/DesignStudio';
 import { VideoStudio } from './components/Studio/VideoStudio';
+import { PPTStudio } from './components/Studio/PPTStudio';
 import { BillingView } from './components/Billing/BillingView';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { SettingsView } from './components/Settings/SettingsView';
@@ -44,6 +45,7 @@ const MainApp: React.FC = () => {
       code: 'KroniQ - Code Studio',
       design: 'KroniQ - Design Studio',
       video: 'KroniQ - Video Studio',
+      ppt: 'KroniQ - PPT Studio',
       billing: 'KroniQ - Billing',
       admin: 'KroniQ - Admin Dashboard',
       settings: 'KroniQ - Settings',
@@ -85,6 +87,8 @@ const MainApp: React.FC = () => {
         return <DesignStudio projectId={activeProject?.id} />;
       case 'video':
         return <VideoStudio projectId={activeProject?.id} />;
+      case 'ppt':
+        return <PPTStudio projectId={activeProject?.id} />;
       case 'billing':
         return <BillingView />;
       case 'admin':
@@ -97,7 +101,7 @@ const MainApp: React.FC = () => {
   };
 
   // Studios render independently (no sidebar/navbar)
-  if (['voice', 'code', 'design', 'video'].includes(currentView)) {
+  if (['voice', 'code', 'design', 'video', 'ppt'].includes(currentView)) {
     return (
       <div className="h-screen overflow-hidden relative">
         <CosmicBackground />
