@@ -40,6 +40,16 @@ function estimateTokenCount(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
+export interface UserTokenInfo {
+  balance: number;
+  dailyFreeTokens: number;
+  lifetimePurchased: number;
+  lifetimeUsed: number;
+  lastRefresh: string | null;
+  isTokenUser: boolean;
+  isFreeUser: boolean;
+}
+
 export async function getUserTokenBalance(userId: string): Promise<number> {
   try {
     const { data, error } = await supabase
@@ -53,6 +63,41 @@ export async function getUserTokenBalance(userId: string): Promise<number> {
   } catch (error) {
     console.error('Error fetching token balance:', error);
     return 0;
+  }
+}
+
+export async function getUserTokenInfo(userId: string): Promise<UserTokenInfo> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('tokens_balance, daily_free_tokens, tokens_lifetime_purchased, tokens_lifetime_used, last_token_refresh, is_token_user')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const isFreeUser = (data?.tokens_lifetime_purchased || 0) === 0;
+
+    return {
+      balance: data?.tokens_balance || 0,
+      dailyFreeTokens: data?.daily_free_tokens || 1000,
+      lifetimePurchased: data?.tokens_lifetime_purchased || 0,
+      lifetimeUsed: data?.tokens_lifetime_used || 0,
+      lastRefresh: data?.last_token_refresh || null,
+      isTokenUser: data?.is_token_user || true,
+      isFreeUser,
+    };
+  } catch (error) {
+    console.error('Error fetching token info:', error);
+    return {
+      balance: 0,
+      dailyFreeTokens: 1000,
+      lifetimePurchased: 0,
+      lifetimeUsed: 0,
+      lastRefresh: null,
+      isTokenUser: true,
+      isFreeUser: true,
+    };
   }
 }
 
