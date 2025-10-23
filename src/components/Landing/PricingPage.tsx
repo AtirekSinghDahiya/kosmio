@@ -73,7 +73,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       icon: Star,
       tokens: 50000,
       bonusTokens: 5000,
-      price: 8.00,
+      price: 7.00,
       description: 'Most popular for regular users',
       features: [
         '50,000 base tokens',
@@ -92,7 +92,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       icon: Zap,
       tokens: 100000,
       bonusTokens: 15000,
-      price: 16.00,
+      price: 15.00,
       description: 'For power users',
       features: [
         '100,000 base tokens',
@@ -111,7 +111,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       icon: Crown,
       tokens: 250000,
       bonusTokens: 50000,
-      price: 40.00,
+      price: 36.00,
       description: 'For professionals',
       features: [
         '250,000 base tokens',

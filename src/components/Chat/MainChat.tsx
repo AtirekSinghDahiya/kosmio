@@ -8,6 +8,7 @@ import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-rea
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { getOpenRouterResponse } from '../../lib/openRouterService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
@@ -41,6 +42,7 @@ export const MainChat: React.FC = () => {
   const { showToast } = useToast();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
+  const { currentUser } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
