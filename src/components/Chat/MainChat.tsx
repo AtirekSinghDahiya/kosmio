@@ -238,6 +238,24 @@ export const MainChat: React.FC = () => {
       return;
     }
 
+    // Auto-detect PPT/presentation generation requests
+    const pptKeywords = /\b(generate|create|make|build|design|produce|prepare)\b.*\b(ppt|powerpoint|presentation|slides?|slideshow|deck)\b/i;
+    const pptRequestPattern = /\b(presentation|slides?|ppt|powerpoint|slideshow|deck) (on|about|for|regarding|covering)\b/i;
+    const pptDirectPattern = /\b(make|need|want|create|build)\s+(a|an)?\s*(presentation|slides?|ppt|powerpoint|slideshow)/i;
+
+    if (pptKeywords.test(textToSend) || pptRequestPattern.test(textToSend) || pptDirectPattern.test(textToSend)) {
+      console.log('📊 PPT generation detected! Navigating to PPT Studio...');
+      setInputValue('');
+
+      showToast('success', 'Opening PPT Studio', 'Let\'s create your presentation!');
+
+      setTimeout(() => {
+        navigateTo('ppt');
+      }, 500);
+
+      return;
+    }
+
     // Auto-detect image generation requests
     const imageKeywords = /\b(generate|create|make|draw|design|show|paint|illustrate|render)\b.*\b(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\b/i;
     const imageRequestPattern = /\b(image|picture|photo|illustration) (of|about|showing|with|depicting)\b/i;
