@@ -27,8 +27,6 @@ const MODEL_COST_ESTIMATES: Record<string, { input: number; output: number }> = 
   'claude-sonnet': { input: 0.000003, output: 0.000015 },
   'claude-3.5-sonnet': { input: 0.000003, output: 0.000015 },
   'nemotron': { input: 0.000002, output: 0.000008 },
-  'qwen': { input: 0.000003, output: 0.000012 },
-  'qwen-thinking': { input: 0.000003, output: 0.000012 },
   'deepseek': { input: 0.000001, output: 0.000004 },
   'gemini': { input: 0.0000002, output: 0.0000008 },
   'gemini-flash': { input: 0.0000002, output: 0.0000008 },

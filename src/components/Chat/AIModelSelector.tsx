@@ -16,7 +16,6 @@ export const AI_MODELS: AIModel[] = [
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
   { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Advanced reasoning with images', category: 'chat' },
   { id: 'nemotron', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning and coding', category: 'chat' },
-  { id: 'qwen', name: 'Qwen3 235B Thinking', provider: 'Qwen', description: 'Advanced reasoning with thinking process', category: 'chat' },
   { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
   { id: 'gemini', name: 'Gemini 2.5 Flash', provider: 'Google', description: 'Fast multimodal AI with images', category: 'chat' },
   { id: 'kimi', name: 'Kimi K2', provider: 'Moonshot', description: 'Long context understanding', category: 'chat' },
@@ -25,7 +24,6 @@ export const AI_MODELS: AIModel[] = [
   // Code Models
   { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Best for coding', category: 'code' },
   { id: 'nemotron', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Excellent for complex code', category: 'code' },
-  { id: 'qwen', name: 'Qwen3 235B Thinking', provider: 'Qwen', description: 'Reasoning for complex problems', category: 'code' },
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Advanced code generation', category: 'code' },
   { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code', category: 'code' },
 
@@ -97,7 +95,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className={`absolute bottom-full left-0 mb-3 w-full backdrop-blur-3xl border rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in ${
+          <div className={`absolute top-full left-0 mt-3 w-full backdrop-blur-3xl border rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in ${
             theme === 'light'
               ? 'bg-white/95 border-gray-200'
               : 'glass-panel border-white/20'
