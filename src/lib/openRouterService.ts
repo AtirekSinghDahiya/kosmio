@@ -12,6 +12,12 @@ interface AIResponse {
   content: string;
   provider: string;
   model: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  cost?: number;
 }
 
 const OPENROUTER_API_KEY = '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';
@@ -111,10 +117,20 @@ export async function callOpenRouter(
       'qwen': 'Qwen',
     }[providerName] || providerName;
 
+    const usage = data.usage ? {
+      prompt_tokens: data.usage.prompt_tokens || 0,
+      completion_tokens: data.usage.completion_tokens || 0,
+      total_tokens: data.usage.total_tokens || 0,
+    } : undefined;
+
+    const cost = data.usage?.cost || 0;
+
     return {
       content,
       provider: displayName,
       model: openRouterModel,
+      usage,
+      cost,
     };
   } catch (error: any) {
     log('error', `Exception: ${error.message}`);
@@ -135,7 +151,7 @@ export async function getOpenRouterResponse(
   conversationHistory: Message[] = [],
   systemPrompt?: string,
   selectedModel: string = 'grok-2'
-): Promise<string> {
+): Promise<AIResponse> {
   log('info', `Getting response for model: ${selectedModel}`);
   log('info', `History length: ${conversationHistory.length}`);
 
@@ -152,7 +168,7 @@ export async function getOpenRouterResponse(
   ];
 
   const response = await callOpenRouter(messages, selectedModel);
-  return response.content;
+  return response;
 }
 
 /**

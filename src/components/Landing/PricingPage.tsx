@@ -15,6 +15,24 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
 
   const tokenPacks = [
     {
+      name: 'Free Pack',
+      icon: Sparkles,
+      tokens: 1000,
+      bonusTokens: 0,
+      price: 0,
+      description: 'Try KroniQ for free',
+      features: [
+        '1,000 tokens daily',
+        'Auto-resets at midnight UTC',
+        'Access to all AI models',
+        'No credit card required',
+        'Perfect for testing'
+      ],
+      color: 'from-green-500 to-emerald-600',
+      popular: false,
+      isFree: true
+    },
+    {
       name: 'Starter',
       icon: Sparkles,
       tokens: 10000,
@@ -29,7 +47,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
         'No monthly commitment'
       ],
       color: 'from-gray-500 to-gray-700',
-      popular: false
+      popular: false,
+      isFree: false
     },
     {
       name: 'Creator',
@@ -47,7 +66,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
         'Best value per token'
       ],
       color: 'from-blue-500 to-cyan-500',
-      popular: false
+      popular: false,
+      isFree: false
     },
     {
       name: 'Pro',
@@ -65,7 +85,8 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
         'Priority support'
       ],
       color: 'from-[#00FFF0] to-[#8A2BE2]',
-      popular: true
+      popular: true,
+      isFree: false
     },
     {
       name: 'Enterprise',
@@ -84,11 +105,17 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
         'On-prem or private cloud setup'
       ],
       color: 'from-purple-500 to-pink-600',
-      popular: false
+      popular: false,
+      isFree: false
     }
   ];
 
-  const handlePackClick = (packName: string) => {
+  const handlePackClick = (packName: string, isFree?: boolean) => {
+    if (isFree || packName === 'Free Pack') {
+      onGetStarted();
+      return;
+    }
+
     if (packName === 'Starter') {
       onGetStarted();
       return;
@@ -110,12 +137,16 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
 
   const faqs = [
     {
+      question: 'What is the Free Pack?',
+      answer: 'Get 1,000 tokens every day for free! Perfect for testing KroniQ. Your balance resets automatically at midnight UTC. No credit card required.'
+    },
+    {
       question: 'What are KQ Tokens?',
       answer: 'KQ Tokens are our internal currency for AI usage. 1 USD = 10,000 tokens. Each AI request deducts tokens based on the actual provider cost plus a small $0.005 margin.'
     },
     {
       question: 'Do tokens expire?',
-      answer: 'Purchased tokens are valid for 12 months from purchase date. Free daily tokens (500/day) refresh automatically at midnight UTC.'
+      answer: 'Purchased tokens are valid for 12 months from purchase date. Free daily tokens (1,000/day) refresh automatically at midnight UTC.'
     },
     {
       question: 'How much do different AI models cost?',
@@ -196,15 +227,24 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
                       {/* Price */}
                       <div className="mb-6">
                         <div className="flex items-baseline gap-2 mb-3">
-                          {pack.price !== null ? (
-                            <>
-                              <span className="text-5xl font-bold text-white">${pack.price}</span>
-                            </>
+                          {pack.price === 0 ? (
+                            <span className="text-5xl font-bold text-green-400">FREE</span>
+                          ) : pack.price !== null ? (
+                            <span className="text-5xl font-bold text-white">${pack.price}</span>
                           ) : (
                             <span className="text-5xl font-bold text-white">Custom</span>
                           )}
                         </div>
-                        {pack.price !== null && (
+                        {pack.isFree ? (
+                          <div className="space-y-1">
+                            <p className="text-green-400 font-semibold">
+                              {formatNumber(pack.tokens)} tokens/day
+                            </p>
+                            <p className="text-white/60 text-sm">
+                              Resets daily at midnight UTC
+                            </p>
+                          </div>
+                        ) : pack.price !== null ? (
                           <div className="space-y-1">
                             <p className="text-[#00FFF0] font-semibold">
                               {formatNumber(pack.tokens)} base tokens
@@ -218,7 +258,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
                               = {formatNumber(pack.tokens + pack.bonusTokens)} total
                             </p>
                           </div>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Features */}
@@ -234,14 +274,16 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
 
                     {/* CTA Button */}
                     <button
-                      onClick={() => handlePackClick(pack.name)}
+                      onClick={() => handlePackClick(pack.name, pack.isFree)}
                       className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 hover:scale-105 ${
-                        pack.popular
+                        pack.isFree
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/30'
+                          : pack.popular
                           ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-lg hover:shadow-[#00FFF0]/30'
                           : 'bg-white/10 text-white hover:bg-white/20 border border-white/20'
                       }`}
                     >
-                      {pack.name === 'Starter' ? 'Start Free' : pack.name === 'Enterprise' ? 'Contact Sales' : `Get ${pack.name}`}
+                      {pack.isFree ? 'Start Free' : pack.name === 'Enterprise' ? 'Contact Sales' : `Get ${pack.name}`}
                     </button>
                   </div>
                 </Floating3DCard>
