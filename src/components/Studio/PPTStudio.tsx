@@ -20,36 +20,67 @@ const PPT_TEMPLATES = [
     id: 'modern-gradient',
     name: 'Modern Gradient',
     description: 'Sleek design with vibrant gradients',
-    colors: ['from-blue-600 to-purple-600', 'from-cyan-500 to-blue-600', 'from-purple-500 to-pink-500'],
-    preview: 'bg-gradient-to-br from-blue-600 to-purple-600',
+    primary: 'from-blue-600 via-purple-600 to-pink-600',
+    secondary: 'from-cyan-500 via-blue-600 to-purple-700',
+    accent: 'from-purple-500 via-pink-500 to-red-500',
+    textColor: 'text-white',
+    accentColor: 'bg-white/20',
+    preview: 'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600',
   },
   {
-    id: 'professional-dark',
-    name: 'Professional Dark',
-    description: 'Elegant dark theme for business',
-    colors: ['from-gray-900 to-gray-800', 'from-slate-800 to-slate-700', 'from-zinc-900 to-zinc-800'],
-    preview: 'bg-gradient-to-br from-gray-900 to-gray-800',
+    id: 'tech-dark',
+    name: 'Tech Dark',
+    description: 'Modern tech-inspired dark theme',
+    primary: 'from-slate-900 via-blue-900 to-slate-900',
+    secondary: 'from-gray-900 via-slate-800 to-gray-900',
+    accent: 'from-cyan-900 via-blue-900 to-indigo-900',
+    textColor: 'text-white',
+    accentColor: 'bg-cyan-500/20',
+    preview: 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900',
   },
   {
-    id: 'minimal-light',
-    name: 'Minimal Light',
-    description: 'Clean and minimal design',
-    colors: ['from-gray-50 to-white', 'from-blue-50 to-white', 'from-purple-50 to-white'],
-    preview: 'bg-gradient-to-br from-gray-100 to-white border border-gray-300',
+    id: 'minimal-elegant',
+    name: 'Minimal Elegant',
+    description: 'Clean and sophisticated',
+    primary: 'from-gray-50 to-blue-50',
+    secondary: 'from-white to-gray-100',
+    accent: 'from-blue-50 to-indigo-100',
+    textColor: 'text-gray-900',
+    accentColor: 'bg-blue-600/10',
+    preview: 'bg-gradient-to-br from-white to-blue-50 border-2 border-gray-200',
   },
   {
-    id: 'corporate-blue',
-    name: 'Corporate Blue',
-    description: 'Classic corporate style',
-    colors: ['from-blue-700 to-blue-900', 'from-indigo-600 to-blue-800', 'from-sky-600 to-blue-700'],
-    preview: 'bg-gradient-to-br from-blue-700 to-blue-900',
+    id: 'corporate-pro',
+    name: 'Corporate Pro',
+    description: 'Professional business style',
+    primary: 'from-blue-700 via-indigo-800 to-blue-900',
+    secondary: 'from-indigo-700 via-blue-800 to-indigo-900',
+    accent: 'from-sky-700 via-blue-800 to-indigo-900',
+    textColor: 'text-white',
+    accentColor: 'bg-blue-400/20',
+    preview: 'bg-gradient-to-br from-blue-700 via-indigo-800 to-blue-900',
   },
   {
-    id: 'creative-vibrant',
-    name: 'Creative Vibrant',
-    description: 'Bold and colorful design',
-    colors: ['from-orange-500 to-red-600', 'from-green-500 to-teal-600', 'from-yellow-500 to-orange-600'],
-    preview: 'bg-gradient-to-br from-orange-500 to-red-600',
+    id: 'sunset-vibrant',
+    name: 'Sunset Vibrant',
+    description: 'Bold and energetic',
+    primary: 'from-orange-500 via-red-500 to-pink-600',
+    secondary: 'from-yellow-500 via-orange-600 to-red-600',
+    accent: 'from-red-500 via-pink-600 to-purple-600',
+    textColor: 'text-white',
+    accentColor: 'bg-white/20',
+    preview: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
+  },
+  {
+    id: 'nature-green',
+    name: 'Nature Green',
+    description: 'Fresh and organic',
+    primary: 'from-emerald-600 via-green-600 to-teal-700',
+    secondary: 'from-green-500 via-emerald-600 to-teal-700',
+    accent: 'from-teal-600 via-cyan-600 to-blue-600',
+    textColor: 'text-white',
+    accentColor: 'bg-white/20',
+    preview: 'bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700',
   },
 ];
 
@@ -143,59 +174,120 @@ Keep content concise and impactful.`;
   };
 
   const renderSlide = (slide: Slide, index: number) => {
-    const bgGradient = selectedTemplate.colors[index % selectedTemplate.colors.length];
-    const isLightTheme = selectedTemplate.id === 'minimal-light';
+    const gradients = [selectedTemplate.primary, selectedTemplate.secondary, selectedTemplate.accent];
+    const bgGradient = gradients[index % gradients.length];
+    const isLight = selectedTemplate.id === 'minimal-elegant';
 
     return (
       <div
         key={index}
-        className={`w-full aspect-video rounded-xl shadow-2xl p-12 flex flex-col justify-center bg-gradient-to-br ${bgGradient}`}
+        className={`relative w-full aspect-video rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br ${bgGradient}`}
       >
-        {slide.layout === 'title' ? (
-          <div className="text-center space-y-6">
-            <h1 className={`text-5xl font-bold ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
-              {slide.title}
-            </h1>
-            {slide.content[0] && (
-              <p className={`text-2xl ${isLightTheme ? 'text-gray-600' : 'text-white/80'}`}>
-                {slide.content[0]}
-              </p>
-            )}
+        {/* Decorative elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl transform -translate-x-32 translate-y-32"></div>
+        </div>
+
+        {/* Pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20px 20px, white 2px, transparent 2px)`,
+            backgroundSize: '40px 40px'
+          }}
+        ></div>
+
+        {/* Content */}
+        <div className="relative h-full p-16 flex flex-col">
+          {slide.layout === 'title' ? (
+            <>
+              {/* Title Slide */}
+              <div className="flex-1 flex flex-col justify-center items-center text-center">
+                <div className={`inline-block px-6 py-2 rounded-full ${selectedTemplate.accentColor} backdrop-blur-sm mb-8`}>
+                  <span className={`text-sm font-semibold ${selectedTemplate.textColor} opacity-90 uppercase tracking-wider`}>
+                    Presentation
+                  </span>
+                </div>
+                <h1 className={`text-6xl md:text-7xl font-bold ${selectedTemplate.textColor} mb-6 leading-tight`}>
+                  {slide.title}
+                </h1>
+                {slide.content[0] && (
+                  <p className={`text-2xl ${selectedTemplate.textColor} opacity-80 max-w-3xl font-light`}>
+                    {slide.content[0]}
+                  </p>
+                )}
+              </div>
+              {/* Decorative line */}
+              <div className="absolute bottom-16 left-16 right-16 h-1 bg-white/20 rounded-full">
+                <div className="h-full w-32 bg-white/60 rounded-full"></div>
+              </div>
+            </>
+          ) : slide.layout === 'quote' ? (
+            <>
+              {/* Quote Slide */}
+              <div className="flex-1 flex flex-col justify-center items-center text-center px-12">
+                <div className={`text-8xl ${selectedTemplate.textColor} opacity-20 mb-6 font-serif`}>"</div>
+                <blockquote className={`text-4xl italic font-light ${selectedTemplate.textColor} leading-relaxed mb-8`}>
+                  {slide.content[0]}
+                </blockquote>
+                {slide.content[1] && (
+                  <div className="flex items-center gap-4">
+                    <div className={`h-px w-12 ${isLight ? 'bg-gray-400' : 'bg-white/50'}`}></div>
+                    <p className={`text-xl ${selectedTemplate.textColor} opacity-70`}>
+                      {slide.content[1]}
+                    </p>
+                    <div className={`h-px w-12 ${isLight ? 'bg-gray-400' : 'bg-white/50'}`}></div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Content Slide */}
+              {/* Header with decorative line */}
+              <div className="mb-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-2 h-16 rounded-full ${isLight ? 'bg-blue-600' : 'bg-white/80'}`}></div>
+                  <h2 className={`text-5xl font-bold ${selectedTemplate.textColor} leading-tight flex-1`}>
+                    {slide.title}
+                  </h2>
+                </div>
+                <div className={`h-px ${isLight ? 'bg-gray-300' : 'bg-white/20'} ml-6`}></div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 space-y-6 ml-6">
+                {slide.content.map((point, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-start gap-5 p-5 rounded-2xl ${selectedTemplate.accentColor} backdrop-blur-sm transition-all hover:scale-105`}
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full ${
+                      isLight ? 'bg-blue-600' : 'bg-white/30'
+                    } flex items-center justify-center`}>
+                      <span className={`text-sm font-bold ${isLight ? 'text-white' : selectedTemplate.textColor}`}>
+                        {i + 1}
+                      </span>
+                    </div>
+                    <span className={`text-2xl ${selectedTemplate.textColor} opacity-95 leading-relaxed flex-1 pt-0.5`}>
+                      {point}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Slide number - bottom right */}
+          <div className="absolute bottom-8 right-8">
+            <div className={`px-6 py-2 rounded-full ${selectedTemplate.accentColor} backdrop-blur-sm`}>
+              <span className={`text-sm font-semibold ${selectedTemplate.textColor} opacity-70`}>
+                {index + 1} / {slides.length}
+              </span>
+            </div>
           </div>
-        ) : slide.layout === 'quote' ? (
-          <div className="text-center space-y-6">
-            <div className={`text-6xl ${isLightTheme ? 'text-gray-400' : 'text-white/30'}`}>"</div>
-            <blockquote className={`text-3xl italic font-light ${isLightTheme ? 'text-gray-800' : 'text-white'}`}>
-              {slide.content[0]}
-            </blockquote>
-            {slide.content[1] && (
-              <p className={`text-xl ${isLightTheme ? 'text-gray-600' : 'text-white/70'}`}>
-                {slide.content[1]}
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <h2 className={`text-4xl font-bold ${isLightTheme ? 'text-gray-900' : 'text-white'}`}>
-              {slide.title}
-            </h2>
-            <ul className="space-y-4">
-              {slide.content.map((point, i) => (
-                <li
-                  key={i}
-                  className={`flex items-start gap-3 text-xl ${isLightTheme ? 'text-gray-700' : 'text-white/90'}`}
-                >
-                  <span className={`flex-shrink-0 w-2 h-2 rounded-full mt-2 ${
-                    isLightTheme ? 'bg-blue-600' : 'bg-cyan-400'
-                  }`} />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <div className={`absolute bottom-6 right-6 text-sm ${isLightTheme ? 'text-gray-500' : 'text-white/50'}`}>
-          {index + 1} / {slides.length}
         </div>
       </div>
     );
@@ -301,15 +393,15 @@ Keep content concise and impactful.`;
                     <Palette className="w-4 h-4 inline mr-2" />
                     Design Template
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {PPT_TEMPLATES.map((template) => (
                       <button
                         key={template.id}
                         onClick={() => setSelectedTemplate(template)}
-                        className={`relative group cursor-pointer transition-all ${
+                        className={`relative group cursor-pointer transition-all rounded-xl overflow-hidden ${
                           selectedTemplate.id === template.id
-                            ? 'ring-2 ring-cyan-400 ring-offset-2 ring-offset-transparent'
-                            : ''
+                            ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-transparent scale-105'
+                            : 'hover:scale-105'
                         }`}
                       >
                         <div className={`aspect-video rounded-lg ${template.preview} shadow-lg`} />
@@ -349,7 +441,7 @@ Keep content concise and impactful.`;
             </div>
           </div>
         ) : (
-          <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto space-y-6">
             <div className="relative">
               {renderSlide(slides[currentSlideIndex], currentSlideIndex)}
             </div>
@@ -362,7 +454,7 @@ Keep content concise and impactful.`;
                   currentSlideIndex === 0
                     ? 'opacity-50 cursor-not-allowed'
                     : theme === 'light'
-                    ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-200'
+                    ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-md hover:shadow-lg'
                     : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
                 }`}
               >
@@ -380,7 +472,7 @@ Keep content concise and impactful.`;
                   currentSlideIndex === slides.length - 1
                     ? 'opacity-50 cursor-not-allowed'
                     : theme === 'light'
-                    ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-200'
+                    ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-md hover:shadow-lg'
                     : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
                 }`}
               >
