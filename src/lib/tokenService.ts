@@ -125,6 +125,7 @@ export async function checkAndRefreshDailyTokens(userId: string): Promise<void> 
     if (hoursSinceRefresh >= 24) {
       console.log(`⏰ Refreshing daily tokens for user ${userId}...`);
 
+      // Free users: Reset to daily limit (no rollover)
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -136,7 +137,7 @@ export async function checkAndRefreshDailyTokens(userId: string): Promise<void> 
       if (error) {
         console.error('Error refreshing daily tokens:', error);
       } else {
-        console.log(`✅ Daily tokens refreshed to ${profile.daily_free_tokens}`);
+        console.log(`✅ Daily tokens refreshed to ${profile.daily_free_tokens} (no rollover for free users)`);
       }
     }
   } catch (error) {
