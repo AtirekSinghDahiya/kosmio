@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FolderOpen, CreditCard, Settings, LogOut, BarChart3, Sparkles, Mic, Menu, X, Presentation } from 'lucide-react';
+import { FolderOpen, CreditCard, Settings, LogOut, BarChart3, Sparkles, Mic, Menu, X, Presentation, User, Database } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -138,6 +138,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
               </p>
             </div>
           )}
+
+          <button
+            onClick={() => handleMenuItemClick('profile')}
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 ${
+              currentView === 'profile'
+                ? 'bg-white/20 text-white'
+                : 'text-white/70 hover:bg-white/10 hover:text-white'
+            }`}
+            title={!isExpanded && !isMobile ? 'Profile' : undefined}
+          >
+            <User className="w-5 h-5 flex-shrink-0" />
+            {(isExpanded || isMobile) && <span className="font-medium text-sm whitespace-nowrap">Profile</span>}
+          </button>
+
+          <button
+            onClick={() => handleMenuItemClick('backup')}
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 ${
+              currentView === 'backup'
+                ? 'bg-white/20 text-white'
+                : 'text-white/70 hover:bg-white/10 hover:text-white'
+            }`}
+            title={!isExpanded && !isMobile ? 'Backup' : undefined}
+          >
+            <Database className="w-5 h-5 flex-shrink-0" />
+            {(isExpanded || isMobile) && <span className="font-medium text-sm whitespace-nowrap">Backup</span>}
+          </button>
 
           <button
             onClick={() => handleMenuItemClick('settings')}

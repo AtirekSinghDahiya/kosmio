@@ -19,6 +19,8 @@ import { PPTStudio } from './components/Studio/PPTStudio';
 import { BillingView } from './components/Billing/BillingView';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { SettingsView } from './components/Settings/SettingsView';
+import { ProfilePage } from './components/Profile/ProfilePage';
+import { BackupView } from './components/Backup/BackupView';
 import { Project } from './types';
 
 const MainApp: React.FC = () => {
@@ -95,6 +97,10 @@ const MainApp: React.FC = () => {
         return userData?.plan === 'enterprise' ? <AdminDashboard /> : <MainChat />;
       case 'settings':
         return <SettingsView />;
+      case 'profile':
+        return <ProfilePage onClose={() => navigateTo('chat')} />;
+      case 'backup':
+        return <BackupView />;
       default:
         return <MainChat />;
     }

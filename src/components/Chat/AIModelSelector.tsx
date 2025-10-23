@@ -63,7 +63,10 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
           : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600'
       }`}>
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
           className={`relative w-full flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 min-w-[220px] ${
             theme === 'light'
               ? 'bg-white/95 hover:bg-white text-gray-900 backdrop-blur-xl'
@@ -99,7 +102,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               {availableModels.map((model, index) => (
                 <button
                   key={model.id}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onModelChange(model.id);
                     setIsOpen(false);
                   }}
