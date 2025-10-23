@@ -36,6 +36,8 @@ const MODEL_MAP: Record<string, string> = {
   'kimi-k2': 'moonshotai/kimi-k2-0905',
   'nemotron': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
   'nemotron-super': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+  'qwen': 'qwen/qwen3-235b-a22b-thinking-2507',
+  'qwen-thinking': 'qwen/qwen3-235b-a22b-thinking-2507',
 };
 
 function log(level: 'info' | 'success' | 'error', message: string) {
@@ -106,6 +108,7 @@ export async function callOpenRouter(
       'google': 'Gemini',
       'moonshotai': 'Kimi',
       'nvidia': 'NVIDIA',
+      'qwen': 'Qwen',
     }[providerName] || providerName;
 
     return {
