@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Image, Download, Wand2, X, Loader, Sparkles, RefreshCw } from 'lucide-react';
-import { generateImageFree, GeneratedImage } from '../../lib/imageService';
+import { generateImageSmart, GeneratedImage } from '../../lib/imageService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -13,9 +13,10 @@ interface ImageGeneratorProps {
   onClose: () => void;
   onImageGenerated?: (image: GeneratedImage) => void;
   initialPrompt?: string;
+  selectedModel?: string;
 }
 
-export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImageGenerated, initialPrompt = '' }) => {
+export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImageGenerated, initialPrompt = '', selectedModel }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [prompt, setPrompt] = useState(initialPrompt);
@@ -39,7 +40,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     setImageLoading(true);
 
     try {
-      const image = await generateImageFree(prompt);
+      const image = await generateImageSmart(prompt, selectedModel);
       setGeneratedImage(image);
       showToast('success', 'Success!', 'Your image is ready');
 

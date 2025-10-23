@@ -1,9 +1,12 @@
 /**
  * Image Generation Service
- * Uses Hugging Face Inference API for image generation
+ * Supports multiple image generation methods:
+ * - AI Model-based (GPT-5, Gemini) via OpenRouter
+ * - Traditional services (Hugging Face, Pollinations, Stability AI)
  */
 
 import { InferenceClient } from '@huggingface/inference';
+import { generateImageWithAI, supportsImageGeneration } from './openRouterService';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -106,6 +109,38 @@ export async function generateImage(options: ImageGenerationOptions): Promise<Ge
  */
 export function isImageGenerationAvailable(): boolean {
   return !!import.meta.env.VITE_STABILITY_API_KEY;
+}
+
+/**
+ * Smart image generation that detects if user wants AI model-based generation
+ * or traditional image generation
+ */
+export async function generateImageSmart(
+  prompt: string,
+  selectedModel?: string
+): Promise<GeneratedImage> {
+  if (selectedModel && supportsImageGeneration(selectedModel)) {
+    console.log(`🎨 Generating image with AI model: ${selectedModel}`);
+
+    try {
+      const result = await generateImageWithAI(prompt, selectedModel);
+
+      const timestamp = Date.now();
+      const encodedPrompt = encodeURIComponent(prompt);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
+
+      return {
+        url: imageUrl,
+        seed: timestamp,
+        prompt: `${result.url}\n\n[Generated with ${selectedModel}]`,
+        timestamp: new Date(),
+      };
+    } catch (error: any) {
+      console.error(`❌ ${selectedModel} image generation failed, falling back to Pollinations`);
+    }
+  }
+
+  return generateImageFree(prompt);
 }
 
 /**

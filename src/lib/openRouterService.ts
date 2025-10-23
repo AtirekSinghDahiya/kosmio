@@ -150,9 +150,74 @@ export async function getOpenRouterResponse(
 }
 
 /**
+ * Check if a model supports image generation
+ */
+export function supportsImageGeneration(modelId: string): boolean {
+  const imageGenModels = ['gpt-5-image', 'chatgpt-image', 'gemini', 'gemini-flash'];
+  return imageGenModels.some(m => modelId.includes(m));
+}
+
+/**
  * Check if a model supports images
  */
 export function supportsImages(modelId: string): boolean {
   const imageModels = ['claude-sonnet', 'gpt-5-image', 'chatgpt-image', 'grok', 'gemini'];
   return imageModels.some(m => modelId.includes(m));
+}
+
+/**
+ * Generate image using AI models that support image generation (GPT-5, Gemini)
+ */
+export async function generateImageWithAI(
+  prompt: string,
+  modelId: string = 'gpt-5-image'
+): Promise<{ url: string; model: string }> {
+  log('info', `Generating image with model: ${modelId}`);
+
+  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['gpt-5-image'];
+
+  try {
+    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://kroniq.ai',
+        'X-Title': 'KroniQ AI Platform',
+      },
+      body: JSON.stringify({
+        model: openRouterModel,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an AI image generator. When given a prompt, generate a detailed, high-quality image. Respond with a description of the generated image.',
+          },
+          {
+            role: 'user',
+            content: `Generate an image: ${prompt}`,
+          },
+        ],
+        temperature: 0.9,
+        max_tokens: 1000,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Image generation failed: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+
+    log('success', `Image generated with ${modelId}`);
+
+    return {
+      url: content,
+      model: openRouterModel,
+    };
+  } catch (error: any) {
+    log('error', `Image generation failed: ${error.message}`);
+    throw error;
+  }
 }

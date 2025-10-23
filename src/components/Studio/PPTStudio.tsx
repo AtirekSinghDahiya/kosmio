@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Presentation, Sparkles, Download, Loader2, Layout, Palette, FileText } from 'lucide-react';
+import { ArrowLeft, Presentation, Sparkles, Download, Loader2, Layout, Palette, FileText, Zap } from 'lucide-react';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -17,70 +17,100 @@ interface Slide {
 
 const PPT_TEMPLATES = [
   {
-    id: 'modern-gradient',
-    name: 'Modern Gradient',
-    description: 'Sleek design with vibrant gradients',
-    primary: 'from-blue-600 via-purple-600 to-pink-600',
-    secondary: 'from-cyan-500 via-blue-600 to-purple-700',
-    accent: 'from-purple-500 via-pink-500 to-red-500',
-    textColor: 'text-white',
-    accentColor: 'bg-white/20',
-    preview: 'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600',
+    id: 'creative-illustration',
+    name: 'Creative Illustration',
+    description: 'Colorful with hand-drawn elements',
+    primary: 'from-orange-400 via-yellow-300 to-white',
+    secondary: 'from-pink-300 via-purple-300 to-white',
+    accent: 'from-blue-300 via-cyan-300 to-white',
+    textColor: 'text-gray-900',
+    accentColor: 'bg-blue-100/60',
+    decorStyle: 'playful',
+    preview: 'bg-gradient-to-br from-orange-400 via-yellow-300 to-white border-2 border-orange-200',
   },
   {
-    id: 'tech-dark',
-    name: 'Tech Dark',
-    description: 'Modern tech-inspired dark theme',
+    id: 'social-psychology',
+    name: 'Social Psychology',
+    description: 'Clean with line art illustrations',
+    primary: 'from-white to-blue-50',
+    secondary: 'from-white to-purple-50',
+    accent: 'from-white to-pink-50',
+    textColor: 'text-blue-900',
+    accentColor: 'bg-blue-100/50',
+    decorStyle: 'lineart',
+    preview: 'bg-gradient-to-br from-white to-blue-100 border-2 border-blue-300',
+  },
+  {
+    id: 'tech-futuristic',
+    name: 'Tech Futuristic',
+    description: 'Modern with gradient accents',
     primary: 'from-slate-900 via-blue-900 to-slate-900',
-    secondary: 'from-gray-900 via-slate-800 to-gray-900',
-    accent: 'from-cyan-900 via-blue-900 to-indigo-900',
+    secondary: 'from-indigo-900 via-purple-900 to-slate-900',
+    accent: 'from-cyan-900 via-blue-800 to-indigo-900',
     textColor: 'text-white',
-    accentColor: 'bg-cyan-500/20',
+    accentColor: 'bg-blue-500/20',
+    decorStyle: 'geometric',
     preview: 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900',
   },
   {
-    id: 'minimal-elegant',
-    name: 'Minimal Elegant',
-    description: 'Clean and sophisticated',
-    primary: 'from-gray-50 to-blue-50',
-    secondary: 'from-white to-gray-100',
-    accent: 'from-blue-50 to-indigo-100',
-    textColor: 'text-gray-900',
-    accentColor: 'bg-blue-600/10',
-    preview: 'bg-gradient-to-br from-white to-blue-50 border-2 border-gray-200',
+    id: 'nature-organic',
+    name: 'Nature Organic',
+    description: 'Earth tones with organic shapes',
+    primary: 'from-emerald-50 via-teal-100 to-green-50',
+    secondary: 'from-lime-50 via-green-100 to-emerald-50',
+    accent: 'from-teal-50 via-cyan-100 to-blue-50',
+    textColor: 'text-green-900',
+    accentColor: 'bg-emerald-100/60',
+    decorStyle: 'organic',
+    preview: 'bg-gradient-to-br from-emerald-100 via-teal-100 to-green-50 border-2 border-emerald-300',
   },
   {
-    id: 'corporate-pro',
-    name: 'Corporate Pro',
-    description: 'Professional business style',
+    id: 'corporate-elegant',
+    name: 'Corporate Elegant',
+    description: 'Professional business theme',
     primary: 'from-blue-700 via-indigo-800 to-blue-900',
-    secondary: 'from-indigo-700 via-blue-800 to-indigo-900',
-    accent: 'from-sky-700 via-blue-800 to-indigo-900',
+    secondary: 'from-indigo-600 via-blue-700 to-indigo-800',
+    accent: 'from-sky-600 via-blue-700 to-indigo-800',
     textColor: 'text-white',
     accentColor: 'bg-blue-400/20',
+    decorStyle: 'minimal',
     preview: 'bg-gradient-to-br from-blue-700 via-indigo-800 to-blue-900',
   },
   {
-    id: 'sunset-vibrant',
-    name: 'Sunset Vibrant',
-    description: 'Bold and energetic',
-    primary: 'from-orange-500 via-red-500 to-pink-600',
-    secondary: 'from-yellow-500 via-orange-600 to-red-600',
-    accent: 'from-red-500 via-pink-600 to-purple-600',
+    id: 'vibrant-creative',
+    name: 'Vibrant Creative',
+    description: 'Bold colors with dynamic shapes',
+    primary: 'from-fuchsia-500 via-pink-500 to-rose-500',
+    secondary: 'from-violet-500 via-purple-500 to-fuchsia-500',
+    accent: 'from-orange-500 via-red-500 to-pink-500',
     textColor: 'text-white',
     accentColor: 'bg-white/20',
-    preview: 'bg-gradient-to-br from-orange-500 via-red-500 to-pink-600',
+    decorStyle: 'dynamic',
+    preview: 'bg-gradient-to-br from-fuchsia-500 via-pink-500 to-rose-500',
   },
   {
-    id: 'nature-green',
-    name: 'Nature Green',
-    description: 'Fresh and organic',
-    primary: 'from-emerald-600 via-green-600 to-teal-700',
-    secondary: 'from-green-500 via-emerald-600 to-teal-700',
-    accent: 'from-teal-600 via-cyan-600 to-blue-600',
-    textColor: 'text-white',
-    accentColor: 'bg-white/20',
-    preview: 'bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700',
+    id: 'minimalist-japan',
+    name: 'Minimalist Japan',
+    description: 'Clean Japanese-inspired design',
+    primary: 'from-gray-50 to-red-50',
+    secondary: 'from-white to-gray-100',
+    accent: 'from-red-50 to-orange-50',
+    textColor: 'text-gray-900',
+    accentColor: 'bg-red-100/40',
+    decorStyle: 'zen',
+    preview: 'bg-gradient-to-br from-white via-red-50 to-gray-50 border-2 border-gray-200',
+  },
+  {
+    id: 'educational-playful',
+    name: 'Educational Playful',
+    description: 'Bright and engaging for learning',
+    primary: 'from-yellow-300 via-orange-300 to-yellow-200',
+    secondary: 'from-green-300 via-teal-300 to-blue-300',
+    accent: 'from-pink-300 via-purple-300 to-indigo-300',
+    textColor: 'text-gray-900',
+    accentColor: 'bg-yellow-200/60',
+    decorStyle: 'fun',
+    preview: 'bg-gradient-to-br from-yellow-300 via-orange-300 to-yellow-200 border-2 border-yellow-400',
   },
 ];
 
@@ -170,30 +200,91 @@ Keep content concise and impactful.`;
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast('success', 'Downloaded', 'Presentation outline downloaded as text file');
+    showToast('success', 'Downloaded', 'Presentation outline downloaded');
+  };
+
+  const renderDecorations = (decorStyle: string, isLight: boolean) => {
+    switch (decorStyle) {
+      case 'playful':
+        return (
+          <>
+            <div className="absolute top-10 right-10 w-32 h-32 opacity-20">
+              <svg viewBox="0 0 100 100" className={isLight ? 'text-orange-500' : 'text-white'} fill="currentColor">
+                <circle cx="20" cy="20" r="15" />
+                <circle cx="50" cy="50" r="20" opacity="0.7" />
+                <circle cx="80" cy="30" r="12" opacity="0.5" />
+              </svg>
+            </div>
+            <div className="absolute bottom-10 left-10 w-40 h-40 opacity-15">
+              <svg viewBox="0 0 100 100" className={isLight ? 'text-pink-500' : 'text-white'} fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M 10 50 Q 30 20, 50 50 T 90 50" />
+                <path d="M 20 60 Q 40 30, 60 60 T 90 60" />
+              </svg>
+            </div>
+          </>
+        );
+      case 'lineart':
+        return (
+          <>
+            <div className="absolute top-16 right-16 w-64 h-64 opacity-10">
+              <svg viewBox="0 0 200 200" className="text-blue-600" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="100" cy="80" r="30" />
+                <line x1="100" y1="110" x2="100" y2="140" />
+                <line x1="100" y1="140" x2="80" y2="170" />
+                <line x1="100" y1="140" x2="120" y2="170" />
+                <line x1="100" y1="110" x2="75" y2="125" />
+                <line x1="100" y1="110" x2="125" y2="125" />
+              </svg>
+            </div>
+          </>
+        );
+      case 'geometric':
+        return (
+          <>
+            <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
+              <svg viewBox="0 0 200 200" className="text-cyan-400" fill="currentColor">
+                <polygon points="100,20 180,60 180,140 100,180 20,140 20,60" />
+              </svg>
+            </div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 opacity-10">
+              <svg viewBox="0 0 200 200" className="text-blue-400" fill="currentColor">
+                <rect x="50" y="50" width="100" height="100" transform="rotate(45 100 100)" />
+              </svg>
+            </div>
+          </>
+        );
+      case 'organic':
+        return (
+          <>
+            <div className="absolute top-10 right-10 w-56 h-56 opacity-15">
+              <svg viewBox="0 0 200 200" className="text-green-600" fill="currentColor">
+                <path d="M100,20 Q150,40 160,80 Q170,120 140,150 Q110,180 70,170 Q30,160 20,120 Q10,80 40,50 Q70,20 100,20" />
+              </svg>
+            </div>
+          </>
+        );
+      default:
+        return null;
+    }
   };
 
   const renderSlide = (slide: Slide, index: number) => {
     const gradients = [selectedTemplate.primary, selectedTemplate.secondary, selectedTemplate.accent];
     const bgGradient = gradients[index % gradients.length];
-    const isLight = selectedTemplate.id === 'minimal-elegant';
+    const isLight = selectedTemplate.textColor === 'text-gray-900' || selectedTemplate.textColor === 'text-blue-900' || selectedTemplate.textColor === 'text-green-900';
 
     return (
       <div
         key={index}
         className={`relative w-full aspect-video rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br ${bgGradient}`}
       >
-        {/* Decorative elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl transform translate-x-32 -translate-y-32"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl transform -translate-x-32 translate-y-32"></div>
-        </div>
+        {renderDecorations(selectedTemplate.decorStyle, isLight)}
 
         {/* Pattern overlay */}
         <div
           className="absolute inset-0 opacity-5"
           style={{
-            backgroundImage: `radial-gradient(circle at 20px 20px, white 2px, transparent 2px)`,
+            backgroundImage: `radial-gradient(circle at 20px 20px, ${isLight ? '#000' : '#fff'} 2px, transparent 2px)`,
             backgroundSize: '40px 40px'
           }}
         ></div>
@@ -204,7 +295,9 @@ Keep content concise and impactful.`;
             <>
               {/* Title Slide */}
               <div className="flex-1 flex flex-col justify-center items-center text-center">
-                <div className={`inline-block px-6 py-2 rounded-full ${selectedTemplate.accentColor} backdrop-blur-sm mb-8`}>
+                <div className={`inline-block px-6 py-2 rounded-full ${selectedTemplate.accentColor} backdrop-blur-sm mb-8 border ${
+                  isLight ? 'border-gray-300' : 'border-white/20'
+                }`}>
                   <span className={`text-sm font-semibold ${selectedTemplate.textColor} opacity-90 uppercase tracking-wider`}>
                     Presentation
                   </span>
@@ -218,9 +311,8 @@ Keep content concise and impactful.`;
                   </p>
                 )}
               </div>
-              {/* Decorative line */}
-              <div className="absolute bottom-16 left-16 right-16 h-1 bg-white/20 rounded-full">
-                <div className="h-full w-32 bg-white/60 rounded-full"></div>
+              <div className={`absolute bottom-16 left-16 right-16 h-1 ${isLight ? 'bg-gray-300' : 'bg-white/20'} rounded-full`}>
+                <div className={`h-full w-32 ${isLight ? 'bg-blue-600' : 'bg-white/60'} rounded-full`}></div>
               </div>
             </>
           ) : slide.layout === 'quote' ? (
@@ -245,7 +337,6 @@ Keep content concise and impactful.`;
           ) : (
             <>
               {/* Content Slide */}
-              {/* Header with decorative line */}
               <div className="mb-10">
                 <div className="flex items-center gap-4 mb-6">
                   <div className={`w-2 h-16 rounded-full ${isLight ? 'bg-blue-600' : 'bg-white/80'}`}></div>
@@ -261,7 +352,9 @@ Keep content concise and impactful.`;
                 {slide.content.map((point, i) => (
                   <div
                     key={i}
-                    className={`flex items-start gap-5 p-5 rounded-2xl ${selectedTemplate.accentColor} backdrop-blur-sm transition-all hover:scale-105`}
+                    className={`flex items-start gap-5 p-5 rounded-2xl ${selectedTemplate.accentColor} backdrop-blur-sm transition-all hover:scale-105 border ${
+                      isLight ? 'border-gray-200' : 'border-white/10'
+                    }`}
                     style={{ animationDelay: `${i * 100}ms` }}
                   >
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full ${
@@ -280,9 +373,11 @@ Keep content concise and impactful.`;
             </>
           )}
 
-          {/* Slide number - bottom right */}
+          {/* Slide number */}
           <div className="absolute bottom-8 right-8">
-            <div className={`px-6 py-2 rounded-full ${selectedTemplate.accentColor} backdrop-blur-sm`}>
+            <div className={`px-6 py-2 rounded-full ${selectedTemplate.accentColor} backdrop-blur-sm border ${
+              isLight ? 'border-gray-300' : 'border-white/20'
+            }`}>
               <span className={`text-sm font-semibold ${selectedTemplate.textColor} opacity-70`}>
                 {index + 1} / {slides.length}
               </span>
@@ -296,54 +391,60 @@ Keep content concise and impactful.`;
   return (
     <div className={`min-h-screen flex flex-col ${
       theme === 'light'
-        ? 'bg-gradient-to-br from-gray-50 to-blue-50'
-        : 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950'
+        ? 'bg-white'
+        : 'bg-black'
     }`}>
-      <div className={`flex items-center justify-between p-6 border-b ${
-        theme === 'light' ? 'border-gray-200 bg-white/50' : 'border-white/10 bg-black/20'
-      } backdrop-blur-xl`}>
+      {/* Kimi-inspired Header */}
+      <div className={`flex items-center justify-between px-6 py-4 border-b ${
+        theme === 'light' ? 'border-gray-200 bg-white' : 'border-white/10 bg-black'
+      }`}>
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigateTo('chat')}
-            className={`p-2 rounded-xl transition-all border ${
+            className={`p-2 rounded-lg transition-all ${
               theme === 'light'
-                ? 'bg-white hover:bg-gray-50 border-gray-200'
-                : 'bg-white/5 hover:bg-white/10 border-white/10'
+                ? 'hover:bg-gray-100'
+                : 'hover:bg-white/10'
             }`}
           >
             <ArrowLeft className={`w-5 h-5 ${theme === 'light' ? 'text-gray-700' : 'text-white'}`} />
           </button>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-red-500">
-              <Presentation className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                PPT Studio
-              </h1>
-              <p className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-white/60'}`}>
-                AI-Powered Presentation Generator
-              </p>
-            </div>
+            <img src="/kroniq-full-logo.svg" alt="KroniQ" className="h-8" />
           </div>
         </div>
         {slides.length > 0 && (
           <button
             onClick={downloadPresentation}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium transition-all"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+              theme === 'light'
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
           >
             <Download className="w-4 h-4" />
-            Download Outline
+            Download
           </button>
         )}
       </div>
 
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {slides.length === 0 ? (
-          <div className="max-w-6xl mx-auto space-y-8">
-            <div className={`p-8 rounded-2xl ${
-              theme === 'light' ? 'bg-white border border-gray-200' : 'bg-white/5 border border-white/10'
-            } backdrop-blur-xl`}>
+          <div className="max-w-4xl mx-auto px-6 py-12">
+            {/* Centered Logo & Title */}
+            <div className="text-center mb-12">
+              <h1 className={`text-5xl font-bold mb-3 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                Kimi Slides
+              </h1>
+              <p className={`text-lg ${theme === 'light' ? 'text-gray-600' : 'text-white/60'}`}>
+                AI-powered presentation creation
+              </p>
+            </div>
+
+            {/* Input Section */}
+            <div className={`p-8 rounded-2xl mb-8 ${
+              theme === 'light' ? 'bg-gray-50' : 'bg-white/5'
+            }`}>
               <div className="space-y-6">
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${
@@ -359,9 +460,9 @@ Keep content concise and impactful.`;
                     placeholder="E.g., Introduction to Artificial Intelligence"
                     className={`w-full px-4 py-3 rounded-xl border transition-all ${
                       theme === 'light'
-                        ? 'bg-gray-50 border-gray-300 text-gray-900 focus:border-blue-500'
-                        : 'bg-white/5 border-white/10 text-white focus:border-cyan-400'
-                    } focus:outline-none focus:ring-2 focus:ring-cyan-400/20`}
+                        ? 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
+                        : 'bg-white/5 border-white/10 text-white focus:border-blue-400'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-400/20`}
                   />
                 </div>
 
@@ -378,70 +479,78 @@ Keep content concise and impactful.`;
                     max="30"
                     value={slideCount}
                     onChange={(e) => setSlideCount(Number(e.target.value))}
-                    className="w-full h-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg appearance-none cursor-pointer"
+                    className="w-full h-2 bg-blue-500 rounded-lg appearance-none cursor-pointer"
                   />
                   <div className="flex justify-between text-xs mt-1">
                     <span className={theme === 'light' ? 'text-gray-500' : 'text-white/50'}>5 slides</span>
                     <span className={theme === 'light' ? 'text-gray-500' : 'text-white/50'}>30 slides</span>
                   </div>
                 </div>
-
-                <div>
-                  <label className={`block text-sm font-medium mb-3 ${
-                    theme === 'light' ? 'text-gray-700' : 'text-white/80'
-                  }`}>
-                    <Palette className="w-4 h-4 inline mr-2" />
-                    Design Template
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {PPT_TEMPLATES.map((template) => (
-                      <button
-                        key={template.id}
-                        onClick={() => setSelectedTemplate(template)}
-                        className={`relative group cursor-pointer transition-all rounded-xl overflow-hidden ${
-                          selectedTemplate.id === template.id
-                            ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-transparent scale-105'
-                            : 'hover:scale-105'
-                        }`}
-                      >
-                        <div className={`aspect-video rounded-lg ${template.preview} shadow-lg`} />
-                        <div className={`mt-2 text-sm font-medium ${
-                          theme === 'light' ? 'text-gray-900' : 'text-white'
-                        }`}>
-                          {template.name}
-                        </div>
-                        <div className={`text-xs ${
-                          theme === 'light' ? 'text-gray-500' : 'text-white/50'
-                        }`}>
-                          {template.description}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={generatePresentation}
-                  disabled={isGenerating || !topic.trim()}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-all shadow-lg"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Generating with Kimi AI...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      Generate Presentation
-                    </>
-                  )}
-                </button>
               </div>
             </div>
+
+            {/* Template Selection */}
+            <div className="mb-8">
+              <label className={`block text-sm font-medium mb-4 ${
+                theme === 'light' ? 'text-gray-700' : 'text-white/80'
+              }`}>
+                <Palette className="w-4 h-4 inline mr-2" />
+                Choose Template
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {PPT_TEMPLATES.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => setSelectedTemplate(template)}
+                    className={`relative group cursor-pointer transition-all rounded-xl overflow-hidden ${
+                      selectedTemplate.id === template.id
+                        ? 'ring-2 ring-blue-500 scale-105'
+                        : 'hover:scale-105'
+                    }`}
+                  >
+                    <div className={`aspect-video rounded-lg ${template.preview} shadow-lg`} />
+                    <div className={`mt-2 text-sm font-medium ${
+                      theme === 'light' ? 'text-gray-900' : 'text-white'
+                    }`}>
+                      {template.name}
+                    </div>
+                    <div className={`text-xs ${
+                      theme === 'light' ? 'text-gray-500' : 'text-white/50'
+                    }`}>
+                      {template.description}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <button
+              onClick={generatePresentation}
+              disabled={isGenerating || !topic.trim()}
+              className={`w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-medium transition-all shadow-lg ${
+                isGenerating || !topic.trim()
+                  ? 'opacity-50 cursor-not-allowed bg-gray-400'
+                  : theme === 'light'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }`}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Generating with Kimi AI...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5" />
+                  Generate Slides
+                </>
+              )}
+            </button>
           </div>
         ) : (
-          <div className="max-w-6xl mx-auto space-y-6">
+          <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
             <div className="relative">
               {renderSlide(slides[currentSlideIndex], currentSlideIndex)}
             </div>
@@ -454,8 +563,8 @@ Keep content concise and impactful.`;
                   currentSlideIndex === 0
                     ? 'opacity-50 cursor-not-allowed'
                     : theme === 'light'
-                    ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-md hover:shadow-lg'
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    : 'bg-white/10 hover:bg-white/20 text-white'
                 }`}
               >
                 Previous
@@ -472,8 +581,8 @@ Keep content concise and impactful.`;
                   currentSlideIndex === slides.length - 1
                     ? 'opacity-50 cursor-not-allowed'
                     : theme === 'light'
-                    ? 'bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 shadow-md hover:shadow-lg'
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    : 'bg-white/10 hover:bg-white/20 text-white'
                 }`}
               >
                 Next
@@ -489,7 +598,7 @@ Keep content concise and impactful.`;
               className={`w-full px-6 py-3 rounded-xl font-medium transition-all ${
                 theme === 'light'
                   ? 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                  : 'bg-white/5 hover:bg-white/10 text-white'
               }`}
             >
               Create New Presentation

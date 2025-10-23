@@ -685,6 +685,7 @@ export const MainChat: React.FC = () => {
             console.log('Generated image:', image);
           }}
           initialPrompt={imagePrompt}
+          selectedModel={selectedModel}
         />
       )}
 
