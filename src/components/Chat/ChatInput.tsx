@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { ArrowUp, Paperclip, Mic, Image as ImageIcon } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
+import { ChatActionButtons } from './ChatActionButtons';
 
 interface ChatInputProps {
   value: string;
@@ -20,6 +21,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onKeyPress,
   placeholder = 'Type your message...',
   disabled = false,
+  selectedModel,
 }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -74,7 +76,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             : 'bg-slate-900/95 backdrop-blur-xl'
         }`}>
           {/* Left Action Buttons */}
-          <div className="flex items-center gap-1 pb-2">
+          <div className="flex items-center pb-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -83,30 +85,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               className="hidden"
               accept="*/*"
             />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              className={`p-2 rounded-lg transition-colors ${
-                theme === 'light'
-                  ? 'hover:bg-gray-100 text-gray-600'
-                  : 'hover:bg-white/10 text-gray-400'
-              }`}
-              title="Attach file"
-            >
-              <Paperclip className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => showToast('info', 'Coming Soon', 'Image upload coming soon!')}
-              disabled={disabled}
-              className={`p-2 rounded-lg transition-colors ${
-                theme === 'light'
-                  ? 'hover:bg-gray-100 text-gray-600'
-                  : 'hover:bg-white/10 text-gray-400'
-              }`}
-              title="Upload image"
-            >
-              <ImageIcon className="w-5 h-5" />
-            </button>
+            <ChatActionButtons
+              selectedModel={selectedModel}
+              onAttachFile={() => fileInputRef.current?.click()}
+              onUploadImage={() => showToast('info', 'Coming Soon', 'Image upload coming soon!')}
+              onRecordVoice={() => showToast('info', 'Coming Soon', 'Voice input coming soon!')}
+              onSearchWeb={() => showToast('info', 'Web Search', 'Web search mode activated!')}
+              onDeepResearch={() => showToast('info', 'Deep Research', 'Deep research mode activated!')}
+              onThinkLonger={() => showToast('info', 'Think Longer', 'Extended reasoning mode activated!')}
+            />
           </div>
 
           {/* Text Input */}
@@ -132,18 +119,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-1 pb-2">
-            <button
-              onClick={() => showToast('info', 'Coming Soon', 'Voice input coming soon!')}
-              disabled={disabled}
-              className={`p-2 rounded-lg transition-colors ${
-                theme === 'light'
-                  ? 'hover:bg-gray-100 text-gray-600'
-                  : 'hover:bg-white/10 text-gray-400'
-              }`}
-              title="Voice input"
-            >
-              <Mic className="w-5 h-5" />
-            </button>
             <button
               onClick={() => {
                 console.log('💬 Send button clicked!');
