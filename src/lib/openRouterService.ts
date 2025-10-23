@@ -34,6 +34,8 @@ const MODEL_MAP: Record<string, string> = {
   'gemini-flash': 'google/gemini-2.5-flash-image',
   'kimi': 'moonshotai/kimi-k2-0905',
   'kimi-k2': 'moonshotai/kimi-k2-0905',
+  'nemotron': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+  'nemotron-super': 'nvidia/llama-3.3-nemotron-super-49b-v1.5',
 };
 
 function log(level: 'info' | 'success' | 'error', message: string) {
@@ -103,6 +105,7 @@ export async function callOpenRouter(
       'deepseek': 'DeepSeek',
       'google': 'Gemini',
       'moonshotai': 'Kimi',
+      'nvidia': 'NVIDIA',
     }[providerName] || providerName;
 
     return {

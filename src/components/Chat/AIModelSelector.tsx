@@ -15,6 +15,7 @@ export const AI_MODELS: AIModel[] = [
   { id: 'grok-2', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
   { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Advanced reasoning with images', category: 'chat' },
+  { id: 'nemotron', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning and coding', category: 'chat' },
   { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
   { id: 'gemini', name: 'Gemini 2.5 Flash', provider: 'Google', description: 'Fast multimodal AI with images', category: 'chat' },
   { id: 'kimi', name: 'Kimi K2', provider: 'Moonshot', description: 'Long context understanding', category: 'chat' },
@@ -22,6 +23,7 @@ export const AI_MODELS: AIModel[] = [
 
   // Code Models
   { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Best for coding', category: 'code' },
+  { id: 'nemotron', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Excellent for complex code', category: 'code' },
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Advanced code generation', category: 'code' },
   { id: 'deepseek', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code', category: 'code' },
 
