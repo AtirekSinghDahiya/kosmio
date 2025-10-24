@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { ArrowUp, Paperclip, Mic, Image as ImageIcon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
+import { TokenEstimateDisplay } from './TokenEstimateDisplay';
 
 interface ChatInputProps {
   value: string;
@@ -11,6 +12,7 @@ interface ChatInputProps {
   placeholder?: string;
   disabled?: boolean;
   selectedModel: string;
+  conversationHistory?: Array<{ role: string; content: string }>;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -20,6 +22,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onKeyPress,
   placeholder = 'Type your message...',
   disabled = false,
+  conversationHistory,
 }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -168,11 +171,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       </div>
 
-      <p className={`text-xs text-center ${
-        theme === 'light' ? 'text-gray-400' : 'text-white/30'
-      }`}>
-        KroniQ can make mistakes. Check important info.
-      </p>
+      {/* Token Estimate Display */}
+      <div className="flex items-center justify-between">
+        <TokenEstimateDisplay
+          message={value}
+          conversationHistory={conversationHistory}
+          className="ml-2"
+        />
+        <p className={`text-xs ${
+          theme === 'light' ? 'text-gray-400' : 'text-white/30'
+        }`}>
+          KroniQ can make mistakes. Check important info.
+        </p>
+      </div>
     </div>
   );
 };

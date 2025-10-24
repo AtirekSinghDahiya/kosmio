@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { TokenEstimator } from './tokenEstimator';
 
 export interface MessageCreditsResponse {
   success: boolean;
@@ -11,6 +12,8 @@ export interface MessageCreditsResponse {
   error?: string;
   suggestion?: string;
   transaction_id?: string;
+  tokens_used?: number;
+  credits_deducted?: number;
 }
 
 export interface UserCreditsInfo {
@@ -20,6 +23,13 @@ export interface UserCreditsInfo {
   monthly_messages_used: number;
   daily_limit: number;
   monthly_limit: number;
+}
+
+export interface TokenUsageEstimate {
+  estimatedTokens: number;
+  estimatedCredits: number;
+  canAfford: boolean;
+  remainingAfter?: number;
 }
 
 export class MessageCreditsService {
@@ -78,12 +88,32 @@ export class MessageCreditsService {
     }
   }
 
+  static estimateMessageCost(
+    userMessage: string,
+    conversationHistory?: Array<{ role: string; content: string }>
+  ): TokenUsageEstimate {
+    const { tokens, credits } = TokenEstimator.estimateMessageCost(
+      userMessage,
+      undefined,
+      conversationHistory
+    );
+
+    return {
+      estimatedTokens: tokens,
+      estimatedCredits: credits,
+      canAfford: true,
+    };
+  }
+
   static async deductMessageCredit(
     userId: string,
+    tokensUsed: number,
     modelName: string = 'unknown',
     requestType: string = 'chat'
   ): Promise<MessageCreditsResponse> {
     try {
+      const creditsToDeduct = TokenEstimator.calculateCostInCredits(tokensUsed);
+
       const { data, error } = await supabase.rpc('deduct_message_credit', {
         p_user_id: userId,
         p_model: modelName,
@@ -98,7 +128,11 @@ export class MessageCreditsService {
         };
       }
 
-      return data as MessageCreditsResponse;
+      return {
+        ...data,
+        tokens_used: tokensUsed,
+        credits_deducted: creditsToDeduct,
+      } as MessageCreditsResponse;
     } catch (error) {
       console.error('Error in deductMessageCredit:', error);
       return {

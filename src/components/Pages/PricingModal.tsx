@@ -246,7 +246,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                   <div className="flex items-center gap-3">
                     <Sparkles className="w-5 h-5 text-[#00FFF0]" />
                     <span className="text-white font-semibold">
-                      {totalTokens.toLocaleString()} messages
+                      {totalTokens.toLocaleString()} credits (~{Math.floor(totalTokens / 500)} msgs)
                     </span>
                   </div>
                   <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${showPackDropdown ? 'rotate-180' : ''}`} />
@@ -276,9 +276,14 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                                 Current
                               </span>
                             )}
-                            <span className="text-white font-medium">
-                              {packTotal.toLocaleString()} messages
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-white font-medium">
+                                {packTotal.toLocaleString()} credits
+                              </span>
+                              <span className="text-white/40 text-xs">
+                                ~{Math.floor(packTotal / 500)} messages
+                              </span>
+                            </div>
                           </div>
                           <span className="text-white/60 text-sm">
                             ${pack.priceUsd.toFixed(2)}
@@ -292,6 +297,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               <p className="text-white/40 text-xs mt-2">
                 One-time purchase • Use anytime • Rollover enabled
               </p>
+              <div className="mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                <p className="text-white/60 text-xs">
+                  <span className="text-[#00FFF0] font-semibold">How it works:</span> Credits are deducted based on token usage.
+                  Simple messages like "Hi" use ~50 tokens, while complex requests like "Write an article" use ~2,000+ tokens.
+                </p>
+              </div>
             </div>
 
             {/* Upgrade Button */}
@@ -315,11 +326,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>{totalTokens.toLocaleString()} message credits</span>
+                <span>{totalTokens.toLocaleString()} credits (~{Math.floor(totalTokens / 500)} messages)</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>Unused messages roll over</span>
+                <span>Unused credits roll over</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
