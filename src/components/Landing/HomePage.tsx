@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, Star, TrendingUp, Users } from 'lucide-react';
+import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, Star, TrendingUp, Users, Coins, Crown, Building2 } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
 import { useTheme } from '../../contexts/ThemeContext';
+import { getTokenPacks, getTotalTokens } from '../../lib/subscriptionManagementService';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -11,6 +12,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [tokenPacks, setTokenPacks] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -19,8 +21,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       setActiveFeature((prev) => (prev + 1) % 4);
     }, 3000);
 
+    loadTokenPacks();
+
     return () => clearInterval(interval);
   }, []);
+
+  const loadTokenPacks = async () => {
+    const packs = await getTokenPacks();
+    setTokenPacks(packs);
+  };
 
   const features = [
     {
@@ -226,6 +235,124 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                         <Sparkles className="w-4 h-4 text-[#00FFF0]" />
                         <span className="text-sm text-white/80 font-semibold">{feature.stats}</span>
                       </div>
+                    </div>
+                  </div>
+                </Floating3DCard>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="relative py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              <span className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                Token-Based Pricing
+              </span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              Pay only for what you use. Buy tokens once or subscribe monthly and save 10%.
+            </p>
+            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 glass-panel rounded-full border border-[#00FFF0]/30">
+              <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+              <span className="text-sm text-white/80">1 USD = 10,000 KroniQ Tokens • 2x cost multiplier on all AI requests</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {tokenPacks.slice(0, 3).map((pack, index) => {
+              const Icon = [Sparkles, Zap, Crown][index];
+              const totalTokens = getTotalTokens(pack.tokens, pack.bonusTokens);
+              const monthlyPrice = pack.recurringPriceUsd;
+              const savings = (pack.priceUsd - monthlyPrice).toFixed(2);
+
+              return (
+                <Floating3DCard key={pack.id}>
+                  <div className={`relative glass-panel rounded-3xl p-8 border-2 transition-all duration-300 group ${
+                    pack.popular
+                      ? 'border-[#00FFF0] shadow-2xl shadow-[#00FFF0]/20 scale-105'
+                      : 'border-white/20 hover:border-white/40'
+                  }`}>
+                    {pack.popular && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div className="px-6 py-2 rounded-full bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white text-sm font-bold shadow-lg">
+                          💎 MOST POPULAR
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="text-center">
+                      <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${
+                        pack.popular ? 'from-[#00FFF0] to-[#8A2BE2]' : 'from-white/10 to-white/5'
+                      } flex items-center justify-center`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+
+                      <h3 className="text-3xl font-bold text-white mb-2">{pack.name}</h3>
+
+                      <div className="mb-6">
+                        <div className="text-5xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent mb-2">
+                          {(totalTokens / 1000).toFixed(0)}K
+                        </div>
+                        <div className="text-white/60">tokens</div>
+                        {pack.bonusTokens > 0 && (
+                          <div className="mt-2 text-sm text-[#00FFF0]">
+                            + {(pack.bonusTokens / 1000).toFixed(0)}K bonus!
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-4 mb-8">
+                        <div className="glass-panel rounded-xl p-4 border border-white/10">
+                          <div className="text-white/60 text-sm mb-1">One-Time</div>
+                          <div className="text-3xl font-bold text-white">${pack.priceUsd}</div>
+                        </div>
+                        <div className="glass-panel rounded-xl p-4 border border-[#00FFF0]/30 relative overflow-hidden">
+                          <div className="absolute top-2 right-2">
+                            <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs font-bold">
+                              SAVE ${savings}
+                            </span>
+                          </div>
+                          <div className="text-white/60 text-sm mb-1">Monthly</div>
+                          <div className="text-3xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                            ${monthlyPrice}
+                          </div>
+                          <div className="text-xs text-white/40 mt-1">per month</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 mb-8">
+                        <div className="flex items-center gap-2 text-white/70">
+                          <Check className="w-5 h-5 text-[#00FFF0]" />
+                          <span>Access to all AI models</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-white/70">
+                          <Check className="w-5 h-5 text-[#00FFF0]" />
+                          <span>Never expires</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-white/70">
+                          <Check className="w-5 h-5 text-[#00FFF0]" />
+                          <span>Cancel subscription anytime</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-white/70">
+                          <Check className="w-5 h-5 text-[#00FFF0]" />
+                          <span>Priority support</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={onGetStarted}
+                        className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
+                          pack.popular
+                            ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-xl hover:shadow-[#00FFF0]/50 hover:scale-105'
+                            : 'bg-white/10 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Get Started
+                      </button>
                     </div>
                   </div>
                 </Floating3DCard>

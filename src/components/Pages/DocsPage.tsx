@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Book, MessageSquare, Code, Palette, Settings, Shield, Zap } from 'lucide-react';
+import { X, Book, MessageSquare, Code, Palette, Settings, Shield, Zap, Coins } from 'lucide-react';
 
 interface DocsPageProps {
   onClose: () => void;
@@ -10,6 +10,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
 
   const sections = [
     { id: 'getting-started', title: 'Getting Started', icon: Book },
+    { id: 'pricing', title: 'Pricing & Tokens', icon: Coins },
     { id: 'ai-chat', title: 'AI Chat', icon: MessageSquare },
     { id: 'code-studio', title: 'Code Studio', icon: Code },
     { id: 'design-studio', title: 'Design Studio', icon: Palette },
@@ -33,6 +34,47 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
         {
           heading: 'System Requirements',
           content: 'KroniQ works on any modern browser:\n• Chrome 90+\n• Firefox 88+\n• Safari 14+\n• Edge 90+\n\nNo installation required!',
+        },
+      ],
+    },
+    'pricing': {
+      title: 'Pricing & Token System',
+      sections: [
+        {
+          heading: 'How Token-Based Billing Works',
+          content: 'KroniQ uses a fair, transparent token-based pricing system:\n\n• 1 USD = 10,000 KroniQ Tokens (KQ Tokens)\n• You only pay for what you use\n• Tokens never expire\n• No hidden fees or subscriptions (unless you choose monthly auto-refill)',
+        },
+        {
+          heading: 'Token Pricing Formula',
+          content: 'Every AI request costs tokens based on:\n\nBase Cost (from AI provider) × 2 = Your Cost\n\nExample:\n• If OpenRouter charges $0.001 for a request\n• You pay: $0.001 × 2 = $0.002\n• In tokens: $0.002 × 10,000 = 20 tokens\n\nThe 2x multiplier covers:\n• Infrastructure costs\n• Platform maintenance\n• Customer support\n• Continuous improvements',
+        },
+        {
+          heading: 'Free vs Paid Tiers',
+          content: '🆓 FREE TIER:\n• 10,000 tokens (refreshes daily)\n• Access to 14 free AI models\n• All basic features included\n• Perfect for trying out KroniQ\n\n💎 PAID TIER:\n• Purchase tokens as needed\n• Access to ALL 27 AI models (free + premium)\n• Priority support\n• Advanced features\n• Tokens never expire',
+        },
+        {
+          heading: 'Auto-Downgrade System',
+          content: 'Smart tier management:\n\n• When you purchase tokens → Upgraded to PAID tier\n• Access all premium AI models\n• Paid tokens used first, then free tokens\n• When paid tokens reach 0 → Auto-downgrade to FREE\n• You keep your free 10,000 daily tokens\n• Can upgrade anytime by purchasing more',
+        },
+        {
+          heading: 'Token Packs Available',
+          content: 'Choose from flexible token packs:\n\n📦 STARTER PACK\n• 10,000 tokens\n• One-time: $2.00\n• Monthly: $1.80 (save 10%)\n\n⚡ POPULAR PACK (Most Popular!)\n• 50,000 + 5,000 bonus = 55,000 tokens\n• One-time: $8.00\n• Monthly: $7.20 (save 10%)\n\n👑 PRO PACK\n• 150,000 + 20,000 bonus = 170,000 tokens\n• One-time: $20.00\n• Monthly: $18.00 (save 10%)\n\n🏢 ENTERPRISE PACK\n• 500,000 + 100,000 bonus = 600,000 tokens\n• One-time: $60.00\n• Monthly: $54.00 (save 10%)',
+        },
+        {
+          heading: 'Monthly Subscriptions',
+          content: 'Save 10% with automatic monthly refills:\n\n✅ BENEFITS:\n• Automatic token refill every 30 days\n• 10% discount on every cycle\n• Cancel anytime\n• Keep all unused tokens after cancellation\n• Email notifications before each refill\n\n❌ NO COMMITMENT:\n• No long-term contracts\n• Cancel at end of billing period\n• Tokens remain yours forever\n• Switch back to one-time purchases anytime',
+        },
+        {
+          heading: 'Usage Examples',
+          content: 'Typical token consumption:\n\n💬 CHAT MESSAGES:\n• Simple question: 10-50 tokens\n• Detailed conversation: 100-300 tokens\n• Long-form content: 500-2,000 tokens\n\n🖼️ IMAGE GENERATION:\n• Standard image: 200-500 tokens\n• High-quality image: 1,000-3,000 tokens\n\n🎬 VIDEO GENERATION:\n• Short clip (5s): 5,000-10,000 tokens\n• Full video (30s): 30,000-50,000 tokens\n\n💻 CODE GENERATION:\n• Simple function: 50-200 tokens\n• Full component: 500-2,000 tokens\n• Complete app: 5,000-20,000 tokens',
+        },
+        {
+          heading: 'Free Models vs Paid Models',
+          content: '🆓 FREE MODELS (14 total):\n• Grok 4 Fast\n• GPT-5 Nano\n• DeepSeek V3.1 Free\n• Nemotron Nano Free\n• Claude Haiku Free\n• Gemini Flash Lite Free\n• And 8 more!\n\n💎 PAID MODELS (13 total):\n• GPT-5 Chat & Pro\n• Claude Sonnet 4.5\n• Gemini 2.5 Flash Image\n• DeepSeek V3.2\n• Llama 4 Maverick\n• And 8 more premium models!',
+        },
+        {
+          heading: 'Best Practices',
+          content: 'Get the most from your tokens:\n\n• Start with the FREE tier to test the platform\n• Use free models for simple tasks\n• Reserve paid models for complex work\n• Monitor your usage in the Billing tab\n• Subscribe monthly if you use >$5/month (saves 10%)\n• Buy larger packs for better bonus tokens\n• Tokens stack - free + paid work together',
         },
       ],
     },
