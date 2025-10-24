@@ -8,6 +8,7 @@ interface MessagePack {
   tokens: number;
   price_usd: number;
   popular: boolean;
+  bonus_tokens: number;
 }
 
 export function MessagePackPricing() {
@@ -106,19 +107,27 @@ export function MessagePackPricing() {
 
             <div className="mb-6">
               <div className="text-3xl font-bold text-blue-400">
-                {pack.tokens.toLocaleString()}
+                {(pack.tokens / 1000).toLocaleString()}K
               </div>
-              <div className="text-gray-400 text-sm">messages</div>
+              <div className="text-gray-400 text-sm">tokens</div>
+              {pack.bonus_tokens > 0 && (
+                <div className="text-green-400 text-xs mt-1">
+                  + {(pack.bonus_tokens / 1000).toLocaleString()}K bonus!
+                </div>
+              )}
             </div>
 
             <div className="space-y-2 text-sm text-gray-300 mb-6">
               <div className="flex items-center justify-center">
                 <span className="text-gray-400">
-                  ${(pack.price_usd / pack.tokens).toFixed(4)} per message
+                  ${((pack.price_usd / pack.tokens) * 1000).toFixed(2)} per 1K tokens
                 </span>
               </div>
               <div className="text-xs text-gray-500">
-                No expiration • Use anytime
+                Tokens never expire • Use anytime
+              </div>
+              <div className="text-xs text-gray-500">
+                Small messages use fewer tokens
               </div>
             </div>
 

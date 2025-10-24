@@ -48,7 +48,7 @@ export const BillingView: React.FC = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Wallet },
-    { id: 'buy-messages', label: 'Buy Messages', icon: Coins },
+    { id: 'buy-messages', label: 'Buy Tokens', icon: Coins },
     { id: 'subscription', label: 'Subscription', icon: RefreshCw },
   ];
 
@@ -115,13 +115,13 @@ export const BillingView: React.FC = () => {
                     <div className="w-10 h-10 rounded-full bg-[#00FFF0]/20 flex items-center justify-center">
                       <Coins className="w-5 h-5 text-[#00FFF0]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white">Messages Remaining</h3>
+                    <h3 className="text-lg font-semibold text-white">Token Balance</h3>
                   </div>
                   <div className="text-4xl font-bold text-white mb-2">
-                    {messageCredits?.messages_remaining.toLocaleString() || 0}
+                    {((messageCredits?.messages_remaining || 0) / 1000).toFixed(1)}K
                   </div>
                   <div className="text-sm text-white/60">
-                    {messageCredits?.is_paid_user ? 'Paid messages' : 'Free daily messages'}
+                    {messageCredits?.is_paid_user ? 'Purchased tokens' : 'Free daily tokens'}
                   </div>
                 </div>
 
@@ -133,12 +133,12 @@ export const BillingView: React.FC = () => {
                     <h3 className="text-lg font-semibold text-white">Usage Today</h3>
                   </div>
                   <div className="text-4xl font-bold text-white mb-2">
-                    {messageCredits?.daily_messages_used.toLocaleString() || 0}
+                    {((messageCredits?.daily_messages_used || 0) / 1000).toFixed(1)}K
                   </div>
                   <div className="text-sm text-white/60">
                     {messageCredits?.is_paid_user
                       ? 'No daily limits'
-                      : `of ${messageCredits?.daily_limit || 10} daily messages`
+                      : `of 1K daily tokens`
                     }
                   </div>
                 </div>
@@ -154,8 +154,8 @@ export const BillingView: React.FC = () => {
                     </div>
                     <div className="text-white/60">
                       {messageCredits?.is_paid_user
-                        ? 'No daily limits • Messages never expire'
-                        : '10 messages per day • 300 per month'}
+                        ? 'No daily limits • Tokens never expire'
+                        : '1K tokens per day • Resets daily'}
                     </div>
                   </div>
                   <div className={`px-4 py-2 rounded-full ${
@@ -175,7 +175,7 @@ export const BillingView: React.FC = () => {
                   className="glass-panel rounded-2xl p-6 border-2 border-white/10 hover:border-[#00FFF0]/50 transition-all text-left group"
                 >
                   <Coins className="w-12 h-12 text-[#00FFF0] mb-4 group-hover:scale-110 transition-transform" />
-                  <h3 className="text-xl font-bold text-white mb-2">Buy Messages</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">Buy Tokens</h3>
                   <p className="text-white/60">
                     One-time purchase with instant delivery
                   </p>
