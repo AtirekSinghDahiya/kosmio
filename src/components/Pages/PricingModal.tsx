@@ -183,22 +183,22 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
   const savings = billingPeriod === 'yearly' ? (selectedPack.recurringPriceUsd * 12 * 0.1).toFixed(2) : '0';
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="glass-panel rounded-3xl max-w-2xl w-full border border-white/20 shadow-2xl">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="glass-panel rounded-3xl max-w-2xl w-full border border-white/20 shadow-2xl my-8 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="border-b border-white/10 p-6 flex items-center justify-between">
-          <h2 className="text-3xl font-bold text-white">Keep building your momentum</h2>
+        <div className="border-b border-white/10 p-4 flex items-center justify-between flex-shrink-0">
+          <h2 className="text-2xl font-bold text-white">Keep building your momentum</h2>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
+            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all flex-shrink-0"
           >
             <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <div className="p-8">
+        <div className="p-6 overflow-y-auto flex-1">
           {/* Billing Period Toggle */}
-          <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="flex items-center justify-center gap-2 mb-6">
             <span className="text-white/60 text-sm">Save 10% on a yearly subscription</span>
             <div className="flex gap-2">
               <button
@@ -225,9 +225,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           </div>
 
           {/* Plan Card */}
-          <div className="glass-panel rounded-2xl p-6 border-2 border-[#00FFF0]/30 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-2xl font-bold text-white">{selectedPack.name}</h3>
+          <div className="glass-panel rounded-2xl p-4 border-2 border-[#00FFF0]/30 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xl font-bold text-white">{selectedPack.name}</h3>
               {selectedPack.popular && (
                 <span className="px-3 py-1 rounded-full bg-[#00FFF0]/20 text-[#00FFF0] text-xs font-bold border border-[#00FFF0]/30">
                   POPULAR
@@ -235,7 +235,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               )}
             </div>
 
-            <div className="flex items-baseline gap-2 mb-6">
+            <div className="flex items-baseline gap-2 mb-4">
               <span className="text-5xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
                 ${displayPrice.toFixed(2)}
               </span>
@@ -247,7 +247,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
             </div>
 
             {/* Token Pack Dropdown */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="text-white/80 text-sm mb-2 block">Monthly tokens</label>
               <div className="relative">
                 <button
@@ -308,61 +308,37 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
             {/* Upgrade Button */}
             <button
               onClick={handlePurchase}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white font-bold text-lg hover:shadow-xl hover:shadow-[#00FFF0]/50 transition-all mb-6"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white font-bold text-base hover:shadow-xl hover:shadow-[#00FFF0]/50 transition-all mb-4"
             >
               Upgrade
             </button>
 
             {/* Features */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <h4 className="text-white font-semibold mb-3">You get:</h4>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
                 <span>Access to all 27 AI models</span>
               </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
                 <span>No daily token limit</span>
               </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
                 <span>{(totalTokens / 1000).toFixed(0)}K tokens per month</span>
               </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>No branding on websites</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>100MB file upload limit</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>Website hosting</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>Up to 1M web requests</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
                 <span>Unused tokens roll over to next month</span>
               </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>Custom domain support</span>
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
+                <span>Website hosting & custom domains</span>
               </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>SEO boosting</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>Unlimited databases</span>
-              </div>
-              <div className="flex items-center gap-2 text-white/70">
-                <Check className="w-5 h-5 text-[#00FFF0]" />
-                <span>Expanded database capacity</span>
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
+                <span>100MB file uploads</span>
               </div>
             </div>
           </div>
