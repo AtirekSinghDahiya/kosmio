@@ -8,7 +8,8 @@ import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-rea
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getOpenRouterResponse } from '../../lib/openRouterService';
+import { getOpenRouterResponse, getOpenRouterResponseWithUsage } from '../../lib/openRouterService';
+import { checkModelAccess, deductTokensWithTier, isModelFree } from '../../lib/tierService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
@@ -34,11 +35,13 @@ import {
 } from '../../lib/chatService';
 import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../../lib/userPreferences';
 import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionService';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
+  const { user } = useAuth();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -337,35 +340,79 @@ export const MainChat: React.FC = () => {
     }
   };
 
-  // Get AI response - SIMPLE VERSION
+  // Get AI response with tier-based access control and 2x price multiplier
   const getAIResponse = async (projectId: string, userMessage: string) => {
+    if (!user) {
+      showToast('error', 'Authentication Required', 'Please sign in to use AI features');
+      return;
+    }
+
     try {
       console.log('🚀 getAIResponse called with:', { projectId, userMessage: userMessage.substring(0, 50) });
+      console.log('🤖 Using model:', selectedModel);
 
-      // Build conversation history
+      // Step 1: Check if user can access this model
+      const accessCheck = await checkModelAccess(user.uid, selectedModel);
+      console.log('🔐 Access check:', accessCheck);
+
+      if (!accessCheck.canAccess) {
+        const isFree = isModelFree(selectedModel);
+        const errorMsg = isFree
+          ? `⚠️ **Access Denied**\n\nYou don't have enough tokens to use this model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.paidBalance}\n- Free Tokens: ${accessCheck.freeBalance}\n\nPlease purchase more tokens to continue.`
+          : `⚠️ **Paid Model Access Required**\n\n**${selectedModel}** is a paid model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.paidBalance} (need > 0 for paid models)\n- Free Tokens: ${accessCheck.freeBalance}\n\n**To use paid models:**\n1. Purchase token packs in Settings\n2. Once you have paid tokens, you can use all AI models\n3. When paid tokens run out, you'll auto-switch back to free models\n\n**Free models available:** Grok 4 Fast, GPT-5 Nano, DeepSeek Free, and more!`;
+
+        await addMessage(projectId, 'assistant', errorMsg);
+        showToast('warning', 'Access Denied', 'This model requires purchased tokens');
+        return;
+      }
+
+      // Step 2: Build conversation history
       const conversationHistory = messages.slice(-10).map(msg => ({
         role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
         content: msg.content,
       }));
 
       console.log('📝 Messages count:', conversationHistory.length);
-      console.log('⏳ Calling SIMPLE AI service...');
 
-      // Generate custom system prompt based on user preferences
+      // Step 3: Generate custom system prompt
       const systemPrompt = userPreferences
         ? generateSystemPrompt(userPreferences)
         : undefined;
 
       console.log('🎯 Using custom preferences:', !!systemPrompt);
-      console.log('🤖 Using model:', selectedModel);
 
-      // Call OpenRouter service with selected model
-      const aiContent = await getOpenRouterResponse(userMessage, conversationHistory, systemPrompt, selectedModel);
+      // Step 4: Call OpenRouter service with usage tracking
+      const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
+      const aiContent = aiResponse.content;
 
       console.log('✅ AI Response received! Length:', aiContent.length);
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
 
-      // Save AI response
+      // Step 5: Deduct tokens with 2x multiplier (handled by database function)
+      if (aiResponse.usage) {
+        console.log('💰 Deducting tokens with 2x multiplier...');
+        const baseCost = aiResponse.usage.total_cost || 0.001;
+
+        const deductResult = await deductTokensWithTier(
+          user.uid,
+          selectedModel,
+          aiResponse.provider,
+          baseCost,
+          'chat'
+        );
+
+        if (deductResult.success) {
+          console.log(`✅ Tokens deducted! Paid: ${deductResult.paidBalance}, Free: ${deductResult.freeBalance}, Tier: ${deductResult.tier}`);
+
+          if (deductResult.downgraded) {
+            showToast('warning', 'Tier Downgraded', 'Your paid tokens are exhausted. You now have access to free models only.');
+          }
+        } else {
+          console.warn(`⚠️ Token deduction failed: ${deductResult.error}`);
+        }
+      }
+
+      // Step 6: Save AI response
       console.log('💾 Saving AI response to database...');
       await addMessage(projectId, 'assistant', aiContent);
       console.log('✅ AI response saved successfully');

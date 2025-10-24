@@ -180,6 +180,33 @@ export async function getOpenRouterResponse(
 }
 
 /**
+ * Get AI response with usage data
+ */
+export async function getOpenRouterResponseWithUsage(
+  userMessage: string,
+  conversationHistory: Message[] = [],
+  systemPrompt?: string,
+  selectedModel: string = 'grok-4-fast'
+): Promise<AIResponse> {
+  log('info', `Getting response for model: ${selectedModel}`);
+  log('info', `History length: ${conversationHistory.length}`);
+
+  const messages: Message[] = [
+    {
+      role: 'system',
+      content: systemPrompt || 'You are KroniQ AI, a friendly and intelligent assistant. Be helpful, conversational, and provide accurate information.',
+    },
+    ...conversationHistory.slice(-10),
+    {
+      role: 'user',
+      content: userMessage,
+    },
+  ];
+
+  return await callOpenRouter(messages, selectedModel);
+}
+
+/**
  * Check if a model supports image generation
  */
 export function supportsImageGeneration(modelId: string): boolean {
