@@ -5,6 +5,8 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
+import { getUserTokenBalance } from '../../lib/tokenService';
+import { supabase } from '../../lib/supabase';
 
 interface ChatSidebarProps {
   projects: Project[];
@@ -23,7 +25,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onDeleteProject,
   onRenameProject,
 }) => {
-  const { signOut, userData } = useAuth();
+  const { signOut, userData, user } = useAuth();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const [isHovered, setIsHovered] = useState(false);
@@ -32,6 +34,44 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
+  const [tokenBalance, setTokenBalance] = useState<number>(0);
+  const [maxTokens] = useState<number>(10000);
+
+  // Fetch and subscribe to token balance changes
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchBalance = async () => {
+      const balance = await getUserTokenBalance(user.uid);
+      setTokenBalance(balance);
+    };
+
+    fetchBalance();
+
+    // Subscribe to real-time changes in token balance
+    const channel = supabase
+      .channel(`token-balance-${user.uid}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${user.uid}`
+      }, (payload) => {
+        console.log('Token balance changed:', payload);
+        if (payload.new && 'tokens_balance' in payload.new) {
+          setTokenBalance((payload.new as any).tokens_balance);
+        }
+      })
+      .subscribe();
+
+    // Poll every 5 seconds as backup
+    const interval = setInterval(fetchBalance, 5000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [user]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -266,9 +306,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         {userData && (isMobileOpen || isHovered) && (
           <div className="glass-panel rounded-xl p-3 border-white/10 animate-fade-in">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/70 font-medium">Token Usage</span>
+              <span className="text-xs text-white/70 font-medium">Token Balance</span>
               <span className="text-xs font-bold text-[#00FFF0] uppercase tracking-wide">
-                {userData.plan}
+                {userData.plan || 'FREE'}
               </span>
             </div>
             <div className="space-y-2">
@@ -276,13 +316,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <div
                   className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] h-2 rounded-full transition-all duration-500"
                   style={{
-                    width: `${Math.min(((userData.tokensUsed || 0) / (userData.tokensLimit || 1)) * 100, 100)}%`
+                    width: `${Math.min((tokenBalance / maxTokens) * 100, 100)}%`
                   }}
                 />
               </div>
-              <div className="flex items-center justify-between text-xs text-white/50">
-                <span>{(userData.tokensUsed || 0).toLocaleString()}</span>
-                <span>{(userData.tokensLimit || 0).toLocaleString()}</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/70">{tokenBalance.toLocaleString()} tokens</span>
+                <span className="text-white/50">{maxTokens.toLocaleString()} max</span>
               </div>
             </div>
           </div>
