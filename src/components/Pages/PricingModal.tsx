@@ -38,28 +38,37 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '1',
             name: 'Starter',
-            tokens: 10000,
-            priceUsd: 1.8,
-            recurringPriceUsd: 1.62,
+            tokens: 909,
+            priceUsd: 2,
+            recurringPriceUsd: 2,
             bonusTokens: 0,
             popular: false
           },
           {
             id: '2',
             name: 'Popular',
-            tokens: 60000,
-            priceUsd: 8,
-            recurringPriceUsd: 7.2,
-            bonusTokens: 5000,
+            tokens: 2272,
+            priceUsd: 5,
+            recurringPriceUsd: 5,
+            bonusTokens: 0,
             popular: true
           },
           {
             id: '3',
+            name: 'Power User',
+            tokens: 4545,
+            priceUsd: 10,
+            recurringPriceUsd: 10,
+            bonusTokens: 0,
+            popular: false
+          },
+          {
+            id: '4',
             name: 'Pro',
-            tokens: 200000,
+            tokens: 9090,
             priceUsd: 20,
-            recurringPriceUsd: 18,
-            bonusTokens: 30000,
+            recurringPriceUsd: 20,
+            bonusTokens: 0,
             popular: false
           }
         ];
@@ -85,28 +94,37 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '1',
             name: 'Starter',
-            tokens: 10000,
-            priceUsd: 1.8,
-            recurringPriceUsd: 1.62,
+            tokens: 909,
+            priceUsd: 2,
+            recurringPriceUsd: 2,
             bonusTokens: 0,
             popular: false
           },
           {
             id: '2',
             name: 'Popular',
-            tokens: 60000,
-            priceUsd: 8,
-            recurringPriceUsd: 7.2,
-            bonusTokens: 5000,
+            tokens: 2272,
+            priceUsd: 5,
+            recurringPriceUsd: 5,
+            bonusTokens: 0,
             popular: true
           },
           {
             id: '3',
+            name: 'Power User',
+            tokens: 4545,
+            priceUsd: 10,
+            recurringPriceUsd: 10,
+            bonusTokens: 0,
+            popular: false
+          },
+          {
+            id: '4',
             name: 'Pro',
-            tokens: 200000,
+            tokens: 9090,
             priceUsd: 20,
-            recurringPriceUsd: 18,
-            bonusTokens: 30000,
+            recurringPriceUsd: 20,
+            bonusTokens: 0,
             popular: false
           }
         ];
@@ -197,33 +215,6 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         </div>
 
         <div className="p-6 overflow-y-auto flex-1">
-          {/* Billing Period Toggle */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="text-white/60 text-sm">Save 10% on a yearly subscription</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setBillingPeriod('monthly')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  billingPeriod === 'monthly'
-                    ? 'bg-[#00FFF0] text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingPeriod('yearly')}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  billingPeriod === 'yearly'
-                    ? 'bg-[#00FFF0] text-black'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                Yearly
-              </button>
-            </div>
-          </div>
-
           {/* Plan Card */}
           <div className="glass-panel rounded-2xl p-4 border-2 border-[#00FFF0]/30 mb-4">
             <div className="flex items-center justify-between mb-3">
@@ -237,18 +228,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
 
             <div className="flex items-baseline gap-2 mb-4">
               <span className="text-5xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-                ${displayPrice.toFixed(2)}
+                ${selectedPack.priceUsd.toFixed(2)}
               </span>
               <span className="text-white/60">
-                per {billingPeriod === 'monthly' ? 'month' : 'year'}
-                <br />
-                <span className="text-xs">billed {billingPeriod}</span>
+                one-time
               </span>
             </div>
 
-            {/* Token Pack Dropdown */}
+            {/* Message Pack Dropdown */}
             <div className="mb-4">
-              <label className="text-white/80 text-sm mb-2 block">Monthly tokens</label>
+              <label className="text-white/80 text-sm mb-2 block">Message credits</label>
               <div className="relative">
                 <button
                   onClick={() => setShowPackDropdown(!showPackDropdown)}
@@ -257,7 +246,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                   <div className="flex items-center gap-3">
                     <Sparkles className="w-5 h-5 text-[#00FFF0]" />
                     <span className="text-white font-semibold">
-                      {(totalTokens / 1000).toFixed(0)}K tokens / month
+                      {totalTokens.toLocaleString()} messages
                     </span>
                   </div>
                   <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${showPackDropdown ? 'rotate-180' : ''}`} />
@@ -288,11 +277,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                               </span>
                             )}
                             <span className="text-white font-medium">
-                              {(packTotal / 1000).toFixed(0)}K tokens
+                              {packTotal.toLocaleString()} messages
                             </span>
                           </div>
                           <span className="text-white/60 text-sm">
-                            ${pack.recurringPriceUsd.toFixed(2)}/mo
+                            ${pack.priceUsd.toFixed(2)}
                           </span>
                         </button>
                       );
@@ -301,7 +290,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                 )}
               </div>
               <p className="text-white/40 text-xs mt-2">
-                Your current plan: {(selectedPack.tokens / 1000).toFixed(0)}K tokens
+                One-time purchase • Use anytime • Rollover enabled
               </p>
             </div>
 
@@ -322,35 +311,26 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>No daily token limit</span>
+                <span>No daily message limit</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>{(totalTokens / 1000).toFixed(0)}K tokens per month</span>
+                <span>{totalTokens.toLocaleString()} message credits</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>Unused tokens roll over to next month</span>
+                <span>Unused messages roll over</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>Website hosting & custom domains</span>
+                <span>Use at your own pace</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>100MB file uploads</span>
+                <span>Priority support</span>
               </div>
             </div>
           </div>
-
-          {/* Info */}
-          {billingPeriod === 'yearly' && savings !== '0' && (
-            <div className="text-center">
-              <p className="text-green-400 text-sm font-semibold">
-                You save ${savings} with yearly billing!
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>
