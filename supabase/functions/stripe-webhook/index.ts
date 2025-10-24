@@ -98,6 +98,7 @@ async function handleEvent(event: Stripe.Event) {
           amount_subtotal,
           amount_total,
           currency,
+          metadata,
         } = stripeData as Stripe.Checkout.Session;
 
         // Insert the order into the stripe_orders table
@@ -109,13 +110,41 @@ async function handleEvent(event: Stripe.Event) {
           amount_total,
           currency,
           payment_status,
-          status: 'completed', // assuming we want to mark it as completed since payment is successful
+          status: 'completed',
         });
 
         if (orderError) {
           console.error('Error inserting order:', orderError);
           return;
         }
+
+        // Handle message credit purchase
+        if (metadata && metadata.pack_id && metadata.user_id) {
+          const { data: packData, error: packError } = await supabase
+            .from('token_packs')
+            .select('tokens, price_usd')
+            .eq('id', metadata.pack_id)
+            .maybeSingle();
+
+          if (!packError && packData) {
+            const messagesCount = packData.tokens;
+            const packPrice = parseFloat(packData.price_usd);
+
+            const { error: creditsError } = await supabase.rpc('add_message_credits', {
+              p_user_id: metadata.user_id,
+              p_messages: messagesCount,
+              p_pack_price: packPrice,
+              p_stripe_payment_id: payment_intent as string,
+            });
+
+            if (creditsError) {
+              console.error('Error adding message credits:', creditsError);
+            } else {
+              console.info(`Successfully added ${messagesCount} messages to user ${metadata.user_id}`);
+            }
+          }
+        }
+
         console.info(`Successfully processed one-time payment for session: ${checkout_session_id}`);
       } catch (error) {
         console.error('Error processing one-time payment:', error);

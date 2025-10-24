@@ -10,14 +10,17 @@ import { Coins, CreditCard, RefreshCw, Wallet } from 'lucide-react';
 import { getTotalTokenBalance } from '../../lib/tierService';
 import { SubscriptionManager } from './SubscriptionManager';
 import { TokenPackPricing } from './TokenPackPricing';
+import { MessagePackPricing } from './MessagePackPricing';
+import { MessageCreditsService, UserCreditsInfo } from '../../lib/messageCreditsService';
 
 export const BillingView: React.FC = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
   const { showToast } = useToast();
   const [tokenBalances, setTokenBalances] = useState({ total: 0, paid: 0, free: 0, tier: 'free' as 'free' | 'paid' });
+  const [messageCredits, setMessageCredits] = useState<UserCreditsInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'buy-tokens' | 'subscription'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'buy-messages' | 'subscription'>('overview');
 
   useEffect(() => {
     if (user?.uid) {
@@ -32,9 +35,12 @@ export const BillingView: React.FC = () => {
     try {
       const balances = await getTotalTokenBalance(user.uid);
       setTokenBalances(balances);
+
+      const credits = await MessageCreditsService.getUserCredits(user.uid);
+      setMessageCredits(credits);
     } catch (error) {
-      console.error('Error loading token data:', error);
-      showToast('error', 'Load Failed', 'Could not load token data');
+      console.error('Error loading data:', error);
+      showToast('error', 'Load Failed', 'Could not load billing data');
     } finally {
       setLoading(false);
     }
@@ -42,7 +48,7 @@ export const BillingView: React.FC = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Wallet },
-    { id: 'buy-tokens', label: 'Buy Tokens', icon: Coins },
+    { id: 'buy-messages', label: 'Buy Messages', icon: Coins },
     { id: 'subscription', label: 'Subscription', icon: RefreshCw },
   ];
 
@@ -103,19 +109,19 @@ export const BillingView: React.FC = () => {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               {/* Balance Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="glass-panel rounded-2xl p-6 border-2 border-[#00FFF0]/30">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-[#00FFF0]/20 flex items-center justify-center">
                       <Coins className="w-5 h-5 text-[#00FFF0]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white">Total Tokens</h3>
+                    <h3 className="text-lg font-semibold text-white">Messages Remaining</h3>
                   </div>
                   <div className="text-4xl font-bold text-white mb-2">
-                    {tokenBalances.total.toLocaleString()}
+                    {messageCredits?.messages_remaining.toLocaleString() || 0}
                   </div>
                   <div className="text-sm text-white/60">
-                    Combined balance
+                    {messageCredits?.is_paid_user ? 'Paid messages' : 'Free daily messages'}
                   </div>
                 </div>
 
@@ -124,28 +130,16 @@ export const BillingView: React.FC = () => {
                     <div className="w-10 h-10 rounded-full bg-[#8A2BE2]/20 flex items-center justify-center">
                       <CreditCard className="w-5 h-5 text-[#8A2BE2]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white">Paid Tokens</h3>
+                    <h3 className="text-lg font-semibold text-white">Usage Today</h3>
                   </div>
                   <div className="text-4xl font-bold text-white mb-2">
-                    {tokenBalances.paid.toLocaleString()}
+                    {messageCredits?.daily_messages_used.toLocaleString() || 0}
                   </div>
                   <div className="text-sm text-white/60">
-                    Purchased tokens
-                  </div>
-                </div>
-
-                <div className="glass-panel rounded-2xl p-6 border-2 border-green-500/30">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <Wallet className="w-5 h-5 text-green-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-white">Free Tokens</h3>
-                  </div>
-                  <div className="text-4xl font-bold text-white mb-2">
-                    {tokenBalances.free.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-white/60">
-                    Refreshes daily
+                    {messageCredits?.is_paid_user
+                      ? 'No daily limits'
+                      : `of ${messageCredits?.daily_limit || 10} daily messages`
+                    }
                   </div>
                 </div>
               </div>
@@ -155,19 +149,21 @@ export const BillingView: React.FC = () => {
                 <h3 className="text-xl font-bold text-white mb-4">Current Plan</h3>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-white capitalize">{tokenBalances.tier} Tier</div>
+                    <div className="text-2xl font-bold text-white capitalize">
+                      {messageCredits?.is_paid_user ? 'Paid' : 'Free'} Plan
+                    </div>
                     <div className="text-white/60">
-                      {tokenBalances.tier === 'paid'
-                        ? 'Access to all AI models'
-                        : 'Access to 14 free models'}
+                      {messageCredits?.is_paid_user
+                        ? 'No daily limits • Messages never expire'
+                        : '10 messages per day • 300 per month'}
                     </div>
                   </div>
                   <div className={`px-4 py-2 rounded-full ${
-                    tokenBalances.tier === 'paid'
+                    messageCredits?.is_paid_user
                       ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'
                       : 'bg-green-500/20 text-green-300 border border-green-500/30'
                   } font-semibold`}>
-                    {tokenBalances.tier === 'paid' ? '💎 Premium' : '🆓 Free'}
+                    {messageCredits?.is_paid_user ? '💎 Premium' : '🆓 Free'}
                   </div>
                 </div>
               </div>
@@ -175,11 +171,11 @@ export const BillingView: React.FC = () => {
               {/* Quick Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
-                  onClick={() => setActiveTab('buy-tokens')}
+                  onClick={() => setActiveTab('buy-messages')}
                   className="glass-panel rounded-2xl p-6 border-2 border-white/10 hover:border-[#00FFF0]/50 transition-all text-left group"
                 >
                   <Coins className="w-12 h-12 text-[#00FFF0] mb-4 group-hover:scale-110 transition-transform" />
-                  <h3 className="text-xl font-bold text-white mb-2">Buy Tokens</h3>
+                  <h3 className="text-xl font-bold text-white mb-2">Buy Messages</h3>
                   <p className="text-white/60">
                     One-time purchase with instant delivery
                   </p>
@@ -199,7 +195,7 @@ export const BillingView: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'buy-tokens' && <TokenPackPricing />}
+          {activeTab === 'buy-messages' && <MessagePackPricing />}
 
           {activeTab === 'subscription' && <SubscriptionManager />}
         </div>

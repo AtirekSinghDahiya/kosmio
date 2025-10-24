@@ -13,9 +13,12 @@ const corsHeaders = {
 };
 
 interface CheckoutRequest {
-  planName: string;
+  planName?: string;
+  packId?: string;
   userId: string;
   userEmail: string;
+  mode?: 'subscription' | 'payment';
+  amount?: number;
 }
 
 const PRICE_IDS: Record<string, string> = {
@@ -32,41 +35,70 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { planName, userId, userEmail }: CheckoutRequest = await req.json();
+    const { planName, packId, userId, userEmail, mode = 'subscription', amount }: CheckoutRequest = await req.json();
 
-    if (!planName || !userId) {
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing user ID' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const priceId = PRICE_IDS[planName.toLowerCase()];
-    if (!priceId) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid plan name' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
+    let sessionConfig: any = {
+      mode,
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
       success_url: `${req.headers.get('origin') || 'http://localhost:5173'}/?success=true`,
       cancel_url: `${req.headers.get('origin') || 'http://localhost:5173'}/?canceled=true`,
       client_reference_id: userId,
       customer_email: userEmail,
-      metadata: {
+    };
+
+    if (mode === 'payment' && packId && amount) {
+      sessionConfig.line_items = [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Message Credits Pack',
+              description: 'Purchase message credits for AI chat',
+            },
+            unit_amount: Math.round(amount * 100),
+          },
+          quantity: 1,
+        },
+      ];
+      sessionConfig.metadata = {
+        user_id: userId,
+        pack_id: packId,
+        purchase_type: 'message_pack',
+      };
+    } else if (mode === 'subscription' && planName) {
+      const priceId = PRICE_IDS[planName.toLowerCase()];
+      if (!priceId) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid plan name' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      sessionConfig.line_items = [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ];
+      sessionConfig.metadata = {
         user_id: userId,
         plan_name: planName,
-      },
-    });
+      };
+    } else {
+      return new Response(
+        JSON.stringify({ error: 'Invalid checkout configuration' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return new Response(
       JSON.stringify({ url: session.url }),

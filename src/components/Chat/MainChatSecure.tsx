@@ -18,6 +18,7 @@ import {
   classifyIntent,
   type AIMessage
 } from '../../lib/aiServiceSecure';
+import { MessageCreditsService } from '../../lib/messageCreditsService';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
@@ -69,6 +70,23 @@ export const MainChat: React.FC = () => {
     setIsLoading(true);
 
     try {
+      if (!user?.uid) {
+        throw new Error('Not authenticated');
+      }
+
+      const creditCheck = await MessageCreditsService.checkAndResetLimits(user.uid);
+      if (!creditCheck.success) {
+        throw new Error('Failed to check message credits');
+      }
+
+      const credits = await MessageCreditsService.getUserCredits(user.uid);
+      if (!credits || !MessageCreditsService.canSendMessage(credits)) {
+        const upgradeMsg = MessageCreditsService.getUpgradeMessage(credits!);
+        showToast('error', 'Message Limit Reached', upgradeMsg || 'You have reached your message limit');
+        setIsLoading(false);
+        return;
+      }
+
       const intent = await classifyIntent(text);
 
       if (intent.intent !== 'chat' && intent.confidence >= 0.7 && !activeProjectId) {
@@ -98,6 +116,16 @@ export const MainChat: React.FC = () => {
 
       await createMessage(projectId, 'user', text);
 
+      const deductResult = await MessageCreditsService.deductMessageCredit(
+        user.uid,
+        selectedProvider,
+        'chat'
+      );
+
+      if (!deductResult.success) {
+        throw new Error(deductResult.error || 'Failed to deduct message credit');
+      }
+
       const aiMessages: AIMessage[] = messages.slice(-10).map(msg => ({
         role: msg.role === 'system' ? 'system' : msg.role,
         content: msg.content
@@ -118,6 +146,13 @@ export const MainChat: React.FC = () => {
       );
 
       await createMessage(projectId, 'assistant', response);
+
+      if (deductResult.messages_remaining !== undefined) {
+        const remaining = deductResult.messages_remaining;
+        if (remaining <= 5 && remaining > 0) {
+          showToast('warning', 'Low Credits', `You have ${remaining} messages remaining`);
+        }
+      }
 
     } catch (error: any) {
       console.error('Error sending message:', error);
