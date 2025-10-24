@@ -110,7 +110,7 @@ export const MainChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // AI classification with Groq
+  // AI classification using keywords
   const classifyIntentWithAI = async (message: string): Promise<any> => {
     try {
       const keywordIntent = classifyIntent(message);

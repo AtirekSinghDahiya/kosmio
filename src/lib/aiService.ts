@@ -1,7 +1,9 @@
 /**
- * AI Service - Simple and reliable AI API integration
- * No complex network monitoring - just clean API calls
+ * AI Service - Using OpenRouter for all AI calls
+ * Clean, simple integration with OpenRouter unified API
  */
+
+import { getOpenRouterResponse } from './openRouterService';
 
 interface AIPreferences {
   personality: string;
@@ -47,229 +49,73 @@ const getSystemPrompt = (preferences: AIPreferences): string => {
   const creativity = creativityMap[preferences.creativityLevel] || creativityMap[5];
   const length = lengthMap[preferences.responseLength] || lengthMap.medium;
 
-  return `You are KroniQ AI, a friendly and enthusiastic coding and design assistant! 💻✨
+  return `You are KroniQ AI, a friendly and enthusiastic coding and design assistant!
 
-**Your Communication Style:**
-- Be warm, conversational, and approachable - like a supportive coding buddy
-- Use emojis naturally to add personality (1-3 per response)
-- Show genuine excitement about helping with code and design
-- Celebrate wins and encourage through challenges
-- Use casual yet professional language
+PERSONALITY: ${personality}
 
-Personality: ${personality}
+CREATIVITY LEVEL: ${creativity}
 
-Creativity Level: ${creativity}
+RESPONSE LENGTH: ${length}
 
-Response Length: ${length}
-
-Remember: You're having a conversation, not just providing documentation. Be helpful, accurate, and let your enthusiasm for coding shine through! 🚀`;
+Always be helpful, accurate, and engaging in your responses. Provide practical solutions while matching the user's preferred style.`;
 };
 
-export const callClaude = async (
-  messages: AIMessage[],
-  preferences: AIPreferences
+/**
+ * Get AI response with user preferences via OpenRouter
+ */
+export const getAIResponse = async (
+  message: string,
+  conversationHistory: AIMessage[] = [],
+  preferences?: AIPreferences,
+  selectedModel: string = 'grok-4-fast'
 ): Promise<string> => {
-  const apiKey = import.meta.env.VITE_CLAUDE_API_KEY;
-
-  if (!apiKey || apiKey.includes('your-')) {
-    throw new Error('Claude API key not configured');
-  }
-
-  const systemPrompt = getSystemPrompt(preferences);
-  const temperature = preferences.creativityLevel / 10;
-  const maxTokens = preferences.responseLength === 'short' ? 150 :
-                   preferences.responseLength === 'medium' ? 500 : 1000;
-
-  console.log('🟣 Calling Claude API...');
-  console.log('   API Key present:', apiKey ? 'Yes' : 'No');
-  console.log('   Messages count:', messages.length);
-
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        system: systemPrompt,
-        messages: messages.filter(m => m.role !== 'system'),
-        temperature,
-        max_tokens: maxTokens,
-      }),
-    });
+    console.log('🚀 AI Service: Getting response');
+    console.log('📝 Model:', selectedModel);
+    console.log('💬 Message:', message.substring(0, 50) + '...');
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ Claude API error:', response.status, errorData);
-      throw new Error(errorData.error?.message || `Claude API returned ${response.status}`);
-    }
+    const systemPrompt = preferences
+      ? getSystemPrompt(preferences)
+      : 'You are KroniQ AI, a helpful and friendly assistant.';
 
-    const data = await response.json();
-    console.log('✅ Claude response received');
-    return data.content[0].text;
+    const response = await getOpenRouterResponse(
+      message,
+      conversationHistory,
+      systemPrompt,
+      selectedModel
+    );
+
+    console.log('✅ Response received:', response.substring(0, 50) + '...');
+    return response;
   } catch (error: any) {
-    console.error('❌ Claude fetch error:', error);
-    if (error.message.includes('Failed to fetch')) {
-      throw new Error('CORS error: Direct browser calls to Claude API are blocked. Consider using a backend proxy.');
-    }
+    console.error('❌ AI Service error:', error);
     throw error;
   }
 };
 
-export const callGemini = async (
+/**
+ * Simple AI call without preferences
+ */
+export const callAI = async (
   messages: AIMessage[],
-  preferences: AIPreferences
+  modelId: string = 'grok-4-fast'
 ): Promise<string> => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-
-  if (!apiKey || apiKey.includes('your-')) {
-    throw new Error('Gemini API key not configured');
-  }
-
-  const systemPrompt = getSystemPrompt(preferences);
-  const temperature = preferences.creativityLevel / 10;
-
-  console.log('🔴 Calling Gemini API...');
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: systemPrompt }],
-          },
-          ...messages.map(msg => ({
-            role: msg.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: msg.content }],
-          })),
-        ],
-        generationConfig: {
-          temperature,
-          maxOutputTokens: preferences.responseLength === 'short' ? 150 :
-                         preferences.responseLength === 'medium' ? 500 : 1000,
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error?.message || `Gemini API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  console.log('✅ Gemini response received');
-  return data.candidates[0].content.parts[0].text;
-};
-
-export const callGroq = async (
-  messages: AIMessage[],
-  preferences: AIPreferences
-): Promise<string> => {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-
-  if (!apiKey || apiKey.includes('your-')) {
-    throw new Error('Groq API key not configured');
-  }
-
-  const systemPrompt = getSystemPrompt(preferences);
-  const temperature = preferences.creativityLevel / 10;
-  const maxTokens = preferences.responseLength === 'short' ? 150 :
-                   preferences.responseLength === 'medium' ? 500 : 1000;
-
-  console.log('🟢 Calling Groq API...');
-  console.log('   API Key present:', apiKey ? 'Yes' : 'No');
-  console.log('   Messages count:', messages.length);
-
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages,
-        ],
-        temperature,
-        max_tokens: maxTokens,
-      }),
-    });
+    const systemMessage = messages.find(m => m.role === 'system');
+    const otherMessages = messages.filter(m => m.role !== 'system');
+    const userMessage = otherMessages[otherMessages.length - 1]?.content || '';
+    const conversationHistory = otherMessages.slice(0, -1);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Groq API error:', response.status, errorText);
-      let errorData: any = {};
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {}
-      throw new Error(errorData.error?.message || `Groq API returned ${response.status}`);
-    }
+    const response = await getOpenRouterResponse(
+      userMessage,
+      conversationHistory,
+      systemMessage?.content,
+      modelId
+    );
 
-    const data = await response.json();
-    console.log('✅ Groq response received:', data.choices[0].message.content.substring(0, 50) + '...');
-    return data.choices[0].message.content;
+    return response;
   } catch (error: any) {
-    console.error('❌ Groq fetch error:', error);
-    if (error.message.includes('Failed to fetch')) {
-      throw new Error('Network error: Could not reach Groq API. Check your internet connection.');
-    }
+    console.error('❌ callAI error:', error);
     throw error;
   }
-};
-
-export const callOpenAI = async (
-  messages: AIMessage[],
-  preferences: AIPreferences
-): Promise<string> => {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-  if (!apiKey || apiKey.includes('your-')) {
-    throw new Error('OpenAI API key not configured');
-  }
-
-  const systemPrompt = getSystemPrompt(preferences);
-  const temperature = preferences.creativityLevel / 10;
-  const maxTokens = preferences.responseLength === 'short' ? 150 :
-                   preferences.responseLength === 'medium' ? 500 : 1000;
-
-  console.log('🔵 Calling OpenAI API...');
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages,
-      ],
-      temperature,
-      max_tokens: maxTokens,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error?.message || `OpenAI API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  console.log('✅ OpenAI response received');
-  return data.choices[0].message.content;
 };

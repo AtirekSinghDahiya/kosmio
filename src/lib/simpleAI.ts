@@ -1,7 +1,9 @@
 /**
- * SIMPLE AI SERVICE - Guaranteed Working Version
- * No complex fallbacks, just direct API calls with clear error handling
+ * SIMPLE AI SERVICE - Using OpenRouter
+ * All AI calls route through OpenRouter unified API
  */
+
+import { getOpenRouterResponse, callOpenRouter } from './openRouterService';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -21,127 +23,65 @@ function log(type: 'info' | 'success' | 'error' | 'warning', message: string) {
 }
 
 /**
- * Call Groq API (Free, Fast, Reliable)
+ * Call OpenRouter API
  */
-export async function callGroqAPI(messages: Message[]): Promise<AIResponse> {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-
-  log('info', '🤖 AI SERVICE CALLED');
-  log('info', `API Key: ${apiKey ? `Present (${apiKey.length} chars, starts with ${apiKey.substring(0, 7)})` : 'MISSING'}`);
-  log('info', `Messages to send: ${messages.length}`);
-  log('info', `First message: ${messages[0]?.content?.substring(0, 30)}...`);
-
-  if (!apiKey) {
-    log('error', 'NO API KEY FOUND!');
-    throw new Error('API key is missing. Please check your .env file for VITE_GROQ_API_KEY');
-  }
-
-  if (apiKey.includes('your-') || apiKey.length < 20) {
-    log('error', 'INVALID API KEY FORMAT!');
-    throw new Error('API key appears to be invalid. Please check your .env file.');
-  }
-
-  log('success', 'API Key validated ✓');
-  log('info', 'Making API request...');
+export async function callOpenRouterAPI(messages: Message[], modelId: string = 'grok-4-fast'): Promise<AIResponse> {
+  log('info', '🤖 AI SERVICE CALLED - Using OpenRouter');
+  log('info', `Model: ${modelId}`);
+  log('info', `Messages: ${messages.length}`);
 
   try {
-    const requestBody = {
-      model: 'llama-3.3-70b-versatile',
-      messages: messages,
-      temperature: 0.7,
-      max_tokens: 2000,
-    };
-
-    console.log('Request body:', JSON.stringify(requestBody, null, 2));
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    log('info', `Response received: Status ${response.status}`);
-    log('info', `Response OK: ${response.ok}`);
-
-    if (!response.ok) {
-      log('error', `API returned error status: ${response.status}`);
-      const errorText = await response.text();
-      log('error', `Error details: ${errorText.substring(0, 100)}`);
-
-      let errorMessage = `Groq API error (${response.status})`;
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.error?.message || errorMessage;
-      } catch {
-        errorMessage += `: ${errorText}`;
-      }
-
-      throw new Error(errorMessage);
-    }
-
-    log('success', 'Response OK! Parsing data...');
-    const data = await response.json();
-
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      log('error', 'Invalid response structure from API');
-      throw new Error('Invalid response structure from Groq API');
-    }
-
-    const aiContent = data.choices[0].message.content;
-    log('success', `✅ AI RESPONSE RECEIVED! (${aiContent.length} chars)`);
-    log('info', `Preview: ${aiContent.substring(0, 50)}...`);
-
-    return {
-      content: aiContent,
-      provider: 'Groq',
-      model: 'llama-3.3-70b-versatile',
-    };
-
+    const response = await callOpenRouter(messages, modelId);
+    log('success', `✅ Response received from ${response.provider}`);
+    return response;
   } catch (error: any) {
-    log('error', `EXCEPTION: ${error.message}`);
-    log('error', `Error type: ${error.constructor?.name}`);
-
-    if (error.message.includes('Failed to fetch')) {
-      log('error', 'Network error detected');
-      throw new Error('Network error: Cannot reach Groq API. Check your internet connection.');
-    }
-
+    log('error', `❌ Error: ${error.message}`);
     throw error;
   }
 }
 
 /**
- * Main AI function - Simple wrapper around Groq
+ * Main AI function - Simple wrapper around OpenRouter
  */
-export async function getAIResponse(
+export const getAIResponse = async (
   userMessage: string,
   conversationHistory: Message[] = [],
-  systemPrompt?: string
-): Promise<string> {
-  console.log('🚀 getAIResponse called');
-  console.log('User message:', userMessage.substring(0, 50));
-  console.log('History length:', conversationHistory.length);
-  console.log('Custom system prompt:', !!systemPrompt);
+  systemPrompt?: string,
+  selectedModel: string = 'grok-4-fast'
+): Promise<string> => {
+  try {
+    log('info', '🚀 Getting AI response');
+    log('info', `📝 Model: ${selectedModel}`);
+    log('info', `📝 Message length: ${userMessage.length}`);
+    log('info', `📝 History length: ${conversationHistory.length}`);
 
-  const messages: Message[] = [
-    {
-      role: 'system',
-      content: systemPrompt || 'You are KroniQ AI, a friendly and intelligent assistant with personality! 😊 Be warm, conversational, and use emojis naturally (1-3 per response). Show enthusiasm when helping and be empathetic. Use casual yet professional language. Remember: you\'re having a genuine conversation, not just providing information!',
-    },
-    ...conversationHistory.slice(-10), // Last 10 messages for context
-    {
-      role: 'user',
-      content: userMessage,
-    },
-  ];
+    const response = await getOpenRouterResponse(
+      userMessage,
+      conversationHistory,
+      systemPrompt,
+      selectedModel
+    );
 
-  console.log('Total messages to send:', messages.length);
+    log('success', `✅ Response received, length: ${response.length}`);
+    return response;
+  } catch (error: any) {
+    log('error', `❌ Error: ${error.message}`);
+    throw error;
+  }
+};
 
-  const response = await callGroqAPI(messages);
-
-  console.log('✅ AI response received, returning content');
-  return response.content;
-}
+/**
+ * Call AI with messages array
+ */
+export const callAI = async (
+  messages: Message[],
+  modelId: string = 'grok-4-fast'
+): Promise<AIResponse> => {
+  try {
+    const response = await callOpenRouter(messages, modelId);
+    return response;
+  } catch (error: any) {
+    log('error', `❌ callAI Error: ${error.message}`);
+    throw error;
+  }
+};
