@@ -18,6 +18,16 @@ interface TokenPack {
   popular: boolean;
 }
 
+const formatTokens = (tokens: number): string => {
+  if (tokens >= 1000000) {
+    return `${(tokens / 1000000).toFixed(1)}M`;
+  }
+  if (tokens >= 1000) {
+    return `${(tokens / 1000).toFixed(0)}K`;
+  }
+  return tokens.toString();
+};
+
 export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
   const { user } = useAuth();
   const { theme } = useTheme();
@@ -38,7 +48,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '1',
             name: 'Starter',
-            tokens: 909,
+            tokens: 900000,
             priceUsd: 2,
             recurringPriceUsd: 2,
             bonusTokens: 0,
@@ -47,7 +57,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '2',
             name: 'Popular',
-            tokens: 2272,
+            tokens: 2250000,
             priceUsd: 5,
             recurringPriceUsd: 5,
             bonusTokens: 0,
@@ -56,7 +66,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '3',
             name: 'Power User',
-            tokens: 4545,
+            tokens: 4500000,
             priceUsd: 10,
             recurringPriceUsd: 10,
             bonusTokens: 0,
@@ -65,7 +75,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '4',
             name: 'Pro',
-            tokens: 9090,
+            tokens: 9000000,
             priceUsd: 20,
             recurringPriceUsd: 20,
             bonusTokens: 0,
@@ -94,7 +104,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '1',
             name: 'Starter',
-            tokens: 909,
+            tokens: 900000,
             priceUsd: 2,
             recurringPriceUsd: 2,
             bonusTokens: 0,
@@ -103,7 +113,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '2',
             name: 'Popular',
-            tokens: 2272,
+            tokens: 2250000,
             priceUsd: 5,
             recurringPriceUsd: 5,
             bonusTokens: 0,
@@ -112,7 +122,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '3',
             name: 'Power User',
-            tokens: 4545,
+            tokens: 4500000,
             priceUsd: 10,
             recurringPriceUsd: 10,
             bonusTokens: 0,
@@ -121,7 +131,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {
             id: '4',
             name: 'Pro',
-            tokens: 9090,
+            tokens: 9000000,
             priceUsd: 20,
             recurringPriceUsd: 20,
             bonusTokens: 0,
@@ -246,7 +256,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                   <div className="flex items-center gap-3">
                     <Sparkles className="w-5 h-5 text-[#00FFF0]" />
                     <span className="text-white font-semibold">
-                      {totalTokens.toLocaleString()} credits (~{Math.floor(totalTokens / 500)} msgs)
+                      {formatTokens(totalTokens)} credits (~{Math.floor(totalTokens / 500).toLocaleString()} msgs)
                     </span>
                   </div>
                   <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${showPackDropdown ? 'rotate-180' : ''}`} />
@@ -278,10 +288,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                             )}
                             <div className="flex flex-col">
                               <span className="text-white font-medium">
-                                {packTotal.toLocaleString()} credits
+                                {formatTokens(packTotal)} credits
                               </span>
                               <span className="text-white/40 text-xs">
-                                ~{Math.floor(packTotal / 500)} messages
+                                ~{Math.floor(packTotal / 500).toLocaleString()} messages
                               </span>
                             </div>
                           </div>
@@ -326,7 +336,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>{totalTokens.toLocaleString()} credits (~{Math.floor(totalTokens / 500)} messages)</span>
+                <span>{formatTokens(totalTokens)} credits (~{Math.floor(totalTokens / 500).toLocaleString()} messages)</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
