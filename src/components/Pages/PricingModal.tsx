@@ -257,7 +257,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                   <div className="flex items-center gap-3">
                     <Sparkles className="w-5 h-5 text-[#00FFF0]" />
                     <span className="text-white font-semibold">
-                      {(totalTokens / 1000000).toFixed(0)}M tokens / month
+                      {(totalTokens / 1000).toFixed(0)}K tokens / month
                     </span>
                   </div>
                   <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${showPackDropdown ? 'rotate-180' : ''}`} />
@@ -288,11 +288,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                               </span>
                             )}
                             <span className="text-white font-medium">
-                              {(packTotal / 1000000).toFixed(0)}M
+                              {(packTotal / 1000).toFixed(0)}K tokens
                             </span>
                           </div>
                           <span className="text-white/60 text-sm">
-                            ${pack.recurringPriceUsd}
+                            ${pack.recurringPriceUsd.toFixed(2)}/mo
                           </span>
                         </button>
                       );
