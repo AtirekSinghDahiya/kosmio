@@ -31,6 +31,7 @@ interface UserData {
 
 interface AuthContextType {
   currentUser: User | null;
+  user: User | null;
   userData: UserData | null;
   loading: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
@@ -367,6 +368,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthContextType = {
     currentUser,
+    user: currentUser,
     userData,
     loading,
     signUp,
