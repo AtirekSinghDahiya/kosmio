@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
+import { getModelCost, calculateTokensForMessage } from './modelTokenPricing';
 
 const TOKEN_CONVERSION_RATE = 10000;
-const PROFIT_MARGIN_USD = 0.005;
+const PROFIT_MARGIN_PERCENTAGE = 0.35;
 
 export interface TokenCostEstimate {
   estimatedTokens: number;
@@ -19,26 +20,7 @@ export interface TokenDeductionResult {
   error?: string;
 }
 
-const MODEL_COST_ESTIMATES: Record<string, { input: number; output: number }> = {
-  'grok-2': { input: 0.000005, output: 0.000015 },
-  'grok-4': { input: 0.000005, output: 0.000015 },
-  'gpt-5': { input: 0.00001, output: 0.00003 },
-  'gpt-5-chat': { input: 0.00001, output: 0.00003 },
-  'claude-sonnet': { input: 0.000003, output: 0.000015 },
-  'claude-3.5-sonnet': { input: 0.000003, output: 0.000015 },
-  'nemotron': { input: 0.000002, output: 0.000008 },
-  'qwen': { input: 0.000003, output: 0.000012 },
-  'qwen-thinking': { input: 0.000003, output: 0.000012 },
-  'deepseek': { input: 0.000001, output: 0.000004 },
-  'gemini': { input: 0.0000002, output: 0.0000008 },
-  'gemini-flash': { input: 0.0000002, output: 0.0000008 },
-  'kimi': { input: 0.000001, output: 0.000003 },
-  'chatgpt-image': { input: 0.00001, output: 0.00003 },
-};
 
-function estimateTokenCount(text: string): number {
-  return Math.ceil(text.length / 4);
-}
 
 export async function getUserTokenBalance(userId: string): Promise<number> {
   try {
@@ -87,17 +69,11 @@ export function estimateTokenCost(
   inputText: string,
   estimatedOutputTokens: number = 500
 ): { providerCostUSD: number; tokens: number } {
-  const modelCosts = MODEL_COST_ESTIMATES[modelId] || { input: 0.000005, output: 0.000015 };
+  const modelCost = getModelCost(modelId);
+  const tokens = calculateTokensForMessage(modelId, inputText.length);
 
-  const inputTokens = estimateTokenCount(inputText);
-  const outputTokens = estimatedOutputTokens;
-
-  const inputCost = inputTokens * modelCosts.input;
-  const outputCost = outputTokens * modelCosts.output;
-  const providerCostUSD = inputCost + outputCost;
-
-  const totalCostUSD = providerCostUSD + PROFIT_MARGIN_USD;
-  const tokens = Math.ceil(totalCostUSD * TOKEN_CONVERSION_RATE);
+  const providerCostUSD = modelCost.costPerMessage;
+  const totalCostUSD = providerCostUSD * (1 + PROFIT_MARGIN_PERCENTAGE);
 
   return { providerCostUSD, tokens };
 }
@@ -110,12 +86,13 @@ export async function estimateRequestCost(
 ): Promise<TokenCostEstimate> {
   const { providerCostUSD, tokens } = estimateTokenCost(modelId, inputText, estimatedOutputTokens);
   const currentBalance = await getUserTokenBalance(userId);
+  const profitMarginUSD = providerCostUSD * PROFIT_MARGIN_PERCENTAGE;
 
   return {
     estimatedTokens: tokens,
     providerCostUSD,
-    profitMarginUSD: PROFIT_MARGIN_USD,
-    totalCostUSD: providerCostUSD + PROFIT_MARGIN_USD,
+    profitMarginUSD,
+    totalCostUSD: providerCostUSD * (1 + PROFIT_MARGIN_PERCENTAGE),
     hasEnoughBalance: currentBalance >= tokens,
     currentBalance,
   };
@@ -129,8 +106,8 @@ export async function deductTokensForRequest(
   requestType: string = 'chat'
 ): Promise<TokenDeductionResult> {
   try {
-    const totalCostUSD = providerCostUSD + PROFIT_MARGIN_USD;
-    const tokens = Math.ceil(totalCostUSD * TOKEN_CONVERSION_RATE);
+    const modelCost = getModelCost(modelId);
+    const tokens = modelCost.tokensPerMessage;
 
     const { data, error } = await supabase.rpc('deduct_tokens', {
       p_user_id: userId,

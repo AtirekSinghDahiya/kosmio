@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Check, ChevronDown, Lock } from 'lucide-react';
+import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserTier, isModelPaid, type UserTier } from '../../lib/tierAccessService';
+import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
   id: string;
@@ -107,9 +108,16 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
           <div className={`text-sm font-semibold ${
             theme === 'light' ? 'text-gray-900' : 'text-white/90'
           }`}>{selected.name}</div>
-          <div className={`text-xs mt-0.5 ${
+          <div className={`text-xs mt-0.5 flex items-center gap-2 ${
             theme === 'light' ? 'text-gray-500' : 'text-white/50'
-          }`}>{selected.provider}</div>
+          }`}>
+            <span>{selected.provider}</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              {formatTokenDisplay(getModelCost(selected.id).tokensPerMessage)}
+            </span>
+          </div>
         </div>
         <ChevronDown className={`w-4 h-4 transition-all duration-300 ${
           theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
@@ -130,7 +138,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
           }`}>
             <div className="p-2 max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
-                const isPaid = isModelPaid(model.id);
+                const modelCost = getModelCost(model.id);
+                const isPaid = !isModelFree(model.id);
                 const isLocked = isPaid && userTier === 'free';
 
                 return (
@@ -163,16 +172,28 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
                           : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
                       }`}>
+                        <span className="text-lg">{modelCost.icon}</span>
                         {model.name}
                         {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
                       </div>
-                      <div className={`text-xs mt-0.5 transition-colors ${
+                      <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
                         theme === 'light'
                           ? 'text-gray-600 group-hover/item:text-gray-800'
                           : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
-                        {model.description}
-                        {isLocked && ' • Purchase tokens to unlock'}
+                        <span>{model.description}</span>
+                        {isLocked && <span>• Purchase tokens to unlock</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                          getTierBadgeColor(modelCost.tier)
+                        }`}>
+                          {modelCost.tier === 'free' ? 'FREE' : modelCost.tier.toUpperCase()}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-white/60">
+                          <Zap className="w-3 h-3" />
+                          {formatTokenDisplay(modelCost.tokensPerMessage)}/msg
+                        </span>
                       </div>
                     </div>
                     {selectedModel === model.id && !isLocked && (

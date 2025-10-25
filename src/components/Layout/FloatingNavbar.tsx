@@ -9,6 +9,7 @@ import { PricingModal } from '../Pages/PricingModal';
 import { HelpModal } from '../Pages/HelpModal';
 import { CareersModal } from '../Pages/CareersModal';
 import { CustomSolutionsModal } from '../Pages/CustomSolutionsModal';
+import { TokenBalanceDisplay } from '../Common/TokenBalanceDisplay';
 
 interface FloatingNavbarProps {
   onProfileOpen?: () => void;
@@ -109,18 +110,10 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
       </nav>
 
       <div className="fixed top-3 md:top-5 right-3 md:right-4 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
-        <button
-          onClick={() => setShowPricing(true)}
-          className="relative group overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/10 to-[#8A2BE2]/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="relative bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] hover:from-[#00FFF0]/90 hover:to-[#8A2BE2]/90 rounded-xl px-4 md:px-6 py-2 md:py-2.5 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-white" />
-              <span className="text-sm font-bold text-white">Get Plus</span>
-            </div>
-          </div>
-        </button>
+        <TokenBalanceDisplay
+          onPurchaseClick={() => setShowPricing(true)}
+          showDetails={false}
+        />
       </div>
 
       {showProfile && <ProfilePage onClose={() => setShowProfile(false)} />}

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, ChevronDown, Sparkles } from 'lucide-react';
+import { X, Check, ChevronDown, Sparkles, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getTokenPacks, getTotalTokens } from '../../lib/subscriptionManagementService';
+import { estimateMixedUsage, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 interface PricingModalProps {
   onClose: () => void;
@@ -247,16 +248,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
 
             {/* Message Pack Dropdown */}
             <div className="mb-4">
-              <label className="text-white/80 text-sm mb-2 block">Message credits</label>
+              <label className="text-white/80 text-sm mb-2 block">Token credits</label>
               <div className="relative">
                 <button
                   onClick={() => setShowPackDropdown(!showPackDropdown)}
                   className="w-full glass-panel rounded-xl p-4 border border-white/20 flex items-center justify-between hover:border-[#00FFF0]/50 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <Sparkles className="w-5 h-5 text-[#00FFF0]" />
+                    <Zap className="w-5 h-5 text-[#00FFF0]" />
                     <span className="text-white font-semibold">
-                      {formatTokens(totalTokens)} credits (~{Math.floor(totalTokens / 500).toLocaleString()} msgs)
+                      {formatTokenDisplay(totalTokens)} tokens
                     </span>
                   </div>
                   <ChevronDown className={`w-5 h-5 text-white/60 transition-transform ${showPackDropdown ? 'rotate-180' : ''}`} />
@@ -307,10 +308,25 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               <p className="text-white/40 text-xs mt-2">
                 One-time purchase • Use anytime • Rollover enabled
               </p>
+
+              {/* Model Usage Examples */}
               <div className="mt-3 p-3 rounded-lg bg-white/5 border border-white/10">
-                <p className="text-white/60 text-xs">
-                  <span className="text-[#00FFF0] font-semibold">How it works:</span> Credits are deducted based on token usage.
-                  Simple messages like "Hi" use ~50 tokens, while complex requests like "Write an article" use ~2,000+ tokens.
+                <p className="text-white/60 text-xs mb-2">
+                  <span className="text-[#00FFF0] font-semibold">What you can do with {formatTokenDisplay(totalTokens)} tokens:</span>
+                </p>
+                <div className="space-y-1">
+                  {estimateMixedUsage(totalTokens).map((usage, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-[10px]">
+                      <span className="text-white/50">{usage.model}:</span>
+                      <span className="text-white/70 font-semibold">{usage.messages.toLocaleString()} messages</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                <p className="text-blue-300 text-xs">
+                  <span className="font-semibold">💡 Smart tip:</span> Mix models for best value! Use free models for simple tasks, premium models for complex work.
                 </p>
               </div>
             </div>
@@ -325,26 +341,34 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
 
             {/* Features */}
             <div className="space-y-2">
-              <h4 className="text-white font-semibold mb-3">You get:</h4>
+              <h4 className="text-white font-semibold mb-3">What's included:</h4>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>Access to all 27 AI models</span>
+                <span>Access to all 27+ AI models</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>No daily message limit</span>
+                <span>12 free models + 15 premium models</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>{formatTokens(totalTokens)} credits (~{Math.floor(totalTokens / 500).toLocaleString()} messages)</span>
+                <span>Use Claude Opus, GPT-5, and all other models</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>Unused credits roll over</span>
+                <span>{formatTokenDisplay(totalTokens)} tokens (~{Math.floor(totalTokens / 400).toLocaleString()}+ messages)</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
-                <span>Use at your own pace</span>
+                <span>Transparent per-model pricing</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
+                <span>Unused tokens roll over forever</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
+                <span>No subscription required</span>
               </div>
               <div className="flex items-center gap-2 text-white/70 text-sm">
                 <Check className="w-4 h-4 text-[#00FFF0] flex-shrink-0" />
