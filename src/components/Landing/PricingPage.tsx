@@ -7,6 +7,16 @@ interface PricingPageProps {
   onGetStarted: () => void;
 }
 
+const formatTokens = (tokens: number): string => {
+  if (tokens >= 1000000) {
+    return `${(tokens / 1000000).toFixed(1)}M`;
+  }
+  if (tokens >= 1000) {
+    return `${(tokens / 1000).toFixed(0)}K`;
+  }
+  return tokens.toString();
+};
+
 export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const [mounted, setMounted] = useState(false);
   const [tokenPacks, setTokenPacks] = useState<any[]>([]);
@@ -24,9 +34,9 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
           {
             id: '1',
             name: 'Starter',
-            tokens: 10000,
-            priceUsd: 1.8,
-            recurringPriceUsd: 1.62,
+            tokens: 900000,
+            priceUsd: 2,
+            recurringPriceUsd: 2,
             bonusTokens: 0,
             popular: false,
             active: true
@@ -34,20 +44,20 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
           {
             id: '2',
             name: 'Popular',
-            tokens: 60000,
-            priceUsd: 8,
-            recurringPriceUsd: 7.2,
-            bonusTokens: 5000,
+            tokens: 2250000,
+            priceUsd: 5,
+            recurringPriceUsd: 5,
+            bonusTokens: 0,
             popular: true,
             active: true
           },
           {
             id: '3',
             name: 'Pro',
-            tokens: 200000,
+            tokens: 9000000,
             priceUsd: 20,
-            recurringPriceUsd: 18,
-            bonusTokens: 30000,
+            recurringPriceUsd: 20,
+            bonusTokens: 0,
             popular: false,
             active: true
           }
@@ -70,9 +80,9 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
           {
             id: '1',
             name: 'Starter',
-            tokens: 10000,
-            priceUsd: 1.8,
-            recurringPriceUsd: 1.62,
+            tokens: 900000,
+            priceUsd: 2,
+            recurringPriceUsd: 2,
             bonusTokens: 0,
             popular: false,
             active: true
@@ -80,20 +90,20 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
           {
             id: '2',
             name: 'Popular',
-            tokens: 60000,
-            priceUsd: 8,
-            recurringPriceUsd: 7.2,
-            bonusTokens: 5000,
+            tokens: 2250000,
+            priceUsd: 5,
+            recurringPriceUsd: 5,
+            bonusTokens: 0,
             popular: true,
             active: true
           },
           {
             id: '3',
             name: 'Pro',
-            tokens: 200000,
+            tokens: 9000000,
             priceUsd: 20,
-            recurringPriceUsd: 18,
-            bonusTokens: 30000,
+            recurringPriceUsd: 20,
+            bonusTokens: 0,
             popular: false,
             active: true
           }
@@ -237,12 +247,12 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
                       {/* Tokens */}
                       <div className="mb-6">
                         <div className="text-5xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent mb-2">
-                          {(totalTokens / 1000).toFixed(0)}K
+                          {formatTokens(totalTokens)}
                         </div>
                         <div className="text-white/60">tokens</div>
                         {pack.bonusTokens > 0 && (
                           <div className="mt-2 text-sm text-[#00FFF0]">
-                            + {(pack.bonusTokens / 1000).toFixed(0)}K bonus!
+                            + {formatTokens(pack.bonusTokens)} bonus!
                           </div>
                         )}
                       </div>

@@ -141,6 +141,17 @@ async function handleEvent(event: Stripe.Event) {
               console.error('Error adding message credits:', creditsError);
             } else {
               console.info(`Successfully added ${messagesCount} messages to user ${metadata.user_id}`);
+
+              // Upgrade user to paid tier
+              const { error: tierError } = await supabase.rpc('upgrade_user_to_paid_tier', {
+                user_id: metadata.user_id,
+              });
+
+              if (tierError) {
+                console.error('Error upgrading user to paid tier:', tierError);
+              } else {
+                console.info(`Successfully upgraded user ${metadata.user_id} to paid tier`);
+              }
             }
           }
         }

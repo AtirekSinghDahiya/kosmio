@@ -263,7 +263,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                 </button>
 
                 {showPackDropdown && (
-                  <div className="absolute top-full left-0 right-0 mt-2 glass-panel rounded-xl border border-white/20 overflow-hidden z-10 shadow-xl">
+                  <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-white/30 overflow-hidden z-10 shadow-2xl bg-[#0a0a1f]/95 backdrop-blur-xl">
                     {tokenPacks.map((pack) => {
                       const packTotal = getTotalTokens(pack.tokens, pack.bonusTokens);
                       const isSelected = pack.id === selectedPack.id;

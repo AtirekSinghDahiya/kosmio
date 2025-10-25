@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, ChevronDown, Lock } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../hooks/useAuth';
+import { getUserTier, isModelPaid, type UserTier } from '../../lib/tierAccessService';
 
 export interface AIModel {
   id: string;
@@ -67,7 +69,17 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   category = 'chat'
 }) => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [userTier, setUserTier] = useState<UserTier>('free');
+
+  useEffect(() => {
+    if (user?.uid) {
+      getUserTier(user.uid).then(tierInfo => {
+        setUserTier(tierInfo.tier);
+      });
+    }
+  }, [user]);
 
   const availableModels = AI_MODELS.filter(m => m.category === category);
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
@@ -117,44 +129,60 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               : 'glass-panel border-white/20'
           }`}>
             <div className="p-2 max-h-72 overflow-y-auto scrollbar-thin">
-              {availableModels.map((model, index) => (
-                <button
-                  key={model.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onModelChange(model.id);
-                    setIsOpen(false);
-                  }}
-                  style={{ animationDelay: `${index * 30}ms` }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
-                    selectedModel === model.id
-                      ? theme === 'light'
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
-                      : theme === 'light'
-                        ? 'hover:bg-gray-100 border border-transparent'
-                        : 'hover:bg-white/10 border border-transparent hover:border-white/10'
-                  }`}
-                >
-                  <div className="flex-1 text-left">
-                    <div className={`text-sm font-semibold transition-colors ${
-                      selectedModel === model.id
-                        ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
-                        : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
-                    }`}>{model.name}</div>
-                    <div className={`text-xs mt-0.5 transition-colors ${
-                      theme === 'light'
-                        ? 'text-gray-600 group-hover/item:text-gray-800'
-                        : 'text-white/50 group-hover/item:text-white/70'
-                    }`}>{model.description}</div>
-                  </div>
-                  {selectedModel === model.id && (
-                    <Check className={`w-4 h-4 animate-fade-in ${
-                      theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
-                    }`} />
-                  )}
-                </button>
-              ))}
+              {availableModels.map((model, index) => {
+                const isPaid = isModelPaid(model.id);
+                const isLocked = isPaid && userTier === 'free';
+
+                return (
+                  <button
+                    key={model.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isLocked) {
+                        onModelChange(model.id);
+                        setIsOpen(false);
+                      }
+                    }}
+                    disabled={isLocked}
+                    style={{ animationDelay: `${index * 30}ms` }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
+                      isLocked
+                        ? 'opacity-50 cursor-not-allowed'
+                        : selectedModel === model.id
+                          ? theme === 'light'
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
+                          : theme === 'light'
+                            ? 'hover:bg-gray-100 border border-transparent'
+                            : 'hover:bg-white/10 border border-transparent hover:border-white/10'
+                    }`}
+                  >
+                    <div className="flex-1 text-left">
+                      <div className={`text-sm font-semibold transition-colors flex items-center gap-2 ${
+                        selectedModel === model.id
+                          ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                          : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
+                      }`}>
+                        {model.name}
+                        {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
+                      </div>
+                      <div className={`text-xs mt-0.5 transition-colors ${
+                        theme === 'light'
+                          ? 'text-gray-600 group-hover/item:text-gray-800'
+                          : 'text-white/50 group-hover/item:text-white/70'
+                      }`}>
+                        {model.description}
+                        {isLocked && ' • Purchase tokens to unlock'}
+                      </div>
+                    </div>
+                    {selectedModel === model.id && !isLocked && (
+                      <Check className={`w-4 h-4 animate-fade-in ${
+                        theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                      }`} />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </>
