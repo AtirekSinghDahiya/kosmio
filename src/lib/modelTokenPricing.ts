@@ -70,15 +70,25 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     description: 'Visual & thinking model',
     icon: '👁️'
   },
-  'claude-haiku-free': {
-    id: 'claude-haiku-free',
-    name: 'Claude Haiku 4.5',
+  'claude-3-haiku': {
+    id: 'claude-3-haiku',
+    name: 'Claude 3 Haiku',
     provider: 'Anthropic',
     tokensPerMessage: 40,
     costPerMessage: 0.0004,
     tier: 'free',
-    description: 'Fast Claude model',
+    description: 'Fast Claude 3 model',
     icon: '📝'
+  },
+  'perplexity-sonar': {
+    id: 'perplexity-sonar',
+    name: 'Perplexity Sonar',
+    provider: 'Perplexity',
+    tokensPerMessage: 45,
+    costPerMessage: 0.00045,
+    tier: 'free',
+    description: 'Web search enabled AI',
+    icon: '🔍'
   },
   'kimi-k2-free': {
     id: 'kimi-k2-free',
@@ -220,6 +230,16 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     description: 'Best for coding',
     icon: '💻'
   },
+  'claude-haiku-4.5': {
+    id: 'claude-haiku-4.5',
+    name: 'Claude Haiku 4.5',
+    provider: 'Anthropic',
+    tokensPerMessage: 200,
+    costPerMessage: 0.02,
+    tier: 'mid',
+    description: 'Fast Claude 4.5',
+    icon: '📝'
+  },
   'claude-sonnet': {
     id: 'claude-sonnet',
     name: 'Claude Sonnet 4.5',
@@ -230,8 +250,58 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     description: 'Advanced reasoning',
     icon: '🎵'
   },
-  'claude-opus': {
-    id: 'claude-opus',
+  'kimi-k2-0905': {
+    id: 'kimi-k2-0905',
+    name: 'Kimi K2 0905',
+    provider: 'MoonshotAI',
+    tokensPerMessage: 180,
+    costPerMessage: 0.018,
+    tier: 'budget',
+    description: 'Latest Kimi model',
+    icon: '🌙'
+  },
+  'perplexity-sonar-pro': {
+    id: 'perplexity-sonar-pro',
+    name: 'Perplexity Sonar Pro',
+    provider: 'Perplexity',
+    tokensPerMessage: 450,
+    costPerMessage: 0.045,
+    tier: 'mid',
+    description: 'Pro web search with vision',
+    icon: '🔍'
+  },
+  'perplexity-sonar-reasoning': {
+    id: 'perplexity-sonar-reasoning',
+    name: 'Perplexity Sonar Reasoning Pro',
+    provider: 'Perplexity',
+    tokensPerMessage: 800,
+    costPerMessage: 0.08,
+    tier: 'premium',
+    description: 'Advanced reasoning with search',
+    icon: '🧠'
+  },
+  'perplexity-sonar-deep': {
+    id: 'perplexity-sonar-deep',
+    name: 'Perplexity Sonar Deep Research',
+    provider: 'Perplexity',
+    tokensPerMessage: 1500,
+    costPerMessage: 0.15,
+    tier: 'premium',
+    description: 'Deep research capabilities',
+    icon: '🔬'
+  },
+  'claude-opus-4': {
+    id: 'claude-opus-4',
+    name: 'Claude Opus 4',
+    provider: 'Anthropic',
+    tokensPerMessage: 5000,
+    costPerMessage: 0.50,
+    tier: 'ultra-premium',
+    description: 'Powerful Opus model',
+    icon: '👑'
+  },
+  'claude-opus-4.1': {
+    id: 'claude-opus-4.1',
     name: 'Claude Opus 4.1',
     provider: 'Anthropic',
     tokensPerMessage: 5500,

@@ -29,11 +29,15 @@ const MODEL_MAP: Record<string, string> = {
   'nemotron-nano-free': 'nvidia/nemotron-nano-9b-v2:free',
   'qwen-vl-32b': 'qwen/qwen3-vl-32b-instruct',
   'qwen-vl-30b-free': 'qwen/qwen3-vl-30b-a3b-thinking',
-  'claude-haiku-free': 'anthropic/claude-haiku-4.5',
+  'claude-3-haiku': 'anthropic/claude-3-haiku',
+  'claude-haiku-4.5': 'anthropic/claude-haiku-4.5',
   'claude-sonnet': 'anthropic/claude-sonnet-4.5',
+  'claude-opus-4': 'anthropic/claude-opus-4',
+  'claude-opus-4.1': 'anthropic/claude-opus-4.1',
   'gemini-flash-image': 'google/gemini-2.5-flash-image',
   'gemini-flash-lite-free': 'google/gemini-2.5-flash-lite-preview-09-2025',
   'kimi-k2': 'moonshotai/kimi-k2-0905:exacto',
+  'kimi-k2-0905': 'moonshotai/kimi-k2-0905',
   'kimi-k2-free': 'moonshotai/kimi-k2:free',
   'llama-4-maverick': 'meta-llama/llama-4-maverick',
   'llama-4-maverick-free': 'meta-llama/llama-4-maverick:free',
@@ -42,6 +46,10 @@ const MODEL_MAP: Record<string, string> = {
   'granite-4.0': 'ibm-granite/granite-4.0-h-micro',
   'ernie-4.5': 'baidu/ernie-4.5-21b-a3b-thinking',
   'glm-4.6': 'z-ai/glm-4.6',
+  'perplexity-sonar': 'perplexity/sonar',
+  'perplexity-sonar-pro': 'perplexity/sonar-pro',
+  'perplexity-sonar-reasoning': 'perplexity/sonar-reasoning-pro',
+  'perplexity-sonar-deep': 'perplexity/sonar-deep-research',
 };
 
 function log(level: 'info' | 'success' | 'error', message: string) {
