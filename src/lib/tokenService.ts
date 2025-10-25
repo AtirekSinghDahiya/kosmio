@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { getModelCost, calculateTokensForMessage } from './modelTokenPricing';
 
-const TOKEN_CONVERSION_RATE = 10000;
+const TOKEN_CONVERSION_RATE = 1000000;
 const PROFIT_MARGIN_PERCENTAGE = 0.35;
 
 export interface TokenCostEstimate {
