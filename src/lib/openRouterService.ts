@@ -12,6 +12,12 @@ interface AIResponse {
   content: string;
   provider: string;
   model: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    total_cost: number;
+  };
 }
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
@@ -130,6 +136,18 @@ export async function callOpenRouter(
     const content = data.choices[0].message.content;
     log('success', `Response received (${content.length} chars)`);
 
+    // Extract usage data from OpenRouter response
+    const usage = data.usage ? {
+      prompt_tokens: data.usage.prompt_tokens || 0,
+      completion_tokens: data.usage.completion_tokens || 0,
+      total_tokens: data.usage.total_tokens || 0,
+      total_cost: data.usage.total_cost || 0,
+    } : undefined;
+
+    if (usage) {
+      log('info', `Usage: ${usage.total_tokens} tokens, Cost: $${usage.total_cost.toFixed(6)}`);
+    }
+
     const providerName = openRouterModel.split('/')[0];
     const displayName = {
       'anthropic': 'Claude',
@@ -151,6 +169,7 @@ export async function callOpenRouter(
       content,
       provider: displayName,
       model: openRouterModel,
+      usage,
     };
   } catch (error: any) {
     log('error', `Exception: ${error.message}`);

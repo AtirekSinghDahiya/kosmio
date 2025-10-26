@@ -389,27 +389,32 @@ export const MainChat: React.FC = () => {
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
 
       // Step 5: Deduct tokens with 2x multiplier (handled by database function)
-      if (aiResponse.usage) {
-        console.log('💰 Deducting tokens with 2x multiplier...');
-        const baseCost = aiResponse.usage.total_cost || 0.001;
+      console.log('💰 Processing token deduction...');
+      console.log('💰 aiResponse.usage:', aiResponse.usage);
 
-        const deductResult = await deductTokensWithTier(
-          user.uid,
-          selectedModel,
-          aiResponse.provider,
-          baseCost,
-          'chat'
-        );
+      // Always deduct tokens, even if usage data is missing (use fallback)
+      const baseCost = aiResponse.usage?.total_cost || 0.0001; // Fallback: ~$0.0001 minimum
 
-        if (deductResult.success) {
-          console.log(`✅ Tokens deducted! Paid: ${deductResult.paidBalance}, Free: ${deductResult.freeBalance}, Tier: ${deductResult.tier}`);
+      console.log(`💰 Base cost from OpenRouter: $${baseCost}`);
+      console.log(`💰 User will be charged: $${baseCost * 2} (2x multiplier)`);
 
-          if (deductResult.downgraded) {
-            showToast('warning', 'Tier Downgraded', 'Your paid tokens are exhausted. You now have access to free models only.');
-          }
-        } else {
-          console.warn(`⚠️ Token deduction failed: ${deductResult.error}`);
+      const deductResult = await deductTokensWithTier(
+        user.uid,
+        selectedModel,
+        aiResponse.provider,
+        baseCost,
+        'chat'
+      );
+
+      if (deductResult.success) {
+        console.log(`✅ Tokens deducted! Paid: ${deductResult.paidBalance}, Free: ${deductResult.freeBalance}, Tier: ${deductResult.tier}`);
+
+        if (deductResult.downgraded) {
+          showToast('warning', 'Tier Downgraded', 'Your paid tokens are exhausted. You now have access to free models only.');
         }
+      } else {
+        console.warn(`⚠️ Token deduction failed: ${deductResult.error}`);
+        // Don't block the user from getting their response, just log the error
       }
 
       // Step 6: Save AI response

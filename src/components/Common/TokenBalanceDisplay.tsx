@@ -23,7 +23,8 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({
   useEffect(() => {
     if (user?.uid) {
       loadBalance();
-      const interval = setInterval(loadBalance, 30000);
+      // Refresh every 3 seconds to show real-time token deductions
+      const interval = setInterval(loadBalance, 3000);
       return () => clearInterval(interval);
     }
   }, [user]);
