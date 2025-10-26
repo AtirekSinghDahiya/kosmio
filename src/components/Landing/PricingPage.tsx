@@ -116,9 +116,9 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
         {
           id: '1',
           name: 'Starter',
-          tokens: 10000,
-          priceUsd: 1.8,
-          recurringPriceUsd: 1.62,
+          tokens: 900000,
+          priceUsd: 2,
+          recurringPriceUsd: 2,
           bonusTokens: 0,
           popular: false,
           active: true
@@ -126,20 +126,20 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
         {
           id: '2',
           name: 'Popular',
-          tokens: 55000,
-          priceUsd: 8,
-          recurringPriceUsd: 7.2,
-          bonusTokens: 5000,
+          tokens: 2250000,
+          priceUsd: 5,
+          recurringPriceUsd: 5,
+          bonusTokens: 0,
           popular: true,
           active: true
         },
         {
           id: '3',
           name: 'Pro',
-          tokens: 170000,
+          tokens: 9000000,
           priceUsd: 20,
-          recurringPriceUsd: 18,
-          bonusTokens: 30000,
+          recurringPriceUsd: 20,
+          bonusTokens: 0,
           popular: false,
           active: true
         }
