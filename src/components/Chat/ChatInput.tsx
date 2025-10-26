@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ArrowUp, Paperclip, Mic, Image as ImageIcon } from 'lucide-react';
+import { ArrowUp, Paperclip, Mic, Image as ImageIcon, Brain, Zap, Search } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { TokenEstimateDisplay } from './TokenEstimateDisplay';
@@ -29,6 +29,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+
+  const chatOptions = [
+    { id: 'deep-research', label: 'Deep Research', icon: Search, color: 'cyan' },
+    { id: 'think-longer', label: 'Think Longer', icon: Brain, color: 'purple' },
+    { id: 'creative-mode', label: 'Creative Mode', icon: Zap, color: 'orange' },
+  ];
+
+  const toggleOption = (optionId: string) => {
+    setSelectedOptions(prev =>
+      prev.includes(optionId)
+        ? prev.filter(id => id !== optionId)
+        : [...prev, optionId]
+    );
+  };
 
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -40,6 +55,34 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className="space-y-3">
+      {/* Chat Options */}
+      <div className="flex flex-wrap gap-2">
+        {chatOptions.map((option) => {
+          const Icon = option.icon;
+          const isSelected = selectedOptions.includes(option.id);
+          return (
+            <button
+              key={option.id}
+              onClick={() => toggleOption(option.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                isSelected
+                  ? option.color === 'cyan'
+                    ? 'bg-cyan-500/20 text-cyan-300 border-2 border-cyan-500/50'
+                    : option.color === 'purple'
+                    ? 'bg-purple-500/20 text-purple-300 border-2 border-purple-500/50'
+                    : 'bg-orange-500/20 text-orange-300 border-2 border-orange-500/50'
+                  : theme === 'light'
+                    ? 'bg-gray-100 text-gray-600 border-2 border-gray-200 hover:border-gray-300'
+                    : 'bg-white/5 text-white/60 border-2 border-white/10 hover:border-white/20'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Attached Files Preview */}
       {attachedFiles.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -65,19 +108,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       )}
 
-      {/* Input Container with Logo */}
-      <div className="flex items-start gap-2 md:gap-3">
-        {/* Logo beside input */}
-        <div className="flex-shrink-0 pt-2 hidden sm:block">
-          <img
-            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png"
-            alt="KroniQ"
-            className="w-10 h-10 md:w-12 md:h-12 object-contain"
-          />
-        </div>
-
-        {/* Input Container */}
-        <div className="flex-1">
+      {/* Input Container */}
+      <div className="w-full">
           <div className={`relative rounded-2xl shadow-lg border-2 ${
             theme === 'light'
               ? 'bg-white/95 backdrop-blur-xl border-gray-200'
@@ -178,11 +210,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         </div>
       </div>
-        </div>
       </div>
 
       {/* Token Estimate Display */}
-      <div className="flex items-center justify-between sm:pl-14 md:pl-16">
+      <div className="flex items-center justify-between">
         <TokenEstimateDisplay
           message={value}
           conversationHistory={conversationHistory}

@@ -162,20 +162,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           }
         `}
       >
-      <div className={`p-3 border-b flex items-center justify-between ${theme === 'light' ? 'border-gray-200' : 'border-white/10'}`}>
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex items-center justify-center flex-shrink-0">
-            <img
-              src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png"
-              alt="KroniQ"
-              className="w-10 h-10 object-contain"
-            />
-          </div>
-          {(isMobileOpen || isHovered) && (
-            <span className="text-white font-bold text-lg whitespace-nowrap animate-fade-in bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-              KroniQ
-            </span>
-          )}
+      <div className={`p-4 border-b flex items-center justify-center ${theme === 'light' ? 'border-gray-200' : 'border-white/10'}`}>
+        <div className="flex items-center justify-center">
+          <img
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png"
+            alt="KroniQ"
+            className="w-12 h-12 object-contain"
+          />
         </div>
       </div>
 
