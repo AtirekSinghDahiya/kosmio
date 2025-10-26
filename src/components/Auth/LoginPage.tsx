@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, User as UserIcon, Bug } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Bug, Eye, EyeOff, Check, X } from 'lucide-react';
 import { CosmicBackground } from '../Layout/CosmicBackground';
 import { auth } from '../../lib/firebase';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -15,7 +15,28 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp } = useAuth();
+
+  const getPasswordStrength = () => {
+    const checks = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    const passedChecks = Object.values(checks).filter(Boolean).length;
+
+    return {
+      checks,
+      strength: passedChecks === 5 ? 'strong' : passedChecks >= 3 ? 'medium' : 'weak',
+      percentage: (passedChecks / 5) * 100
+    };
+  };
+
+  const passwordStrength = password && !isLogin ? getPasswordStrength() : null;
 
   useEffect(() => {
     setMounted(true);
@@ -177,17 +198,108 @@ export const LoginPage: React.FC = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2.5 md:py-3 glass-panel border border-white/20 rounded-lg md:rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
+                  className="w-full pl-9 md:pl-10 pr-9 md:pr-10 py-2.5 md:py-3 glass-panel border border-white/20 rounded-lg md:rounded-xl text-white text-sm placeholder-white/40 focus:outline-none blur-transition"
                   placeholder="••••••••"
                   required
                   autoComplete={isLogin ? "current-password" : "new-password"}
                   minLength={6}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
               </div>
             </div>
+
+            {passwordStrength && (
+              <div className="space-y-3 animate-fade-in-up">
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-xs font-medium text-white/70">Password Strength</span>
+                    <span className={`text-xs font-semibold ${
+                      passwordStrength.strength === 'strong' ? 'text-green-400' :
+                      passwordStrength.strength === 'medium' ? 'text-yellow-400' : 'text-red-400'
+                    }`}>
+                      {passwordStrength.strength === 'strong' ? 'Strong' :
+                       passwordStrength.strength === 'medium' ? 'Medium' : 'Weak'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        passwordStrength.strength === 'strong' ? 'bg-green-500' :
+                        passwordStrength.strength === 'medium' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${passwordStrength.percentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-1.5">
+                  <div className={`flex items-center text-xs ${
+                    passwordStrength.checks.length ? 'text-green-400' : 'text-white/40'
+                  }`}>
+                    {passwordStrength.checks.length ? (
+                      <Check className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    )}
+                    At least 8 characters
+                  </div>
+                  <div className={`flex items-center text-xs ${
+                    passwordStrength.checks.uppercase ? 'text-green-400' : 'text-white/40'
+                  }`}>
+                    {passwordStrength.checks.uppercase ? (
+                      <Check className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    )}
+                    One uppercase letter
+                  </div>
+                  <div className={`flex items-center text-xs ${
+                    passwordStrength.checks.lowercase ? 'text-green-400' : 'text-white/40'
+                  }`}>
+                    {passwordStrength.checks.lowercase ? (
+                      <Check className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    )}
+                    One lowercase letter
+                  </div>
+                  <div className={`flex items-center text-xs ${
+                    passwordStrength.checks.number ? 'text-green-400' : 'text-white/40'
+                  }`}>
+                    {passwordStrength.checks.number ? (
+                      <Check className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    )}
+                    One number
+                  </div>
+                  <div className={`flex items-center text-xs ${
+                    passwordStrength.checks.special ? 'text-green-400' : 'text-white/40'
+                  }`}>
+                    {passwordStrength.checks.special ? (
+                      <Check className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+                    )}
+                    One special character (!@#$%^&*)
+                  </div>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl text-xs animate-fade-in-up">
