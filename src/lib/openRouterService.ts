@@ -14,7 +14,7 @@ interface AIResponse {
   model: string;
 }
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const SITE_URL = 'https://kroniq.ai';
 const SITE_NAME = 'KroniQ AI Platform';
@@ -64,6 +64,10 @@ export async function callOpenRouter(
   messages: Message[],
   modelId: string
 ): Promise<AIResponse> {
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OpenRouter API key is not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.');
+  }
+
   const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';
 
   log('info', `Calling model: ${openRouterModel} (requested: ${modelId})`);
