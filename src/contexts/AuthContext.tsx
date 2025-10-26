@@ -97,6 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
+          free_tokens_balance: 10000,
+          paid_tokens_balance: 0,
+          current_tier: 'free',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
