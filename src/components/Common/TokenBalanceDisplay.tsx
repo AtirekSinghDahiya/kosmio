@@ -69,14 +69,14 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+      <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all backdrop-blur-xl ${
         showWarning
           ? 'bg-orange-500/10 border-orange-500/30'
           : theme === 'light'
-            ? 'bg-white border-gray-200'
-            : 'bg-white/5 border-white/10'
+            ? 'bg-white/95 border-gray-200 shadow-lg'
+            : 'bg-white/10 border-white/20 shadow-lg shadow-cyan-500/10'
       }`}>
-        <Zap className={`w-4 h-4 ${getBalanceColor()}`} />
+        <Zap className={`w-5 h-5 ${getBalanceColor()}`} />
         <div className="flex flex-col">
           <span className={`text-sm font-bold ${getBalanceColor()}`}>
             {formatTokenDisplay(balance)}

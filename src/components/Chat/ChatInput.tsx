@@ -65,17 +65,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       )}
 
-      {/* Input Container with Gradient */}
-      <div className={`relative rounded-3xl p-[2px] shadow-lg ${
-        theme === 'light'
-          ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
-          : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600'
-      }`}>
-        <div className={`flex items-end gap-2 rounded-3xl p-2 ${
-          theme === 'light'
-            ? 'bg-white/95 backdrop-blur-xl'
-            : 'bg-slate-900/95 backdrop-blur-xl'
-        }`}>
+      {/* Input Container with Logo */}
+      <div className="flex items-start gap-3">
+        {/* Logo beside input */}
+        <div className="flex-shrink-0 pt-2">
+          <img
+            src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+            alt="KroniQ"
+            className="w-12 h-12 object-contain"
+          />
+        </div>
+
+        {/* Input Container */}
+        <div className="flex-1">
+          <div className={`relative rounded-2xl shadow-lg border-2 ${
+            theme === 'light'
+              ? 'bg-white/95 backdrop-blur-xl border-gray-200'
+              : 'bg-white/10 backdrop-blur-xl border-white/20'
+          }`}>
+            <div className="flex items-end gap-2 p-2">
           {/* Left Action Buttons */}
           <div className="flex items-center gap-1 pb-2">
             <input
@@ -124,10 +132,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             onKeyPress={onKeyPress}
             placeholder={placeholder}
             disabled={disabled}
-            className={`flex-1 bg-transparent px-4 py-3 resize-none focus:outline-none text-sm ${
+            className={`flex-1 bg-transparent px-4 py-3 resize-none focus:outline-none text-sm font-medium ${
               theme === 'light'
                 ? 'text-gray-800 placeholder-gray-400'
-                : 'text-white placeholder-white/40'
+                : 'text-white/90 placeholder-white/40'
             }`}
             rows={1}
             style={{ minHeight: '24px', maxHeight: '200px' }}
@@ -170,9 +178,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         </div>
       </div>
+        </div>
+      </div>
 
       {/* Token Estimate Display */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pl-16">
         <TokenEstimateDisplay
           message={value}
           conversationHistory={conversationHistory}

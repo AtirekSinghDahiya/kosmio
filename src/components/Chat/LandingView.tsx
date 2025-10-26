@@ -49,7 +49,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           <img
             src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
             alt="KroniQ"
-            className="h-40 md:h-56 w-auto object-contain mb-6 mx-auto"
+            className="h-48 md:h-64 w-auto object-contain mb-4 mx-auto"
           />
           <h1 className="text-2xl md:text-3xl font-medium text-white mb-2">
             Welcome to KroniQ
