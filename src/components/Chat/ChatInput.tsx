@@ -66,13 +66,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       )}
 
       {/* Input Container with Logo */}
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2 md:gap-3">
         {/* Logo beside input */}
-        <div className="flex-shrink-0 pt-2">
+        <div className="flex-shrink-0 pt-2 hidden sm:block">
           <img
-            src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png"
             alt="KroniQ"
-            className="w-12 h-12 object-contain"
+            className="w-10 h-10 md:w-12 md:h-12 object-contain"
           />
         </div>
 
@@ -182,7 +182,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       </div>
 
       {/* Token Estimate Display */}
-      <div className="flex items-center justify-between pl-16">
+      <div className="flex items-center justify-between sm:pl-14 md:pl-16">
         <TokenEstimateDisplay
           message={value}
           conversationHistory={conversationHistory}

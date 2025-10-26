@@ -133,7 +133,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <button
         id="mobile-hamburger"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="md:hidden fixed top-3 left-3 z-30 w-11 h-11 flex items-center justify-center rounded-full glass-panel border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg backdrop-blur-xl"
+        className="md:hidden fixed top-4 left-4 z-30 w-12 h-12 flex items-center justify-center rounded-full glass-panel border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95 shadow-lg backdrop-blur-xl"
         aria-label="Toggle menu"
       >
         {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -163,21 +163,18 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         `}
       >
       <div className={`p-3 border-b flex items-center justify-between ${theme === 'light' ? 'border-gray-200' : 'border-white/10'}`}>
-        <div className="flex items-center gap-3 min-w-0">
-          {(isMobileOpen || isHovered) ? (
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center justify-center flex-shrink-0">
             <img
-              src="/kroniq-full-logo.svg"
+              src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png"
               alt="KroniQ"
-              className="h-8 w-auto object-contain animate-fade-in"
+              className="w-10 h-10 object-contain"
             />
-          ) : (
-            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
-              <img
-                src="/kroniq-icon.svg"
-                alt="KroniQ"
-                className="w-8 h-8 object-contain"
-              />
-            </div>
+          </div>
+          {(isMobileOpen || isHovered) && (
+            <span className="text-white font-bold text-lg whitespace-nowrap animate-fade-in bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+              KroniQ
+            </span>
           )}
         </div>
       </div>

@@ -42,37 +42,37 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
   ];
 
   return (
-    <div className="h-full flex flex-col p-6">
-      <div className="flex-1 flex flex-col items-center justify-center max-w-3xl w-full mx-auto">
+    <div className="h-full flex flex-col p-4 md:p-6">
+      <div className="flex-1 flex flex-col items-center justify-center max-w-4xl w-full mx-auto">
         {/* Logo and Title */}
-        <div className={`text-center mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
+        <div className={`text-center mb-8 md:mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
           <img
-            src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png"
             alt="KroniQ"
-            className="h-48 md:h-64 w-auto object-contain mb-4 mx-auto"
+            className="h-40 sm:h-48 md:h-56 lg:h-64 w-auto object-contain mb-3 mx-auto"
           />
-          <h1 className="text-2xl md:text-3xl font-medium text-white mb-2">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-white mb-3">
             Welcome to KroniQ
           </h1>
-          <p className="text-white/60 text-sm">
+          <p className="text-white/60 text-sm md:text-base">
             How can I help you today?
           </p>
         </div>
 
         {/* Suggestion Cards */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full ${mounted ? 'opacity-100 transition-opacity duration-700 delay-200' : 'opacity-0'}`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 w-full ${mounted ? 'opacity-100 transition-opacity duration-700 delay-200' : 'opacity-0'}`}>
           {suggestions.map((suggestion, index) => {
             const Icon = suggestion.icon;
             return (
               <button
                 key={index}
                 onClick={() => onQuickAction(suggestion.prompt)}
-                className="group flex flex-col items-start gap-3 p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 text-left"
+                className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 text-left active:scale-95"
               >
-                <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20">
-                  <Icon className="w-5 h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+                <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20">
+                  <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
                 </div>
-                <span className="text-sm text-white/90 group-hover:text-white transition-colors font-medium leading-snug">
+                <span className="text-xs md:text-sm text-white/90 group-hover:text-white transition-colors font-medium leading-snug">
                   {suggestion.title}
                 </span>
               </button>
@@ -82,7 +82,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
       </div>
 
       {/* Input Area - Fixed at Bottom */}
-      <div className={`w-full max-w-3xl mx-auto mt-auto ${mounted ? 'opacity-100 transition-opacity duration-700 delay-400' : 'opacity-0'}`}>
+      <div className={`w-full max-w-4xl mx-auto mt-auto ${mounted ? 'opacity-100 transition-opacity duration-700 delay-400' : 'opacity-0'}`}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
