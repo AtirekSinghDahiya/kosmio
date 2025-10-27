@@ -5,8 +5,7 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Project } from '../../types';
 import { ConfirmDialog } from '../Common/ConfirmDialog';
-import { getUserTokenBalance } from '../../lib/tokenService';
-import { supabase } from '../../lib/supabase';
+import { TokenBalanceDisplay } from '../Common/TokenBalanceDisplay';
 
 interface ChatSidebarProps {
   projects: Project[];
@@ -34,59 +33,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  const [tokenBalance, setTokenBalance] = useState<number>(0);
-  const [maxTokens, setMaxTokens] = useState<number>(10000000); // Default 10M tokens
 
-  // Fetch and subscribe to token balance changes
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchBalance = async () => {
-      try {
-        const balance = await getUserTokenBalance(user.uid);
-        console.log('💰 Token balance fetched:', balance);
-        setTokenBalance(balance);
-
-        // Set max based on current balance (for display purposes)
-        if (balance > maxTokens) {
-          setMaxTokens(balance);
-        }
-      } catch (error) {
-        console.error('Error fetching token balance:', error);
-      }
-    };
-
-    fetchBalance();
-
-    // Subscribe to real-time changes in token balance
-    const channel = supabase
-      .channel(`token-balance-${user.uid}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'profiles',
-        filter: `id=eq.${user.uid}`
-      }, (payload) => {
-        console.log('💰 Token balance changed (realtime):', payload);
-        if (payload.new) {
-          const newData = payload.new as any;
-          const paidBalance = newData.paid_tokens_balance || 0;
-          const freeBalance = newData.free_tokens_balance || 0;
-          const totalBalance = paidBalance + freeBalance;
-          console.log(`💰 Realtime update: Paid=${paidBalance}, Free=${freeBalance}, Total=${totalBalance}`);
-          setTokenBalance(totalBalance);
-        }
-      })
-      .subscribe();
-
-    // Poll every 2 seconds for immediate feedback
-    const interval = setInterval(fetchBalance, 2000);
-
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(interval);
-    };
-  }, [user, maxTokens]);
+  // Token balance is now handled by TokenBalanceDisplay component
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -311,29 +259,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       </div>
 
       <div className="p-3 border-t border-white/10 space-y-2">
-        {userData && (isMobileOpen || isHovered) && (
-          <div className="glass-panel rounded-xl p-3 border-white/10 animate-fade-in">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-white/70 font-medium">Token Balance</span>
-              <span className="text-xs font-bold text-[#00FFF0] uppercase tracking-wide">
-                {userData.plan || 'FREE'}
-              </span>
-            </div>
-            <div className="space-y-2">
-              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] h-2 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.min((tokenBalance / maxTokens) * 100, 100)}%`
-                  }}
-                />
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-white/70">{tokenBalance.toLocaleString()} tokens</span>
-                <span className="text-white/50">{maxTokens.toLocaleString()} max</span>
-              </div>
-            </div>
-          </div>
+        {(isMobileOpen || isHovered) && (
+          <TokenBalanceDisplay isExpanded={true} />
         )}
 
         <button
