@@ -76,7 +76,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     provider: 'Anthropic',
     tokensPerMessage: 800,
     costPerMessage: 0.0004,
-    tier: 'free',
+    tier: 'budget',
     description: 'Fast Claude 3 model',
     icon: '📝'
   },
@@ -86,7 +86,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     provider: 'Perplexity',
     tokensPerMessage: 900,
     costPerMessage: 0.00045,
-    tier: 'free',
+    tier: 'premium',
     description: 'Web search enabled AI',
     icon: '🔍'
   },
