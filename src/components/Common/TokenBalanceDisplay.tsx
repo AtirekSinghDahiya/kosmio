@@ -91,15 +91,12 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     return null;
   }
 
-  const maxTokens = 10000000; // 10M tokens max for display
-  const percentage = Math.min((balance / maxTokens) * 100, 100);
-
-  // Determine color based on balance
+  // Determine color based on balance (no max, just show what they have)
   const getBalanceColor = () => {
     if (balance >= 1000000) return 'from-green-500 to-emerald-600';
     if (balance >= 100000) return 'from-blue-500 to-cyan-600';
     if (balance >= 10000) return 'from-orange-500 to-orange-600';
-    return 'from-red-500 to-red-600';
+    return 'from-orange-500 to-orange-600'; // Default orange, no red warnings
   };
 
   if (!isExpanded) {
@@ -112,7 +109,7 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     );
   }
 
-  // Expanded view - show full details
+  // Expanded view - clean, simple display
   return (
     <div className="glass-panel rounded-xl p-4 border-white/10 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
@@ -127,36 +124,12 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         </span>
       </div>
 
-      <div className="space-y-2">
-        {/* Progress bar */}
-        <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-          <div
-            className={`bg-gradient-to-r ${getBalanceColor()} h-2 rounded-full transition-all duration-500`}
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-
-        {/* Balance details */}
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-white font-semibold flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-orange-400" />
-            {balance.toLocaleString()} tokens
-          </span>
-          <span className="text-white/50">{maxTokens.toLocaleString()} max</span>
-        </div>
-
-        {/* Warning if low balance */}
-        {balance < 10000 && balance > 0 && (
-          <div className="text-xs text-amber-400 mt-2 flex items-center gap-1">
-            ⚠️ Low balance! Consider purchasing more tokens.
-          </div>
-        )}
-
-        {balance === 0 && (
-          <div className="text-xs text-red-400 mt-2 flex items-center gap-1">
-            ⚠️ Out of tokens! Purchase tokens to continue.
-          </div>
-        )}
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-4 h-4 text-orange-400" />
+        <span className="text-2xl font-bold text-white">
+          {balance.toLocaleString()}
+        </span>
+        <span className="text-sm text-white/50 ml-1">tokens</span>
       </div>
     </div>
   );
