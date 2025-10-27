@@ -8,6 +8,9 @@ import { Image, Download, Wand2, X, Loader, Sparkles, RefreshCw } from 'lucide-r
 import { generateImageSmart, GeneratedImage } from '../../lib/imageService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../hooks/useAuth';
+import { saveImageToProject } from '../../lib/contentSaveService';
+import { DynamicTokenEstimator } from '../../lib/dynamicTokenEstimator';
 
 interface ImageGeneratorProps {
   onClose: () => void;
@@ -19,16 +22,27 @@ interface ImageGeneratorProps {
 export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImageGenerated, initialPrompt = '', selectedModel }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<GeneratedImage | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
+  const [estimatedCost, setEstimatedCost] = useState<number>(0);
 
   useEffect(() => {
     if (initialPrompt) {
       setPrompt(initialPrompt);
     }
   }, [initialPrompt]);
+
+  useEffect(() => {
+    if (prompt.trim()) {
+      const tokens = DynamicTokenEstimator.estimateImageCost(prompt);
+      setEstimatedCost(tokens);
+    } else {
+      setEstimatedCost(0);
+    }
+  }, [prompt]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -43,6 +57,19 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
       const image = await generateImageSmart(prompt, selectedModel);
       setGeneratedImage(image);
       showToast('success', 'Success!', 'Your image is ready');
+
+      if (user) {
+        try {
+          await saveImageToProject(user.uid, prompt, image.url, {
+            model: selectedModel || image.model,
+            dimensions: '1024x1024',
+            provider: 'replicate'
+          });
+          console.log('✅ Image saved to project');
+        } catch (saveError) {
+          console.error('Failed to save image to project:', saveError);
+        }
+      }
 
       if (onImageGenerated) {
         onImageGenerated(image);
@@ -125,12 +152,19 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
                   disabled={isGenerating}
                   autoFocus
                 />
-                <p className="text-xs text-white/40 mt-3 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  Be specific: include style, mood, lighting, and quality keywords
-                </p>
+                <div className="flex items-center justify-between mt-3">
+                  <p className="text-xs text-white/40 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Be specific: include style, mood, lighting, and quality keywords
+                  </p>
+                  {estimatedCost > 0 && (
+                    <div className={`text-xs font-semibold ${DynamicTokenEstimator.getCostColorClass(estimatedCost)}`}>
+                      Est: {DynamicTokenEstimator.formatCostEstimate(estimatedCost)}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Tips */}
