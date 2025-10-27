@@ -83,11 +83,11 @@ Dynamic, AI-powered token cost estimation based on actual complexity!
 
 ## 📝 Updated Pricing
 
-### Free Tier
-- **Tokens**: 150,000 per month
-- **Messages**: ~300 messages (10/day)
-- **Daily Refresh**: 5,000 tokens
-- **Our Cost**: $0.15 per user
+### Free Tier (Daily Allocation)
+- **Tokens**: 5,000 per day (~10 messages)
+- **Refresh**: Automatic every 24 hours
+- **Monthly Equivalent**: ~150,000 tokens (30 days)
+- **Our Cost**: $0.15 per user per month
 
 ### Paid Tiers (50% Value Model)
 | Pack | Price | Your Cost | Tokens | Messages |

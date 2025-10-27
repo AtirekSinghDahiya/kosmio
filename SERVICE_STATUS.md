@@ -164,5 +164,5 @@ All services use dynamic token estimation:
 - Video generation: Base 5000 + duration (200 tokens/second)
 - Music generation: Base 2000 + duration (50 tokens/second)
 
-Free tier: 150,000 tokens (300 messages)
+Free tier: 5,000 tokens per day (~10 messages/day, refreshes every 24 hours)
 Paid tiers: 50% value (pay $2, get $1 worth of tokens)
