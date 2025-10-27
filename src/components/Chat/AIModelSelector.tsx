@@ -111,6 +111,11 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               : 'bg-slate-900/95 hover:bg-slate-800/95 text-white backdrop-blur-xl'
           }`}
         >
+        {getModelCost(selected.id).logoUrl ? (
+          <img src={getModelCost(selected.id).logoUrl} alt={selected.provider} className="w-6 h-6 rounded" />
+        ) : (
+          <span className="text-xl">{getModelCost(selected.id).icon}</span>
+        )}
         <div className="flex-1 text-left">
           <div className={`text-sm font-semibold ${
             theme === 'light' ? 'text-gray-900' : 'text-white/90'
@@ -179,7 +184,11 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
                           : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
                       }`}>
-                        <span className="text-lg">{modelCost.icon}</span>
+                        {modelCost.logoUrl ? (
+                          <img src={modelCost.logoUrl} alt={model.provider} className="w-5 h-5 rounded" />
+                        ) : (
+                          <span className="text-lg">{modelCost.icon}</span>
+                        )}
                         {model.name}
                         {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
                       </div>

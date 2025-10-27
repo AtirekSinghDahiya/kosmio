@@ -7,6 +7,7 @@ export interface ModelTokenCost {
   tier: 'free' | 'budget' | 'mid' | 'premium' | 'ultra-premium';
   description: string;
   icon: string;
+  logoUrl?: string;
 }
 
 export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
@@ -14,131 +15,144 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     id: 'grok-4-fast',
     name: 'Grok 4 Fast',
     provider: 'X.AI',
-    tokensPerMessage: 400,
-    costPerMessage: 0.0002,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0003,
     tier: 'free',
     description: 'Lightning fast, minimal cost',
-    icon: '⚡'
+    icon: '⚡',
+    logoUrl: 'https://avatars.githubusercontent.com/u/160713815'
   },
   'gemini-flash-lite-free': {
     id: 'gemini-flash-lite-free',
     name: 'Gemini 2.5 Flash Lite',
     provider: 'Google',
-    tokensPerMessage: 500,
-    costPerMessage: 0.00025,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0,
     tier: 'free',
     description: 'Fast multimodal AI',
-    icon: '✨'
+    icon: '✨',
+    logoUrl: 'https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg'
   },
   'deepseek-v3.1-free': {
     id: 'deepseek-v3.1-free',
     name: 'DeepSeek V3.1 Free',
     provider: 'DeepSeek',
-    tokensPerMessage: 300,
-    costPerMessage: 0.00015,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0,
     tier: 'free',
     description: 'Efficient and smart',
-    icon: '🧠'
+    icon: '🧠',
+    logoUrl: 'https://avatars.githubusercontent.com/u/165199471'
   },
   'llama-4-maverick-free': {
     id: 'llama-4-maverick-free',
     name: 'Llama 4 Maverick Free',
     provider: 'Meta',
-    tokensPerMessage: 600,
-    costPerMessage: 0.0003,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0,
     tier: 'free',
     description: 'Latest Llama, free tier',
-    icon: '🦙'
+    icon: '🦙',
+    logoUrl: 'https://llama.meta.com/favicon.ico'
   },
   'nemotron-nano-free': {
     id: 'nemotron-nano-free',
     name: 'Nemotron Nano 9B V2',
     provider: 'NVIDIA',
-    tokensPerMessage: 560,
-    costPerMessage: 0.00028,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0,
     tier: 'free',
     description: 'Fast nano model',
-    icon: '🚀'
+    icon: '🚀',
+    logoUrl: 'https://www.nvidia.com/favicon.ico'
   },
   'qwen-vl-30b-free': {
     id: 'qwen-vl-30b-free',
     name: 'Qwen3 VL 30B Thinking',
     provider: 'Qwen',
-    tokensPerMessage: 700,
-    costPerMessage: 0.00035,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0,
     tier: 'free',
     description: 'Visual & thinking model',
-    icon: '👁️'
+    icon: '👁️',
+    logoUrl: 'https://qianwen.aliyun.com/favicon.ico'
   },
   'claude-3-haiku': {
     id: 'claude-3-haiku',
     name: 'Claude 3 Haiku',
     provider: 'Anthropic',
     tokensPerMessage: 800,
-    costPerMessage: 0.0004,
+    costPerMessage: 0.00068,
     tier: 'budget',
     description: 'Fast Claude 3 model',
-    icon: '📝'
+    icon: '📝',
+    logoUrl: 'https://www.anthropic.com/favicon.ico'
   },
   'perplexity-sonar': {
     id: 'perplexity-sonar',
     name: 'Perplexity Sonar',
     provider: 'Perplexity',
-    tokensPerMessage: 900,
-    costPerMessage: 0.00045,
+    tokensPerMessage: 800,
+    costPerMessage: 0.006,
     tier: 'premium',
     description: 'Web search enabled AI',
-    icon: '🔍'
+    icon: '🔍',
+    logoUrl: 'https://www.perplexity.ai/favicon.ico'
   },
   'kimi-k2-free': {
     id: 'kimi-k2-free',
     name: 'Kimi K2 Free',
     provider: 'Moonshot',
-    tokensPerMessage: 640,
-    costPerMessage: 0.00032,
+    tokensPerMessage: 800,
+    costPerMessage: 0.0,
     tier: 'free',
     description: 'Long context support',
-    icon: '🌙'
+    icon: '🌙',
+    logoUrl: 'https://avatars.githubusercontent.com/u/60689984'
   },
   'codex-mini': {
     id: 'codex-mini',
     name: 'Codex Mini',
     provider: 'OpenAI',
-    tokensPerMessage: 760,
-    costPerMessage: 0.00038,
+    tokensPerMessage: 800,
+    costPerMessage: 0.00018,
     tier: 'free',
     description: 'Lightweight coding',
-    icon: '💻'
+    icon: '💻',
+    logoUrl: 'https://openai.com/favicon.ico'
   },
   'lfm2-8b': {
     id: 'lfm2-8b',
     name: 'LiquidAI LFM2-8B',
     provider: 'LiquidAI',
-    tokensPerMessage: 840,
-    costPerMessage: 0.00042,
+    tokensPerMessage: 800,
+    costPerMessage: 0.00009,
     tier: 'free',
     description: 'Efficient model',
-    icon: '💧'
+    icon: '💧',
+    logoUrl: 'https://liquid.ai/favicon.ico'
   },
   'granite-4.0': {
     id: 'granite-4.0',
     name: 'Granite 4.0 Micro',
     provider: 'IBM',
-    tokensPerMessage: 900,
-    costPerMessage: 0.00045,
+    tokensPerMessage: 800,
+    costPerMessage: 0.00014,
     tier: 'free',
     description: 'Micro model',
-    icon: '🪨'
+    icon: '🪨',
+    logoUrl: 'https://www.ibm.com/favicon.ico'
   },
   'ernie-4.5': {
     id: 'ernie-4.5',
     name: 'ERNIE 4.5 21B Thinking',
     provider: 'Baidu',
-    tokensPerMessage: 960,
-    costPerMessage: 0.00048,
+    tokensPerMessage: 800,
+    costPerMessage: 0.00022,
     tier: 'free',
     description: 'Thinking model',
-    icon: '🧩'
+    icon: '🧩',
+    logoUrl: 'https://www.baidu.com/favicon.ico'
   },
   'kimi-k2': {
     id: 'kimi-k2',
