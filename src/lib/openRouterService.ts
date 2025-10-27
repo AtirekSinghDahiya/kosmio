@@ -137,19 +137,31 @@ export async function callOpenRouter(
     log('success', `Response received (${content.length} chars)`);
 
     // Extract usage data from OpenRouter response
-    const usage = data.usage ? {
+    console.log('🔍 Full OpenRouter response data:', JSON.stringify(data, null, 2));
+
+    let usage = data.usage ? {
       prompt_tokens: data.usage.prompt_tokens || 0,
       completion_tokens: data.usage.completion_tokens || 0,
       total_tokens: data.usage.total_tokens || 0,
       total_cost: data.usage.total_cost || 0,
     } : undefined;
 
-    if (usage) {
+    // If no total_cost but we have token counts, estimate the cost
+    if (usage && !usage.total_cost && usage.total_tokens > 0) {
+      // Rough estimation: most models cost around $0.50-$5 per 1M tokens
+      // Use a conservative estimate of $2 per 1M tokens for input + output average
+      const estimatedCost = (usage.total_tokens / 1000000) * 2.0;
+      usage.total_cost = estimatedCost;
+      log('warning', `⚠️ No total_cost from OpenRouter, estimated: $${estimatedCost.toFixed(6)} based on ${usage.total_tokens} tokens`);
+    }
+
+    if (usage && usage.total_cost > 0) {
       log('success', `📊 Usage Data: ${usage.total_tokens} tokens, Cost: $${usage.total_cost.toFixed(6)}`);
       log('success', `💰 User will be charged: $${(usage.total_cost * 2).toFixed(6)} (2x multiplier)`);
       log('success', `💎 Tokens to deduct: ${Math.ceil(usage.total_cost * 2 * 1000000)}`);
     } else {
       log('error', '⚠️ No usage data in response! Will use fallback cost.');
+      usage = undefined; // Ensure we use fallback
     }
 
     const providerName = openRouterModel.split('/')[0];

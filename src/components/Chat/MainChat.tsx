@@ -405,10 +405,13 @@ export const MainChat: React.FC = () => {
       console.log('💰 aiResponse.usage:', aiResponse.usage);
 
       // Always deduct tokens, even if usage data is missing (use fallback)
-      const baseCost = aiResponse.usage?.total_cost || 0.0001; // Fallback: ~$0.0001 minimum
+      // Fallback: estimate based on message length (rough: 1000 chars ≈ 250 tokens ≈ $0.0005)
+      const estimatedFallbackCost = Math.max(0.0005, (aiContent.length / 1000) * 0.0005);
+      const baseCost = aiResponse.usage?.total_cost || estimatedFallbackCost;
 
-      console.log(`💰 Base cost from OpenRouter: $${baseCost}`);
-      console.log(`💰 User will be charged: $${baseCost * 2} (2x multiplier)`);
+      console.log(`💰 Base cost from OpenRouter: $${baseCost.toFixed(6)}`);
+      console.log(`💰 User will be charged: $${(baseCost * 2).toFixed(6)} (2x multiplier)`);
+      console.log(`💎 Tokens to deduct: ${Math.ceil(baseCost * 2 * 1000000)}`);
 
       const deductResult = await deductTokensWithTier(
         user.uid,
