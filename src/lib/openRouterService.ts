@@ -145,7 +145,11 @@ export async function callOpenRouter(
     } : undefined;
 
     if (usage) {
-      log('info', `Usage: ${usage.total_tokens} tokens, Cost: $${usage.total_cost.toFixed(6)}`);
+      log('success', `📊 Usage Data: ${usage.total_tokens} tokens, Cost: $${usage.total_cost.toFixed(6)}`);
+      log('success', `💰 User will be charged: $${(usage.total_cost * 2).toFixed(6)} (2x multiplier)`);
+      log('success', `💎 Tokens to deduct: ${Math.ceil(usage.total_cost * 2 * 1000000)}`);
+    } else {
+      log('error', '⚠️ No usage data in response! Will use fallback cost.');
     }
 
     const providerName = openRouterModel.split('/')[0];

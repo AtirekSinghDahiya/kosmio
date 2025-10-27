@@ -35,15 +35,25 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [tokenBalance, setTokenBalance] = useState<number>(0);
-  const [maxTokens] = useState<number>(10000);
+  const [maxTokens, setMaxTokens] = useState<number>(10000000); // Default 10M tokens
 
   // Fetch and subscribe to token balance changes
   useEffect(() => {
     if (!user) return;
 
     const fetchBalance = async () => {
-      const balance = await getUserTokenBalance(user.uid);
-      setTokenBalance(balance);
+      try {
+        const balance = await getUserTokenBalance(user.uid);
+        console.log('💰 Token balance fetched:', balance);
+        setTokenBalance(balance);
+
+        // Set max based on current balance (for display purposes)
+        if (balance > maxTokens) {
+          setMaxTokens(balance);
+        }
+      } catch (error) {
+        console.error('Error fetching token balance:', error);
+      }
     };
 
     fetchBalance();
@@ -57,21 +67,26 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         table: 'profiles',
         filter: `id=eq.${user.uid}`
       }, (payload) => {
-        console.log('Token balance changed:', payload);
-        if (payload.new && 'tokens_balance' in payload.new) {
-          setTokenBalance((payload.new as any).tokens_balance);
+        console.log('💰 Token balance changed (realtime):', payload);
+        if (payload.new) {
+          const newData = payload.new as any;
+          const paidBalance = newData.paid_tokens_balance || 0;
+          const freeBalance = newData.free_tokens_balance || 0;
+          const totalBalance = paidBalance + freeBalance;
+          console.log(`💰 Realtime update: Paid=${paidBalance}, Free=${freeBalance}, Total=${totalBalance}`);
+          setTokenBalance(totalBalance);
         }
       })
       .subscribe();
 
-    // Poll every 5 seconds as backup
-    const interval = setInterval(fetchBalance, 5000);
+    // Poll every 2 seconds for immediate feedback
+    const interval = setInterval(fetchBalance, 2000);
 
     return () => {
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, [user]);
+  }, [user, maxTokens]);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
