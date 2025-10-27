@@ -162,7 +162,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.015,
     tier: 'budget',
     description: 'Long context, paid tier',
-    icon: '🌙'
+    icon: '🌙',
+    logoUrl: 'https://avatars.githubusercontent.com/u/60689984'
   },
   'deepseek-v3.2': {
     id: 'deepseek-v3.2',
@@ -172,7 +173,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.018,
     tier: 'budget',
     description: 'Advanced DeepSeek',
-    icon: '🧠'
+    icon: '🧠',
+    logoUrl: 'https://avatars.githubusercontent.com/u/165199471'
   },
   'gemini-flash-image': {
     id: 'gemini-flash-image',
@@ -182,7 +184,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.02,
     tier: 'mid',
     description: 'Image focused',
-    icon: '🖼️'
+    icon: '🖼️',
+    logoUrl: 'https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg'
   },
   'qwen-vl-32b': {
     id: 'qwen-vl-32b',
@@ -192,7 +195,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.025,
     tier: 'mid',
     description: 'Advanced visual model',
-    icon: '👁️'
+    icon: '👁️',
+    logoUrl: 'https://qianwen.aliyun.com/favicon.ico'
   },
   'gpt-5-chat': {
     id: 'gpt-5-chat',
@@ -202,7 +206,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.04,
     tier: 'mid',
     description: 'Latest ChatGPT with images',
-    icon: '🤖'
+    icon: '🤖',
+    logoUrl: 'https://openai.com/favicon.ico'
   },
   'nemotron-super': {
     id: 'nemotron-super',
@@ -212,7 +217,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.035,
     tier: 'mid',
     description: 'Powerful reasoning',
-    icon: '🚀'
+    icon: '🚀',
+    logoUrl: 'https://www.nvidia.com/favicon.ico'
   },
   'llama-4-maverick': {
     id: 'llama-4-maverick',
@@ -222,7 +228,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.038,
     tier: 'mid',
     description: 'Latest Llama, paid tier',
-    icon: '🦙'
+    icon: '🦙',
+    logoUrl: 'https://llama.meta.com/favicon.ico'
   },
   'glm-4.6': {
     id: 'glm-4.6',
@@ -232,7 +239,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.042,
     tier: 'mid',
     description: 'Advanced model',
-    icon: '⚙️'
+    icon: '⚙️',
+    logoUrl: 'https://avatars.githubusercontent.com/u/48584855'
   },
   'gpt-5-codex': {
     id: 'gpt-5-codex',
@@ -242,7 +250,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.06,
     tier: 'premium',
     description: 'Best for coding',
-    icon: '💻'
+    icon: '💻',
+    logoUrl: 'https://openai.com/favicon.ico'
   },
   'claude-haiku-4.5': {
     id: 'claude-haiku-4.5',
@@ -252,7 +261,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.02,
     tier: 'mid',
     description: 'Fast Claude 4.5',
-    icon: '📝'
+    icon: '📝',
+    logoUrl: 'https://www.anthropic.com/favicon.ico'
   },
   'claude-sonnet': {
     id: 'claude-sonnet',
@@ -262,7 +272,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.30,
     tier: 'premium',
     description: 'Advanced reasoning',
-    icon: '🎵'
+    icon: '🎵',
+    logoUrl: 'https://www.anthropic.com/favicon.ico'
   },
   'kimi-k2-0905': {
     id: 'kimi-k2-0905',
@@ -272,7 +283,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.018,
     tier: 'budget',
     description: 'Latest Kimi model',
-    icon: '🌙'
+    icon: '🌙',
+    logoUrl: 'https://avatars.githubusercontent.com/u/60689984'
   },
   'perplexity-sonar-pro': {
     id: 'perplexity-sonar-pro',
@@ -282,7 +294,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.045,
     tier: 'mid',
     description: 'Pro web search with vision',
-    icon: '🔍'
+    icon: '🔍',
+    logoUrl: 'https://www.perplexity.ai/favicon.ico'
   },
   'perplexity-sonar-reasoning': {
     id: 'perplexity-sonar-reasoning',
@@ -292,7 +305,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.08,
     tier: 'premium',
     description: 'Advanced reasoning with search',
-    icon: '🧠'
+    icon: '🧠',
+    logoUrl: 'https://www.perplexity.ai/favicon.ico'
   },
   'perplexity-sonar-deep': {
     id: 'perplexity-sonar-deep',
@@ -302,7 +316,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.15,
     tier: 'premium',
     description: 'Deep research capabilities',
-    icon: '🔬'
+    icon: '🔬',
+    logoUrl: 'https://www.perplexity.ai/favicon.ico'
   },
   'claude-opus-4': {
     id: 'claude-opus-4',
@@ -312,7 +327,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.50,
     tier: 'ultra-premium',
     description: 'Powerful Opus model',
-    icon: '👑'
+    icon: '👑',
+    logoUrl: 'https://www.anthropic.com/favicon.ico'
   },
   'claude-opus-4.1': {
     id: 'claude-opus-4.1',
@@ -322,7 +338,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.55,
     tier: 'ultra-premium',
     description: 'Ultimate AI model',
-    icon: '👑'
+    icon: '👑',
+    logoUrl: 'https://www.anthropic.com/favicon.ico'
   },
   'dall-e-3': {
     id: 'dall-e-3',
@@ -332,7 +349,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.08,
     tier: 'premium',
     description: 'High quality images',
-    icon: '🎨'
+    icon: '🎨',
+    logoUrl: 'https://openai.com/favicon.ico'
   },
   'stable-diffusion-xl': {
     id: 'stable-diffusion-xl',
@@ -342,7 +360,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.05,
     tier: 'mid',
     description: 'Open source image gen',
-    icon: '🎨'
+    icon: '🎨',
+    logoUrl: 'https://stability.ai/favicon.ico'
   },
   'firefly': {
     id: 'firefly',
@@ -352,7 +371,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.07,
     tier: 'premium',
     description: 'Commercial safe images',
-    icon: '🔥'
+    icon: '🔥',
+    logoUrl: 'https://www.adobe.com/favicon.ico'
   },
   'sora': {
     id: 'sora',
@@ -362,7 +382,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.50,
     tier: 'ultra-premium',
     description: 'Text to video',
-    icon: '🎬'
+    icon: '🎬',
+    logoUrl: 'https://openai.com/favicon.ico'
   },
   'eleven-labs': {
     id: 'eleven-labs',
@@ -372,7 +393,8 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     costPerMessage: 0.03,
     tier: 'mid',
     description: 'Natural voice synthesis',
-    icon: '🎙️'
+    icon: '🎙️',
+    logoUrl: 'https://elevenlabs.io/favicon.ico'
   }
 };
 

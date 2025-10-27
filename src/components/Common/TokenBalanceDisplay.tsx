@@ -5,9 +5,11 @@ import { supabase } from '../../lib/supabase';
 
 interface TokenBalanceDisplayProps {
   isExpanded?: boolean;
+  showDetails?: boolean;
+  onPurchaseClick?: () => void;
 }
 
-export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpanded = false }) => {
+export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpanded = false, showDetails = true, onPurchaseClick }) => {
   const { user } = useAuth();
   const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,13 +101,16 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     return 'from-orange-500 to-orange-600'; // Default orange, no red warnings
   };
 
-  if (!isExpanded) {
-    // Collapsed view - just show icon and balance
+  if (!isExpanded && !showDetails) {
+    // Compact view for navbar - just icon and balance
     return (
-      <div className="flex items-center gap-2 px-3 py-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
+      <button
+        onClick={onPurchaseClick}
+        className="flex items-center gap-2 px-4 py-2.5 glass-panel rounded-full border border-white/20 hover:border-white/30 transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
+      >
         <Coins className="w-4 h-4 text-orange-400" />
-        <span className="text-sm font-semibold text-white">{balance.toLocaleString()}</span>
-      </div>
+        <span className="text-sm font-bold text-white">{balance.toLocaleString()}</span>
+      </button>
     );
   }
 
