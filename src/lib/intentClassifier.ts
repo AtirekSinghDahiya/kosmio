@@ -3,6 +3,7 @@ export interface IntentResult {
   confidence: number;
   suggestedStudio: 'Chat Studio' | 'Code Studio' | 'Design Studio' | 'Video Studio' | 'Voice Studio' | 'Music Studio' | 'Image Studio';
   reasoning: string;
+  suggestedModel?: string; // Specific AI model if detected
 }
 
 const CODE_KEYWORDS = [
@@ -99,8 +100,79 @@ const IMAGE_PHRASES = [
   'draw me', 'show me', 'visualize', 'create visual', 'generate visual'
 ];
 
+/**
+ * Detect if user is requesting a specific AI model
+ */
+export const detectSpecificModel = (prompt: string): string | null => {
+  const lowerPrompt = prompt.toLowerCase();
+
+  // OpenAI models
+  if (lowerPrompt.includes('gpt-5') || lowerPrompt.includes('gpt 5') || lowerPrompt.includes('chatgpt 5')) {
+    if (lowerPrompt.includes('nano')) return 'gpt-5-nano';
+    if (lowerPrompt.includes('chat')) return 'gpt-5-chat';
+    if (lowerPrompt.includes('codex')) return 'gpt-5-codex';
+    return 'gpt-5-chat';
+  }
+  if (lowerPrompt.includes('gpt-4') || lowerPrompt.includes('gpt 4') || lowerPrompt.includes('chatgpt')) {
+    return 'gpt-5-chat';
+  }
+  if (lowerPrompt.includes('chatgpt')) {
+    return 'gpt-5-chat';
+  }
+
+  // Claude models
+  if (lowerPrompt.includes('claude')) {
+    if (lowerPrompt.includes('opus 4.1') || lowerPrompt.includes('opus-4.1')) return 'claude-opus-4.1';
+    if (lowerPrompt.includes('opus 4') || lowerPrompt.includes('opus-4')) return 'claude-opus-4';
+    if (lowerPrompt.includes('opus')) return 'claude-opus-4.1';
+    if (lowerPrompt.includes('sonnet 4.5') || lowerPrompt.includes('sonnet-4.5')) return 'claude-sonnet';
+    if (lowerPrompt.includes('sonnet')) return 'claude-sonnet';
+    if (lowerPrompt.includes('haiku')) return 'claude-haiku-4.5';
+    return 'claude-sonnet';
+  }
+
+  // Gemini models
+  if (lowerPrompt.includes('gemini')) {
+    if (lowerPrompt.includes('2.5')) return 'gemini-flash-image';
+    if (lowerPrompt.includes('flash')) return 'gemini-flash-image';
+    return 'gemini-flash-image';
+  }
+
+  // DeepSeek models
+  if (lowerPrompt.includes('deepseek')) {
+    if (lowerPrompt.includes('v3.2') || lowerPrompt.includes('3.2')) return 'deepseek-v3.2';
+    return 'deepseek-v3.2';
+  }
+
+  // Grok models
+  if (lowerPrompt.includes('grok')) {
+    return 'grok-4-fast';
+  }
+
+  // Kimi models
+  if (lowerPrompt.includes('kimi')) {
+    return 'kimi-k2';
+  }
+
+  // Llama models
+  if (lowerPrompt.includes('llama')) {
+    return 'llama-4-maverick';
+  }
+
+  // Perplexity models
+  if (lowerPrompt.includes('perplexity')) {
+    if (lowerPrompt.includes('sonar')) return 'perplexity-sonar';
+    return 'perplexity-sonar';
+  }
+
+  return null;
+};
+
 export const classifyIntent = (prompt: string): IntentResult => {
   const lowerPrompt = prompt.toLowerCase().trim();
+
+  // Detect specific AI model request
+  const suggestedModel = detectSpecificModel(prompt);
 
   let codeScore = 0;
   let designScore = 0;
@@ -226,7 +298,8 @@ export const classifyIntent = (prompt: string): IntentResult => {
       intent: 'chat',
       confidence: 1.0,
       suggestedStudio: 'Chat Studio',
-      reasoning: 'General conversation or query'
+      reasoning: 'General conversation or query',
+      suggestedModel
     };
   }
 
@@ -238,42 +311,48 @@ export const classifyIntent = (prompt: string): IntentResult => {
       intent: 'music',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Music Studio',
-      reasoning: `Detected music generation intent with score ${musicScore}`
+      reasoning: `Detected music generation intent with score ${musicScore}`,
+      suggestedModel
     };
   } else if (imageScore === maxScore && imageScore > 0) {
     return {
       intent: 'image',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Image Studio',
-      reasoning: `Detected image generation intent with score ${imageScore}`
+      reasoning: `Detected image generation intent with score ${imageScore}`,
+      suggestedModel
     };
   } else if (voiceScore === maxScore && voiceScore > 0) {
     return {
       intent: 'voice',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Voice Studio',
-      reasoning: `Detected voice generation intent with score ${voiceScore}`
+      reasoning: `Detected voice generation intent with score ${voiceScore}`,
+      suggestedModel
     };
   } else if (videoScore === maxScore && videoScore > 0) {
     return {
       intent: 'video',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Video Studio',
-      reasoning: `Detected video editing intent with score ${videoScore}`
+      reasoning: `Detected video editing intent with score ${videoScore}`,
+      suggestedModel
     };
   } else if (codeScore === maxScore && codeScore > 0) {
     return {
       intent: 'code',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Code Studio',
-      reasoning: `Detected coding intent with score ${codeScore}`
+      reasoning: `Detected coding intent with score ${codeScore}`,
+      suggestedModel
     };
   } else if (designScore === maxScore && designScore > 0) {
     return {
       intent: 'design',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Design Studio',
-      reasoning: `Detected design intent with score ${designScore}`
+      reasoning: `Detected design intent with score ${designScore}`,
+      suggestedModel
     };
   }
 
@@ -281,7 +360,8 @@ export const classifyIntent = (prompt: string): IntentResult => {
     intent: 'chat',
     confidence: 0.3,
     suggestedStudio: 'Chat Studio',
-    reasoning: 'Ambiguous intent, defaulting to chat'
+    reasoning: 'Ambiguous intent, defaulting to chat',
+    suggestedModel
   };
 };
 

@@ -1,5 +1,9 @@
 import { supabase, Project, Message } from './supabaseClient';
 import { auth } from './firebase';
+import { generateAIProjectName as _generateAIProjectName } from './projectService';
+
+// Re-export generateAIProjectName
+export { generateAIProjectName } from './projectService';
 
 // Get current user ID from Firebase Auth
 export const getCurrentUserId = (): string | null => {

@@ -28,6 +28,7 @@ import {
   getProjects,
   subscribeToProjects,
   subscribeToMessages,
+  generateAIProjectName,
   deleteProject,
   renameProject,
   Project,
@@ -292,6 +293,13 @@ export const MainChat: React.FC = () => {
           throw new Error('No intent returned');
         }
         console.log('🎯 Intent classified:', intent.intent, intent.confidence);
+
+        // If a specific AI model was detected, auto-select it
+        if (intent.suggestedModel && intent.suggestedModel !== selectedModel) {
+          console.log(`🤖 Auto-selecting AI model: ${intent.suggestedModel}`);
+          setSelectedModel(intent.suggestedModel);
+          showToast('info', 'Model Selected', `Using ${intent.suggestedModel} as requested`);
+        }
       } catch (error) {
         console.warn('⚠️ Intent classification failed, defaulting to chat:', error);
         intent = {
@@ -319,7 +327,11 @@ export const MainChat: React.FC = () => {
       // Create or use chat project
       let projectId = activeProjectId;
       if (!projectId) {
-        const projectName = generateProjectName(textToSend);
+        // Generate AI-powered project name
+        console.log('🤖 Generating AI project name...');
+        const projectName = await generateAIProjectName(textToSend);
+        console.log('✅ AI-generated project name:', projectName);
+
         const project = await createProject(projectName, 'chat', textToSend.substring(0, 100));
         projectId = project.id;
         setActiveProjectId(projectId);

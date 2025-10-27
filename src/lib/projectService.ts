@@ -1,6 +1,7 @@
 import { collection, addDoc, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { Project, ChatMessage } from '../types';
+import { callOpenRouter } from './openRouterService';
 
 export const detectProjectType = (message: string): 'chat' | 'code' | 'design' | 'video' => {
   const lowerMessage = message.toLowerCase();
@@ -40,6 +41,37 @@ export const detectProjectType = (message: string): 'chat' | 'code' | 'design' |
 
   return 'chat';
 };
+
+/**
+ * Generate a professional project name using AI
+ */
+export async function generateAIProjectName(message: string): Promise<string> {
+  try {
+    console.log('🤖 Generating AI project name for message:', message.substring(0, 50));
+
+    const response = await callOpenRouter(
+      [
+        {
+          role: 'system',
+          content: 'You are a professional project naming assistant. Generate a short, professional, and descriptive project name (2-4 words max) based on the user\'s message. Return ONLY the project name, nothing else. Examples: "Marketing Strategy", "E-commerce Website", "Data Analysis", "Budget Planner", "Travel Blog"'
+        },
+        {
+          role: 'user',
+          content: message
+        }
+      ],
+      'grok-4-fast' // Use fast model for quick names
+    );
+
+    const projectName = response.content.trim().replace(/["\']/g, '');
+    console.log('✅ Generated project name:', projectName);
+    return projectName;
+  } catch (error) {
+    console.error('❌ Error generating AI project name:', error);
+    // Fallback to simple name
+    return generateProjectName('chat', message);
+  }
+}
 
 export const generateProjectName = (type: string, message: string): string => {
   const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
