@@ -53,17 +53,20 @@ ALL generated content now saves to your projects:
 - **API Key**: Configured (`VITE_AIMLAPI_KEY`)
 - **Features**: High-quality video generation
 
-### ⚠️ Limited/Unavailable Services
-
-#### 5. **Sora 2 Video**
-- **Status**: NOT PUBLICLY AVAILABLE
-- **Issue**: OpenAI Sora 2 API is NOT yet publicly released
-- **Current Key**: OpenRouter key (sk-or-v1-...) which DOES NOT have Sora access
-- **Solution**:
-  - Sora 2 requires special API access from OpenAI
-  - Currently in limited beta
-  - Cannot use OpenRouter or third-party keys
-  - Need to wait for public release or get approved for beta access
+#### 5. **Sora 2 Video (via Fal.ai)**
+- **Status**: ✅ NOW AVAILABLE via Fal.ai!
+- **Provider**: Fal.ai API (provides access to OpenAI Sora 2)
+- **API Key**: `VITE_FAL_KEY` in `.env`
+- **Features**:
+  - High-quality AI video generation
+  - 720p resolution
+  - 16:9 and 9:16 aspect ratios
+  - 4, 8, or 12 second durations
+- **Setup**:
+  1. Get API key from https://fal.ai/dashboard/keys
+  2. Add to `.env` as `VITE_FAL_KEY=your-key-here`
+  3. Restart the dev server
+- **Note**: Fal.ai provides easy API access to OpenAI's Sora 2 model
 
 #### 6. **PPT Generation**
 - **Status**: Fully functional
@@ -99,11 +102,12 @@ ALL generated content now saves to your projects:
 4. Verify AIMLAPI credits
 5. Check console for error messages
 
-**For Sora 2:**
-1. **NOT AVAILABLE YET** - This is normal
-2. OpenAI has not released Sora 2 API publicly
-3. Using OpenRouter key will not work
-4. Wait for public release from OpenAI
+**For Sora 2 (Fal.ai):**
+1. **NOW AVAILABLE** - Get your Fal.ai API key
+2. Visit https://fal.ai/dashboard/keys to create an account
+3. Copy your API key
+4. Add to `.env` as `VITE_FAL_KEY=your-key-here`
+5. Restart dev server and Sora 2 will work!
 
 **For HeyGen:**
 1. Need valid HeyGen API key
