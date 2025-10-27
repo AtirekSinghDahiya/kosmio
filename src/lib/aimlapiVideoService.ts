@@ -53,6 +53,12 @@ export async function generateAimlapiVideo(
 
   if (!response.ok) {
     console.error('❌ AIMLAPI error:', response.status, responseText);
+
+    // Check for verification error
+    if (response.status === 403 && responseText.includes('verification')) {
+      throw new Error('AIMLAPI account requires verification. Please visit https://aimlapi.com/app/billing/verification to complete verification before using Veo-3.');
+    }
+
     throw new Error(`API Error (${response.status}): ${responseText}`);
   }
 

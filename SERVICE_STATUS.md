@@ -1,5 +1,26 @@
 # Service Status & Configuration Guide
 
+## 🎉 New Features Added
+
+### **Contextual Loading Animations**
+Beautiful themed loading states that match what you're generating:
+- 🚀 Space theme for space-related content (rockets, stars, planets)
+- 🎵 Music theme for songs and audio (music notes, instruments)
+- 🎬 Video theme for videos (cameras, film reels)
+- 🎨 Image theme for pictures (paintbrushes, rainbows)
+- 💻 Code theme for programming (code symbols, gears)
+- 🧠 AI theme for general AI tasks (brains, lightbulbs)
+
+The loading screen automatically detects your request and shows relevant animations with floating particles and smooth transitions!
+
+### **Project Saving**
+ALL generated content now saves to your projects:
+- ✅ Images save to projects automatically
+- ✅ Videos save to projects (HeyGen, Veo-3, Sora)
+- ✅ Music tracks save to projects
+- ✅ Presentations save to projects
+- ✅ All content appears in the left sidebar
+
 ## Current Service Status
 
 ### ✅ Working Services
@@ -8,7 +29,7 @@
 - **Status**: Fully operational
 - **Providers**: Replicate (Flux Schnell)
 - **Configuration**: Properly configured
-- **Features**: Dynamic cost estimation, project saving
+- **Features**: Dynamic cost estimation, project saving, contextual loading
 
 #### 2. **Music Generation (Suno)**
 - **Status**: API configured
@@ -72,9 +93,11 @@
 ### Video Generation Not Working
 
 **For Veo-3:**
-1. Check AIMLAPI key is valid
-2. Verify AIMLAPI credits
-3. Check console for error messages
+1. **⚠️ IMPORTANT**: If you get a 403 error about verification, you MUST complete account verification at https://aimlapi.com/app/billing/verification
+2. After verification, the service will work normally
+3. Check AIMLAPI key is valid
+4. Verify AIMLAPI credits
+5. Check console for error messages
 
 **For Sora 2:**
 1. **NOT AVAILABLE YET** - This is normal
