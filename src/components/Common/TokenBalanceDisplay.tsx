@@ -11,9 +11,8 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
   const { user } = useAuth();
   const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [tier, setTier] = useState<string>('free');
 
-  // Fetch token balance from Supabase
+  // Fetch token balance from Supabase profiles table
   const fetchBalance = async () => {
     if (!user) {
       setIsLoading(false);
@@ -23,69 +22,27 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     try {
       console.log('💰 Fetching token balance for user:', user.uid);
 
-      // Get user's token balance from user_tokens table
-      const { data: tokenData, error: tokenError } = await supabase
-        .from('user_tokens')
-        .select('balance, tier')
-        .eq('user_id', user.uid)
+      // Get user's token balance from profiles table
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('tokens_balance')
+        .eq('id', user.uid)
         .maybeSingle();
 
-      if (tokenError) {
-        console.error('Error fetching token balance:', tokenError);
-
-        // If user doesn't exist in user_tokens, create entry with free tier
-        if (tokenError.code === 'PGRST116') {
-          console.log('Creating new token entry for user...');
-          const { data: newData, error: insertError } = await supabase
-            .from('user_tokens')
-            .insert({
-              user_id: user.uid,
-              balance: 1000, // Free tier default
-              tier: 'free'
-            })
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error('Error creating token entry:', insertError);
-            setBalance(1000); // Default fallback
-            setTier('free');
-          } else {
-            setBalance(newData.balance);
-            setTier(newData.tier || 'free');
-          }
-        } else {
-          setBalance(0);
-          setTier('free');
-        }
-      } else if (tokenData) {
-        console.log('✅ Token balance:', tokenData.balance);
-        setBalance(tokenData.balance || 0);
-        setTier(tokenData.tier || 'free');
+      if (error) {
+        console.error('Error fetching token balance:', error);
+        setBalance(0);
+      } else if (profileData) {
+        const tokenBalance = profileData.tokens_balance || 0;
+        console.log('✅ Token balance:', tokenBalance);
+        setBalance(tokenBalance);
       } else {
-        // Create entry for new user
-        const { data: newData, error: insertError } = await supabase
-          .from('user_tokens')
-          .insert({
-            user_id: user.uid,
-            balance: 1000,
-            tier: 'free'
-          })
-          .select()
-          .single();
-
-        if (!insertError && newData) {
-          setBalance(newData.balance);
-          setTier('free');
-        } else {
-          setBalance(1000);
-          setTier('free');
-        }
+        console.log('⚠️ No profile found for user');
+        setBalance(0);
       }
     } catch (error) {
       console.error('Exception fetching token balance:', error);
       setBalance(0);
-      setTier('free');
     } finally {
       setIsLoading(false);
     }
@@ -107,21 +64,22 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         {
           event: '*',
           schema: 'public',
-          table: 'user_tokens',
-          filter: `user_id=eq.${user.uid}`
+          table: 'profiles',
+          filter: `id=eq.${user.uid}`
         },
         (payload) => {
-          console.log('💰 Token balance updated:', payload);
-          if (payload.new && 'balance' in payload.new) {
-            setBalance(payload.new.balance as number);
-            setTier((payload.new as any).tier || 'free');
+          console.log('💰 Token balance updated via realtime:', payload);
+          if (payload.new && 'tokens_balance' in payload.new) {
+            const newBalance = (payload.new as any).tokens_balance || 0;
+            console.log('📊 New balance:', newBalance);
+            setBalance(newBalance);
           }
         }
       )
       .subscribe();
 
-    // Refresh every 30 seconds as fallback
-    const interval = setInterval(fetchBalance, 30000);
+    // Refresh every 5 seconds as fallback
+    const interval = setInterval(fetchBalance, 5000);
 
     return () => {
       supabase.removeChannel(channel);
@@ -133,26 +91,16 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     return null;
   }
 
-  const getTierColor = () => {
-    switch (tier.toLowerCase()) {
-      case 'pro': return 'from-blue-500 to-blue-600';
-      case 'premium': return 'from-purple-500 to-purple-600';
-      case 'enterprise': return 'from-amber-500 to-amber-600';
-      default: return 'from-orange-500 to-orange-600';
-    }
-  };
-
-  const getTierMaxTokens = () => {
-    switch (tier.toLowerCase()) {
-      case 'pro': return 100000;
-      case 'premium': return 500000;
-      case 'enterprise': return 1000000;
-      default: return 10000;
-    }
-  };
-
-  const maxTokens = getTierMaxTokens();
+  const maxTokens = 10000000; // 10M tokens max for display
   const percentage = Math.min((balance / maxTokens) * 100, 100);
+
+  // Determine color based on balance
+  const getBalanceColor = () => {
+    if (balance >= 1000000) return 'from-green-500 to-emerald-600';
+    if (balance >= 100000) return 'from-blue-500 to-cyan-600';
+    if (balance >= 10000) return 'from-orange-500 to-orange-600';
+    return 'from-red-500 to-red-600';
+  };
 
   if (!isExpanded) {
     // Collapsed view - just show icon and balance
@@ -169,13 +117,13 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     <div className="glass-panel rounded-xl p-4 border-white/10 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg bg-gradient-to-r ${getTierColor()}`}>
+          <div className={`p-1.5 rounded-lg bg-gradient-to-r ${getBalanceColor()}`}>
             <Coins className="w-4 h-4 text-white" />
           </div>
           <span className="text-sm text-white/70 font-medium">Token Balance</span>
         </div>
-        <span className={`text-xs font-bold bg-gradient-to-r ${getTierColor()} bg-clip-text text-transparent uppercase tracking-wide`}>
-          {tier}
+        <span className={`text-xs font-bold bg-gradient-to-r ${getBalanceColor()} bg-clip-text text-transparent uppercase tracking-wide`}>
+          {balance >= 1000000 ? 'Premium' : balance >= 100000 ? 'Pro' : 'Free'}
         </span>
       </div>
 
@@ -183,7 +131,7 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         {/* Progress bar */}
         <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
           <div
-            className={`bg-gradient-to-r ${getTierColor()} h-2 rounded-full transition-all duration-500`}
+            className={`bg-gradient-to-r ${getBalanceColor()} h-2 rounded-full transition-all duration-500`}
             style={{ width: `${percentage}%` }}
           />
         </div>
@@ -198,9 +146,15 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         </div>
 
         {/* Warning if low balance */}
-        {balance < maxTokens * 0.1 && (
-          <div className="text-xs text-amber-400 mt-2">
-            Running low on tokens. Consider upgrading!
+        {balance < 10000 && balance > 0 && (
+          <div className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+            ⚠️ Low balance! Consider purchasing more tokens.
+          </div>
+        )}
+
+        {balance === 0 && (
+          <div className="text-xs text-red-400 mt-2 flex items-center gap-1">
+            ⚠️ Out of tokens! Purchase tokens to continue.
           </div>
         )}
       </div>
