@@ -75,6 +75,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(SESSION_KEY);
   };
 
+  const ensureTokenBalance = async (userId: string) => {
+    console.log('💰 Checking token balance for user:', userId);
+
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('free_tokens_balance, paid_tokens_balance')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profile) {
+        const totalBalance = (profile.free_tokens_balance || 0) + (profile.paid_tokens_balance || 0);
+        console.log(`💰 Current balance: ${totalBalance} tokens (Free: ${profile.free_tokens_balance}, Paid: ${profile.paid_tokens_balance})`);
+
+        // If user has 0 tokens, give them the daily free allocation
+        if (totalBalance === 0) {
+          console.log('⚠️ User has 0 tokens, initializing with free daily allocation...');
+          const { error } = await supabase
+            .from('profiles')
+            .update({
+              free_tokens_balance: 6667,
+              last_token_refresh: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+
+          if (error) {
+            console.error('❌ Error updating token balance:', error);
+          } else {
+            console.log('✅ Token balance initialized to 6,667 tokens');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error ensuring token balance:', error);
+    }
+  };
+
   const createSupabaseProfile = async (userId: string, email: string, displayName?: string) => {
     console.log('📝 Creating/updating Supabase profile for user:', userId);
 
@@ -87,6 +125,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (existingProfile) {
         console.log('✅ Supabase profile already exists');
+        // Ensure the user has tokens
+        await ensureTokenBalance(userId);
         return;
       }
 
@@ -97,9 +137,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          free_tokens_balance: 10000,
+          free_tokens_balance: 6667, // Daily free allocation (~10 messages)
           paid_tokens_balance: 0,
           current_tier: 'free',
+          last_token_refresh: new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
