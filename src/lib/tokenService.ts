@@ -26,20 +26,16 @@ export async function getUserTokenBalance(userId: string): Promise<number> {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('paid_tokens_balance, free_tokens_balance')
+      .select('tokens_balance')
       .eq('id', userId)
       .maybeSingle();
 
     if (error) throw error;
 
-    // Return total balance (paid + free)
-    const paidBalance = data?.paid_tokens_balance || 0;
-    const freeBalance = data?.free_tokens_balance || 0;
-    const totalBalance = paidBalance + freeBalance;
+    const balance = data?.tokens_balance || 0;
+    console.log(`💰 Token balance for user ${userId}:`, balance);
 
-    console.log(`💰 Balance check: Paid=${paidBalance}, Free=${freeBalance}, Total=${totalBalance}`);
-
-    return totalBalance;
+    return balance;
   } catch (error) {
     console.error('Error fetching token balance:', error);
     return 0;
