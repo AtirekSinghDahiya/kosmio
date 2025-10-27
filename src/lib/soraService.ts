@@ -299,5 +299,16 @@ export async function deleteSoraVideo(videoId: string): Promise<void> {
  * Check if Sora is available
  */
 export function isSoraAvailable(): boolean {
-  return !!OPENAI_API_KEY;
+  // OpenAI Sora 2 is not yet publicly available
+  // Requires special API access from OpenAI
+  // OpenRouter keys (sk-or-v1-...) will NOT work
+  const hasKey = !!OPENAI_API_KEY;
+  const isOpenRouterKey = OPENAI_API_KEY && OPENAI_API_KEY.includes('sk-or-');
+
+  if (hasKey && isOpenRouterKey) {
+    console.warn('⚠️ [Sora] OpenRouter keys do not have access to Sora 2. You need a real OpenAI API key with Sora access.');
+    return false;
+  }
+
+  return hasKey;
 }

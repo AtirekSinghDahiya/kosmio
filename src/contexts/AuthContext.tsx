@@ -81,13 +81,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('free_tokens_balance, paid_tokens_balance')
+        .select('tokens_balance, daily_free_tokens')
         .eq('id', userId)
         .maybeSingle();
 
       if (profile) {
-        const totalBalance = (profile.free_tokens_balance || 0) + (profile.paid_tokens_balance || 0);
-        console.log(`💰 Current balance: ${totalBalance} tokens (Free: ${profile.free_tokens_balance}, Paid: ${profile.paid_tokens_balance})`);
+        const totalBalance = profile.tokens_balance || 0;
+        console.log(`💰 Current balance: ${totalBalance} tokens`);
 
         // If user has 0 tokens, give them the daily free allocation
         if (totalBalance === 0) {
@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const { error } = await supabase
             .from('profiles')
             .update({
-              free_tokens_balance: 6667,
+              tokens_balance: profile.daily_free_tokens || 5000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
