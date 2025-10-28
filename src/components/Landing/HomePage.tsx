@@ -70,10 +70,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   ];
 
   const journey = [
-    { date: 'September 15, 2024', event: 'The Idea', description: 'KroniQ AI was born from a vision to democratize AI creativity' },
-    { date: 'September 30, 2024', event: 'Basic Prototype', description: 'Built foundational structure and core architecture' },
-    { date: 'October 25, 2024', event: 'First Prototype', description: 'Completed first working prototype with AI integrations' },
-    { date: 'October 27, 2024', event: 'Public Launch', description: 'Launched first prototype to the world' }
+    { date: 'September 14, 2025', event: 'The Idea', description: 'KroniQ AI was born from a vision to democratize AI creativity' },
+    { date: 'September 30, 2025', event: 'Basic Prototype', description: 'Built foundational structure and core architecture' },
+    { date: 'October 25, 2025', event: 'First Working Prototype', description: 'Completed first working prototype with AI integrations' },
+    { date: 'October 27, 2025', event: 'Published', description: 'Published and launched to the world' }
   ];
 
   return (

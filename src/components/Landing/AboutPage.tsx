@@ -61,10 +61,10 @@ export const AboutPage: React.FC = () => {
   ];
 
   const milestones = [
-    { year: 'Sep 2024', event: 'Founded with vision to democratize AI', icon: Zap },
-    { year: 'Sep 2024', event: 'Built basic prototype and structure', icon: Award },
-    { year: 'Oct 2024', event: 'First working prototype completed', icon: Users },
-    { year: 'Oct 2024', event: 'Public launch - 100+ active users', icon: Globe }
+    { year: 'Sep 14, 2025', event: 'The Idea - Vision to democratize AI', icon: Zap },
+    { year: 'Sep 30, 2025', event: 'Built basic prototype and structure', icon: Award },
+    { year: 'Oct 25, 2025', event: 'First working prototype completed', icon: Users },
+    { year: 'Oct 27, 2025', event: 'Published and launched to the world', icon: Globe }
   ];
 
   return (
