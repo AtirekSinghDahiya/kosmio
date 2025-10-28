@@ -20,7 +20,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'free',
     description: 'Lightning fast, minimal cost',
     icon: '⚡',
-    logoUrl: 'https://avatars.githubusercontent.com/u/160713815'
+    logoUrl: 'https://pbs.twimg.com/profile_images/1683899100922511378/5lY42eHs_400x400.jpg'
   },
   'gemini-flash-lite-free': {
     id: 'gemini-flash-lite-free',
@@ -31,7 +31,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'free',
     description: 'Fast multimodal AI',
     icon: '✨',
-    logoUrl: 'https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg'
   },
   'deepseek-v3.1-free': {
     id: 'deepseek-v3.1-free',
@@ -42,404 +42,384 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'free',
     description: 'Efficient and smart',
     icon: '🧠',
-    logoUrl: 'https://avatars.githubusercontent.com/u/165199471'
+    logoUrl: 'https://github.com/deepseek-ai.png'
   },
   'llama-4-maverick-free': {
     id: 'llama-4-maverick-free',
     name: 'Llama 4 Maverick Free',
     provider: 'Meta',
-    tokensPerMessage: 800,
+    tokensPerMessage: 1000,
     costPerMessage: 0.0,
     tier: 'free',
     description: 'Latest Llama, free tier',
     icon: '🦙',
-    logoUrl: 'https://llama.meta.com/favicon.ico'
+    logoUrl: 'https://github.com/meta-llama.png'
   },
   'nemotron-nano-free': {
     id: 'nemotron-nano-free',
     name: 'Nemotron Nano 9B V2',
     provider: 'NVIDIA',
-    tokensPerMessage: 800,
+    tokensPerMessage: 700,
     costPerMessage: 0.0,
     tier: 'free',
     description: 'Fast nano model',
     icon: '🚀',
-    logoUrl: 'https://www.nvidia.com/favicon.ico'
+    logoUrl: 'https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/02-nvidia-logo-color-blk-500x200-4c25-p@2x.png'
   },
   'qwen-vl-30b-free': {
     id: 'qwen-vl-30b-free',
     name: 'Qwen3 VL 30B Thinking',
     provider: 'Qwen',
-    tokensPerMessage: 800,
+    tokensPerMessage: 900,
     costPerMessage: 0.0,
     tier: 'free',
     description: 'Visual & thinking model',
     icon: '👁️',
-    logoUrl: 'https://qianwen.aliyun.com/favicon.ico'
+    logoUrl: 'https://qianwen.alicdn.com/qianwen_avatar.png'
   },
   'claude-3-haiku': {
     id: 'claude-3-haiku',
     name: 'Claude 3 Haiku',
     provider: 'Anthropic',
-    tokensPerMessage: 800,
+    tokensPerMessage: 1200,
     costPerMessage: 0.00068,
     tier: 'budget',
     description: 'Fast Claude 3 model',
     icon: '📝',
-    logoUrl: 'https://www.anthropic.com/favicon.ico'
+    logoUrl: 'https://github.com/anthropics.png'
   },
   'perplexity-sonar': {
     id: 'perplexity-sonar',
     name: 'Perplexity Sonar',
     provider: 'Perplexity',
-    tokensPerMessage: 800,
+    tokensPerMessage: 2000,
     costPerMessage: 0.006,
     tier: 'premium',
     description: 'Web search enabled AI',
     icon: '🔍',
-    logoUrl: 'https://www.perplexity.ai/favicon.ico'
+    logoUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/perplexity-ai-icon.png'
   },
   'kimi-k2-free': {
     id: 'kimi-k2-free',
     name: 'Kimi K2 Free',
     provider: 'Moonshot',
-    tokensPerMessage: 800,
+    tokensPerMessage: 1000,
     costPerMessage: 0.0,
     tier: 'free',
     description: 'Long context support',
     icon: '🌙',
-    logoUrl: 'https://avatars.githubusercontent.com/u/60689984'
+    logoUrl: 'https://github.com/moonshot-ai.png'
   },
   'codex-mini': {
     id: 'codex-mini',
     name: 'Codex Mini',
     provider: 'OpenAI',
-    tokensPerMessage: 800,
+    tokensPerMessage: 600,
     costPerMessage: 0.00018,
     tier: 'free',
     description: 'Lightweight coding',
     icon: '💻',
-    logoUrl: 'https://openai.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
   },
   'lfm2-8b': {
     id: 'lfm2-8b',
     name: 'LiquidAI LFM2-8B',
     provider: 'LiquidAI',
-    tokensPerMessage: 800,
+    tokensPerMessage: 500,
     costPerMessage: 0.00009,
     tier: 'free',
     description: 'Efficient model',
     icon: '💧',
-    logoUrl: 'https://liquid.ai/favicon.ico'
+    logoUrl: 'https://github.com/liquid-ai.png'
   },
   'granite-4.0': {
     id: 'granite-4.0',
     name: 'Granite 4.0 Micro',
     provider: 'IBM',
-    tokensPerMessage: 800,
+    tokensPerMessage: 600,
     costPerMessage: 0.00014,
     tier: 'free',
     description: 'Micro model',
     icon: '🪨',
-    logoUrl: 'https://www.ibm.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg'
   },
   'ernie-4.5': {
     id: 'ernie-4.5',
     name: 'ERNIE 4.5 21B Thinking',
     provider: 'Baidu',
-    tokensPerMessage: 800,
+    tokensPerMessage: 850,
     costPerMessage: 0.00022,
     tier: 'free',
     description: 'Thinking model',
     icon: '🧩',
-    logoUrl: 'https://www.baidu.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Baidu_Logo.svg'
   },
   'kimi-k2': {
     id: 'kimi-k2',
     name: 'Kimi K2',
     provider: 'Moonshot',
-    tokensPerMessage: 30000,
+    tokensPerMessage: 5000,
     costPerMessage: 0.015,
     tier: 'budget',
     description: 'Long context, paid tier',
     icon: '🌙',
-    logoUrl: 'https://avatars.githubusercontent.com/u/60689984'
+    logoUrl: 'https://github.com/moonshot-ai.png'
   },
   'deepseek-v3.2': {
     id: 'deepseek-v3.2',
     name: 'DeepSeek V3.2',
     provider: 'DeepSeek',
-    tokensPerMessage: 36000,
+    tokensPerMessage: 6000,
     costPerMessage: 0.018,
     tier: 'budget',
     description: 'Advanced DeepSeek',
     icon: '🧠',
-    logoUrl: 'https://avatars.githubusercontent.com/u/165199471'
+    logoUrl: 'https://github.com/deepseek-ai.png'
   },
   'gemini-flash-image': {
     id: 'gemini-flash-image',
     name: 'Gemini 2.5 Flash Image',
     provider: 'Google',
-    tokensPerMessage: 40000,
+    tokensPerMessage: 8000,
     costPerMessage: 0.02,
     tier: 'mid',
     description: 'Image focused',
     icon: '🖼️',
-    logoUrl: 'https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg'
   },
   'qwen-vl-32b': {
     id: 'qwen-vl-32b',
     name: 'Qwen3 VL 32B Instruct',
     provider: 'Qwen',
-    tokensPerMessage: 50000,
+    tokensPerMessage: 10000,
     costPerMessage: 0.025,
     tier: 'mid',
     description: 'Advanced visual model',
     icon: '👁️',
-    logoUrl: 'https://qianwen.aliyun.com/favicon.ico'
+    logoUrl: 'https://qianwen.alicdn.com/qianwen_avatar.png'
   },
   'gpt-5-chat': {
     id: 'gpt-5-chat',
     name: 'GPT-5 Chat',
     provider: 'OpenAI',
-    tokensPerMessage: 80000,
+    tokensPerMessage: 16000,
     costPerMessage: 0.04,
     tier: 'mid',
     description: 'Latest ChatGPT with images',
     icon: '🤖',
-    logoUrl: 'https://openai.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
   },
   'nemotron-super': {
     id: 'nemotron-super',
     name: 'Nemotron Super 49B',
     provider: 'NVIDIA',
-    tokensPerMessage: 70000,
+    tokensPerMessage: 14000,
     costPerMessage: 0.035,
     tier: 'mid',
     description: 'Powerful reasoning',
     icon: '🚀',
-    logoUrl: 'https://www.nvidia.com/favicon.ico'
+    logoUrl: 'https://www.nvidia.com/content/dam/en-zz/Solutions/about-nvidia/logo-and-brand/02-nvidia-logo-color-blk-500x200-4c25-p@2x.png'
   },
   'llama-4-maverick': {
     id: 'llama-4-maverick',
     name: 'Llama 4 Maverick',
     provider: 'Meta',
-    tokensPerMessage: 76000,
+    tokensPerMessage: 15000,
     costPerMessage: 0.038,
     tier: 'mid',
     description: 'Latest Llama, paid tier',
     icon: '🦙',
-    logoUrl: 'https://llama.meta.com/favicon.ico'
+    logoUrl: 'https://github.com/meta-llama.png'
   },
   'glm-4.6': {
     id: 'glm-4.6',
     name: 'GLM 4.6',
     provider: 'Z.AI',
-    tokensPerMessage: 84000,
+    tokensPerMessage: 16500,
     costPerMessage: 0.042,
     tier: 'mid',
     description: 'Advanced model',
     icon: '⚙️',
-    logoUrl: 'https://avatars.githubusercontent.com/u/48584855'
+    logoUrl: 'https://zhipuai.cn/favicon.ico'
   },
   'gpt-5-codex': {
     id: 'gpt-5-codex',
     name: 'GPT-5 Codex',
     provider: 'OpenAI',
-    tokensPerMessage: 120000,
+    tokensPerMessage: 24000,
     costPerMessage: 0.06,
     tier: 'premium',
     description: 'Best for coding',
     icon: '💻',
-    logoUrl: 'https://openai.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
   },
   'claude-haiku-4.5': {
     id: 'claude-haiku-4.5',
     name: 'Claude Haiku 4.5',
     provider: 'Anthropic',
-    tokensPerMessage: 40000,
+    tokensPerMessage: 8000,
     costPerMessage: 0.02,
     tier: 'mid',
     description: 'Fast Claude 4.5',
     icon: '📝',
-    logoUrl: 'https://www.anthropic.com/favicon.ico'
+    logoUrl: 'https://github.com/anthropics.png'
   },
   'claude-sonnet': {
     id: 'claude-sonnet',
     name: 'Claude Sonnet 4.5',
     provider: 'Anthropic',
-    tokensPerMessage: 600000,
+    tokensPerMessage: 120000,
     costPerMessage: 0.30,
     tier: 'premium',
     description: 'Advanced reasoning',
     icon: '🎵',
-    logoUrl: 'https://www.anthropic.com/favicon.ico'
+    logoUrl: 'https://github.com/anthropics.png'
   },
   'kimi-k2-0905': {
     id: 'kimi-k2-0905',
     name: 'Kimi K2 0905',
     provider: 'MoonshotAI',
-    tokensPerMessage: 36000,
+    tokensPerMessage: 7000,
     costPerMessage: 0.018,
     tier: 'budget',
     description: 'Latest Kimi model',
     icon: '🌙',
-    logoUrl: 'https://avatars.githubusercontent.com/u/60689984'
+    logoUrl: 'https://github.com/moonshot-ai.png'
   },
   'perplexity-sonar-pro': {
     id: 'perplexity-sonar-pro',
     name: 'Perplexity Sonar Pro',
     provider: 'Perplexity',
-    tokensPerMessage: 90000,
+    tokensPerMessage: 18000,
     costPerMessage: 0.045,
     tier: 'mid',
     description: 'Pro web search with vision',
     icon: '🔍',
-    logoUrl: 'https://www.perplexity.ai/favicon.ico'
+    logoUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/perplexity-ai-icon.png'
   },
   'perplexity-sonar-reasoning': {
     id: 'perplexity-sonar-reasoning',
     name: 'Perplexity Sonar Reasoning Pro',
     provider: 'Perplexity',
-    tokensPerMessage: 160000,
+    tokensPerMessage: 32000,
     costPerMessage: 0.08,
     tier: 'premium',
     description: 'Advanced reasoning with search',
     icon: '🧠',
-    logoUrl: 'https://www.perplexity.ai/favicon.ico'
+    logoUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/perplexity-ai-icon.png'
   },
   'perplexity-sonar-deep': {
     id: 'perplexity-sonar-deep',
     name: 'Perplexity Sonar Deep Research',
     provider: 'Perplexity',
-    tokensPerMessage: 300000,
+    tokensPerMessage: 60000,
     costPerMessage: 0.15,
     tier: 'premium',
     description: 'Deep research capabilities',
     icon: '🔬',
-    logoUrl: 'https://www.perplexity.ai/favicon.ico'
+    logoUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/perplexity-ai-icon.png'
   },
   'claude-opus-4': {
     id: 'claude-opus-4',
     name: 'Claude Opus 4',
     provider: 'Anthropic',
-    tokensPerMessage: 1000000,
+    tokensPerMessage: 200000,
     costPerMessage: 0.50,
     tier: 'ultra-premium',
     description: 'Powerful Opus model',
     icon: '👑',
-    logoUrl: 'https://www.anthropic.com/favicon.ico'
+    logoUrl: 'https://github.com/anthropics.png'
   },
   'claude-opus-4.1': {
     id: 'claude-opus-4.1',
     name: 'Claude Opus 4.1',
     provider: 'Anthropic',
-    tokensPerMessage: 1100000,
+    tokensPerMessage: 220000,
     costPerMessage: 0.55,
     tier: 'ultra-premium',
     description: 'Ultimate AI model',
     icon: '👑',
-    logoUrl: 'https://www.anthropic.com/favicon.ico'
+    logoUrl: 'https://github.com/anthropics.png'
   },
   'dall-e-3': {
     id: 'dall-e-3',
     name: 'DALL-E 3',
     provider: 'OpenAI',
-    tokensPerMessage: 160000,
+    tokensPerMessage: 32000,
     costPerMessage: 0.08,
     tier: 'premium',
     description: 'High quality images',
     icon: '🎨',
-    logoUrl: 'https://openai.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
   },
   'stable-diffusion-xl': {
     id: 'stable-diffusion-xl',
     name: 'Stable Diffusion XL',
     provider: 'Stability AI',
-    tokensPerMessage: 100000,
+    tokensPerMessage: 20000,
     costPerMessage: 0.05,
     tier: 'mid',
     description: 'Open source image gen',
     icon: '🎨',
-    logoUrl: 'https://stability.ai/favicon.ico'
+    logoUrl: 'https://github.com/Stability-AI.png'
   },
   'firefly': {
     id: 'firefly',
     name: 'Firefly',
     provider: 'Adobe',
-    tokensPerMessage: 140000,
+    tokensPerMessage: 28000,
     costPerMessage: 0.07,
     tier: 'premium',
     description: 'Commercial safe images',
     icon: '🔥',
-    logoUrl: 'https://www.adobe.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Adobe_Systems_logo_and_wordmark.svg'
   },
   'sora': {
     id: 'sora',
     name: 'Sora',
     provider: 'OpenAI',
-    tokensPerMessage: 1000000,
+    tokensPerMessage: 200000,
     costPerMessage: 0.50,
     tier: 'ultra-premium',
     description: 'Text to video',
     icon: '🎬',
-    logoUrl: 'https://openai.com/favicon.ico'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
   },
   'eleven-labs': {
     id: 'eleven-labs',
     name: 'ElevenLabs',
     provider: 'ElevenLabs',
-    tokensPerMessage: 60000,
+    tokensPerMessage: 12000,
     costPerMessage: 0.03,
     tier: 'mid',
     description: 'Natural voice synthesis',
     icon: '🎙️',
-    logoUrl: 'https://elevenlabs.io/favicon.ico'
+    logoUrl: 'https://github.com/elevenlabs.png'
   }
 };
 
 export function getModelCost(modelId: string): ModelTokenCost {
-  return MODEL_TOKEN_COSTS[modelId] || MODEL_TOKEN_COSTS['grok-4-fast'];
-}
-
-export function calculateTokensForMessage(
-  modelId: string,
-  messageLength: number = 200
-): number {
-  const model = getModelCost(modelId);
-  const lengthMultiplier = Math.max(1, messageLength / 200);
-  return Math.ceil(model.tokensPerMessage * lengthMultiplier);
-}
-
-export function isModelFree(modelId: string): boolean {
-  const model = getModelCost(modelId);
-  return model.tier === 'free';
-}
-
-export function getModelsByTier(tier: ModelTokenCost['tier']): ModelTokenCost[] {
-  return Object.values(MODEL_TOKEN_COSTS).filter(m => m.tier === tier);
-}
-
-export function getTierColor(tier: ModelTokenCost['tier']): string {
-  switch (tier) {
-    case 'free': return 'text-green-400';
-    case 'budget': return 'text-blue-400';
-    case 'mid': return 'text-yellow-400';
-    case 'premium': return 'text-orange-400';
-    case 'ultra-premium': return 'text-red-400';
-    default: return 'text-gray-400';
-  }
+  return MODEL_TOKEN_COSTS[modelId] || {
+    id: modelId,
+    name: modelId,
+    provider: 'Unknown',
+    tokensPerMessage: 1000,
+    costPerMessage: 0.01,
+    tier: 'mid',
+    description: 'Unknown model',
+    icon: '❓',
+  };
 }
 
 export function getTierBadgeColor(tier: ModelTokenCost['tier']): string {
-  switch (tier) {
-    case 'free': return 'bg-green-500/20 text-green-400 border-green-500/30';
-    case 'budget': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-    case 'mid': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-    case 'premium': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-    case 'ultra-premium': return 'bg-red-500/20 text-red-400 border-red-500/30';
-    default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-  }
+  const colors = {
+    'free': 'bg-green-500/20 text-green-300 border-green-500/30',
+    'budget': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    'mid': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    'premium': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    'ultra-premium': 'bg-red-500/20 text-red-300 border-red-500/30'
+  };
+  return colors[tier] || colors.mid;
 }
 
 export function formatTokenDisplay(tokens: number): string {
@@ -452,19 +432,20 @@ export function formatTokenDisplay(tokens: number): string {
   return tokens.toString();
 }
 
-export function calculateMessagesFromTokens(tokens: number, modelId: string): number {
-  const model = getModelCost(modelId);
-  return Math.floor(tokens / model.tokensPerMessage);
+export function isModelFree(modelId: string): boolean {
+  const model = MODEL_TOKEN_COSTS[modelId];
+  return model?.tier === 'free';
 }
 
-export function estimateMixedUsage(tokens: number): {
-  model: string;
-  messages: number;
-}[] {
-  return [
-    { model: 'Grok 4 Fast', messages: Math.floor(tokens / 400) },
-    { model: 'GPT-5 Chat', messages: Math.floor(tokens / 80000) },
-    { model: 'Claude Sonnet', messages: Math.floor(tokens / 600000) },
-    { model: 'Claude Opus', messages: Math.floor(tokens / 1100000) }
-  ];
+export function estimateMixedUsage(chatMessages: number, imageGenerations: number, videoSeconds: number): number {
+  const chatTokens = chatMessages * 1000;
+  const imageTokens = imageGenerations * 10000;
+  const videoTokens = videoSeconds * 1000;
+  return chatTokens + imageTokens + videoTokens;
+}
+
+export function calculateTokensForMessage(message: string, modelId: string): number {
+  const model = getModelCost(modelId);
+  const baseTokens = Math.ceil(message.length / 4);
+  return baseTokens + (model.tokensPerMessage * 0.1);
 }
