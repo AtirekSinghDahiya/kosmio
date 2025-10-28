@@ -59,7 +59,7 @@ export const ContactPage: React.FC = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      content: 'kroniq.ca@gmail.com',
+      content: 'hello@kroniq.ai',
       description: 'We respond within 24 hours'
     },
     {
@@ -71,8 +71,8 @@ export const ContactPage: React.FC = () => {
     {
       icon: MapPin,
       title: 'Office',
-      content: 'Toronto, CA',
-      description: 'Building the future of AI'
+      content: 'San Francisco, CA',
+      description: 'Visit us at our HQ'
     }
   ];
 

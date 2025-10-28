@@ -4,9 +4,6 @@ import { HomePage } from './HomePage';
 import { AboutPage } from './AboutPage';
 import { PricingPage } from './PricingPage';
 import { ContactPage } from './ContactPage';
-import { ServicesPage } from './ServicesPage';
-import { CareersPage } from './CareersPage';
-import { LegalPages } from '../Legal/LegalPages';
 import { FloatingElements } from './FloatingElements';
 import { CosmicBackground } from '../Layout/CosmicBackground';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -17,10 +14,10 @@ interface LandingRouterProps {
 
 export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
   const { theme } = useTheme();
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'privacy' | 'terms' | 'cookies' | 'security'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact'>('home');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'privacy' | 'terms' | 'cookies' | 'security') => {
+  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact') => {
     setCurrentPage(page);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
@@ -43,18 +40,6 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
         return <PricingPage onGetStarted={onGetStarted} />;
       case 'contact':
         return <ContactPage />;
-      case 'services':
-        return <ServicesPage />;
-      case 'careers':
-        return <CareersPage />;
-      case 'privacy':
-        return <LegalPages page="privacy" />;
-      case 'terms':
-        return <LegalPages page="terms" />;
-      case 'cookies':
-        return <LegalPages page="cookies" />;
-      case 'security':
-        return <LegalPages page="security" />;
       default:
         return <HomePage onGetStarted={onGetStarted} />;
     }
@@ -102,17 +87,15 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => handleNavigate('services')} className="hover:text-white transition-colors">
-                      Services
-                    </button>
-                  </li>
-                  <li>
                     <button onClick={() => handleNavigate('pricing')} className="hover:text-white transition-colors">
                       Pricing
                     </button>
                   </li>
                   <li>
                     <a href="#" className="hover:text-white transition-colors">Documentation</a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-white transition-colors">API</a>
                   </li>
                 </ul>
               </div>
@@ -126,9 +109,10 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => handleNavigate('careers')} className="hover:text-white transition-colors">
-                      Careers
-                    </button>
+                    <a href="#" className="hover:text-white transition-colors">Careers</a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-white transition-colors">Blog</a>
                   </li>
                   <li>
                     <button onClick={() => handleNavigate('contact')} className="hover:text-white transition-colors">
@@ -142,24 +126,16 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
                 <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Legal</h4>
                 <ul className="space-y-3 text-sm text-white/60">
                   <li>
-                    <button onClick={() => handleNavigate('privacy')} className="hover:text-white transition-colors">
-                      Privacy Policy
-                    </button>
+                    <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                   </li>
                   <li>
-                    <button onClick={() => handleNavigate('terms')} className="hover:text-white transition-colors">
-                      Terms of Service
-                    </button>
+                    <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
                   </li>
                   <li>
-                    <button onClick={() => handleNavigate('cookies')} className="hover:text-white transition-colors">
-                      Cookie Policy
-                    </button>
+                    <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
                   </li>
                   <li>
-                    <button onClick={() => handleNavigate('security')} className="hover:text-white transition-colors">
-                      Security
-                    </button>
+                    <a href="#" className="hover:text-white transition-colors">Security</a>
                   </li>
                 </ul>
               </div>
@@ -171,11 +147,17 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
               </p>
 
               <div className="flex items-center gap-6">
-                <a href="https://www.linkedin.com/company/kroniq-ai/" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors text-sm">
+                <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">
+                  Twitter
+                </a>
+                <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">
                   LinkedIn
                 </a>
-                <a href="https://www.youtube.com/@KroniQ-AI" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-white transition-colors text-sm">
-                  YouTube
+                <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">
+                  GitHub
+                </a>
+                <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">
+                  Discord
                 </a>
               </div>
             </div>
