@@ -81,21 +81,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_free_tokens')
+        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid')
         .eq('id', userId)
         .maybeSingle();
 
       if (profile) {
-        const totalBalance = profile.tokens_balance || 0;
-        console.log(`💰 Current balance: ${totalBalance} tokens`);
+        const isFreeUser = !profile.is_paid && profile.current_tier === 'free';
+        const relevantBalance = isFreeUser ? profile.daily_tokens_remaining : profile.tokens_balance;
+        console.log(`💰 Current balance: ${relevantBalance} tokens (Free user: ${isFreeUser})`);
 
         // If user has 0 tokens, give them the daily free allocation
-        if (totalBalance === 0) {
-          console.log('⚠️ User has 0 tokens, initializing with free daily allocation...');
+        if (relevantBalance === 0 && isFreeUser) {
+          console.log('⚠️ Free user has 0 daily tokens, initializing with free daily allocation...');
           const { error } = await supabase
             .from('profiles')
             .update({
-              tokens_balance: profile.daily_free_tokens || 5000,
+              tokens_balance: 5000,
+              daily_tokens_remaining: 5000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -104,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (error) {
             console.error('❌ Error updating token balance:', error);
           } else {
-            console.log('✅ Token balance initialized to 6,667 tokens');
+            console.log('✅ Token balance initialized to 5,000 tokens');
           }
         }
       }
