@@ -1,9 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
 
 export const CosmicBackground: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { themeColors } = useTheme();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -29,7 +27,6 @@ export const CosmicBackground: React.FC = () => {
         animation-duration: ${duration}s;
         animation-delay: ${delay}s;
         opacity: ${Math.random() * 0.5 + 0.3};
-        background: ${themeColors.textMuted};
       `;
 
       canvasRef.current.appendChild(particle);
@@ -39,15 +36,9 @@ export const CosmicBackground: React.FC = () => {
     return () => {
       particles.forEach(p => p.remove());
     };
-  }, [themeColors]);
+  }, []);
 
   return (
-    <div
-      className="cosmic-particles"
-      ref={canvasRef}
-      style={{
-        background: themeColors.background,
-      }}
-    />
+    <div className="cosmic-particles" ref={canvasRef} />
   );
 };

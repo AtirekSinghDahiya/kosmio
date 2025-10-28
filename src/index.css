@@ -63,9 +63,9 @@ body {
 
 .gradient-background {
   position: relative;
-  background: linear-gradient(300deg, #0088ff, #9600ff, #c500ff, #6600ff);
-  background-size: 240% 240%;
-  animation: gradient-animation 24s ease infinite;
+  background: linear-gradient(300deg, #0a0e27, #4d007c, #003190, #006b7d);
+  background-size: 400% 400%;
+  animation: gradient-animation 20s ease infinite;
 }
 
 .gradient-background::before {
@@ -86,8 +86,14 @@ body {
   0% {
     background-position: 0% 50%;
   }
+  25% {
+    background-position: 50% 75%;
+  }
   50% {
     background-position: 100% 50%;
+  }
+  75% {
+    background-position: 50% 25%;
   }
   100% {
     background-position: 0% 50%;
@@ -107,9 +113,9 @@ body {
 
 /* Light Theme Styles */
 .light-theme .gradient-background {
-  background: linear-gradient(300deg, #ff00f6, #ffd200, #ff9900, #3eff00, #00ddff);
-  background-size: 300% 300%;
-  animation: gradient-animation 30s ease infinite;
+  background: linear-gradient(300deg, deepskyblue, #e30490, #ffa100, #f6f9f5);
+  background-size: 240% 240%;
+  animation: gradient-animation 16s ease infinite;
 }
 
 .light-theme .gradient-background::before {

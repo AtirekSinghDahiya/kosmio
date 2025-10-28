@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FolderOpen, CreditCard, Settings, LogOut, BarChart3, Sparkles, Mic, Menu, X, Presentation, User, Database } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { TokenBalanceDisplay } from '../Common/TokenBalanceDisplay';
 
 interface SidebarProps {
   currentView: string;
@@ -83,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
       >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-white/10 flex items-center gap-3 cursor-pointer" onClick={() => onViewChange('chat')}>
-          <img src={"/kroniq-full-logo.svg"} alt="KroniQ" className="w-10 h-10 flex-shrink-0" />
+          <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-10 h-10 flex-shrink-0" />
           {(isExpanded || isMobile) && (
             <div className="overflow-hidden">
               <p className="text-white font-bold text-sm whitespace-nowrap">KroniQ</p>
@@ -118,13 +117,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
         </nav>
 
         <div className="p-3 border-t border-white/10 space-y-2">
-          {userData && (
-            <div className="mb-2">
-              <TokenBalanceDisplay
-                isExpanded={isExpanded || isMobile}
-                showDetails={false}
-                onPurchaseClick={() => handleMenuItemClick('billing')}
-              />
+          {(isExpanded || isMobile) && userData && (
+            <div className="px-3 py-3 bg-white/5 rounded-xl mb-2">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-white/70">Token Usage</span>
+                <span className="text-xs font-bold text-cyan-400 uppercase">
+                  {userData.plan}
+                </span>
+              </div>
+              <div className="w-full bg-white/10 rounded-full h-1.5 mb-1">
+                <div
+                  className="bg-gradient-to-r from-cyan-500 to-blue-600 h-1.5 rounded-full transition-all"
+                  style={{
+                    width: `${Math.min(((userData.tokensUsed || 0) / (userData.tokensLimit || 1)) * 100, 100)}%`
+                  }}
+                />
+              </div>
+              <p className="text-xs text-white/50">
+                {userData.tokensUsed?.toLocaleString() || 0} / {userData.tokensLimit?.toLocaleString() || 0}
+              </p>
             </div>
           )}
 

@@ -601,7 +601,7 @@ export const MainChat: React.FC = () => {
                   {/* Avatar - Left for AI, Right for User */}
                   {message.role === 'assistant' && (
                     <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
-                      <img src={"/kroniq-full-logo.svg"} alt="KroniQ" className="w-8 h-8" />
+                      <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-8 h-8" />
                     </div>
                   )}
 
@@ -684,7 +684,7 @@ export const MainChat: React.FC = () => {
               {isLoading && (
                 <div className="flex gap-3 justify-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
-                    <img src={"/kroniq-full-logo.svg"} alt="KroniQ" className="w-8 h-8 animate-pulse" />
+                    <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-8 h-8 animate-pulse" />
                   </div>
                   <div className={`rounded-2xl rounded-bl-md px-4 py-3 ${
                     theme === 'light' ? 'bg-gray-100' : 'bg-gray-800/50'
