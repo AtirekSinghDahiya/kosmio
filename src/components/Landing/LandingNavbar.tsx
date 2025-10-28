@@ -24,6 +24,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
 
   const navItems = [
     { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About' },
     { id: 'services', label: 'Services' },
     { id: 'docs', label: 'Docs' },
     { id: 'careers', label: 'Careers' },
@@ -49,7 +50,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
                 className="flex items-center gap-3 group/logo"
               >
                 <img
-                  src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+                  src={"/kroniq-full-logo.svg"}
                   alt="KroniQ"
                   className="h-12 md:h-14 w-auto object-contain group-hover/logo:scale-110 transition-transform duration-300 drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                 />

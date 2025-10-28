@@ -11,7 +11,7 @@ export const LegalPages: React.FC<LegalPagesProps> = ({ page }) => {
     privacy: {
       icon: Shield,
       title: 'Privacy Policy',
-      lastUpdated: 'October 27, 2024',
+      lastUpdated: 'October 27, 2025',
       content: [
         {
           section: 'Introduction',
@@ -46,7 +46,7 @@ export const LegalPages: React.FC<LegalPagesProps> = ({ page }) => {
     terms: {
       icon: FileText,
       title: 'Terms of Service',
-      lastUpdated: 'October 27, 2024',
+      lastUpdated: 'October 27, 2025',
       content: [
         {
           section: 'Acceptance of Terms',
@@ -89,7 +89,7 @@ export const LegalPages: React.FC<LegalPagesProps> = ({ page }) => {
     cookies: {
       icon: Cookie,
       title: 'Cookie Policy',
-      lastUpdated: 'October 27, 2024',
+      lastUpdated: 'October 27, 2025',
       content: [
         {
           section: 'What Are Cookies',
@@ -120,7 +120,7 @@ export const LegalPages: React.FC<LegalPagesProps> = ({ page }) => {
     security: {
       icon: Lock,
       title: 'Security',
-      lastUpdated: 'October 27, 2024',
+      lastUpdated: 'October 27, 2025',
       content: [
         {
           section: 'Our Commitment',

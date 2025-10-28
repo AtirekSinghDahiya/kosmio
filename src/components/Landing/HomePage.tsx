@@ -70,10 +70,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   ];
 
   const journey = [
-    { date: 'September 15, 2024', event: 'The Idea', description: 'KroniQ AI was born from a vision to democratize AI creativity' },
-    { date: 'September 30, 2024', event: 'Basic Prototype', description: 'Built foundational structure and core architecture' },
-    { date: 'October 25, 2024', event: 'First Prototype', description: 'Completed first working prototype with AI integrations' },
-    { date: 'October 27, 2024', event: 'Public Launch', description: 'Launched first prototype to the world' }
+    { date: 'September 14, 2025', event: 'The Idea', description: 'KroniQ AI was born from a vision to democratize AI creativity' },
+    { date: 'September 30, 2025', event: 'Basic Prototype', description: 'Built foundational structure and core architecture' },
+    { date: 'October 25, 2025', event: 'First Working Prototype', description: 'Completed first working prototype with AI integrations' },
+    { date: 'October 27, 2025', event: 'Published', description: 'Published and launched to the world' }
   ];
 
   return (
@@ -89,7 +89,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           {/* Logo Animation */}
           <div className="relative inline-block mb-8">
             <img
-              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+              src={"/kroniq-full-logo.svg"}
               alt="KroniQ"
               className="relative h-48 md:h-64 w-auto mx-auto object-contain drop-shadow-[0_0_30px_rgba(0,255,240,0.8)] floating-animation"
             />
@@ -294,10 +294,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               Pay only for what you use. Buy tokens once or subscribe monthly and save 10%.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 glass-panel rounded-full border border-[#00FFF0]/30">
-              <Sparkles className="w-4 h-4 text-[#00FFF0]" />
-              <span className="text-sm text-white/80">1 USD = 10,000 KroniQ Tokens • 2x cost multiplier on all AI requests</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
