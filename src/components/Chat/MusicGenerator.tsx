@@ -3,8 +3,6 @@ import { Music, Loader2, Download, X } from 'lucide-react';
 import { generateAndWaitForMusic } from '../../lib/sunoService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
-import { saveMusicToProject } from '../../lib/contentSaveService';
 
 interface MusicGeneratorProps {
   onClose: () => void;
@@ -14,7 +12,6 @@ interface MusicGeneratorProps {
 export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initialPrompt = '' }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
-  const { user } = useAuth();
   const [prompt, setPrompt] = useState(initialPrompt);
   const [style, setStyle] = useState('');
   const [title, setTitle] = useState('');
@@ -61,19 +58,6 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initial
 
       setGeneratedTracks(tracks);
       showToast('success', 'Success!', 'Music generated successfully!');
-
-      // Save to project
-      if (user && tracks.length > 0) {
-        try {
-          await saveMusicToProject(user.uid, prompt, tracks[0].audioUrl, {
-            model: 'suno-v3.5',
-            title: tracks[0].title
-          });
-          console.log('✅ Music saved to project');
-        } catch (saveError) {
-          console.error('Failed to save music to project:', saveError);
-        }
-      }
     } catch (error: any) {
       console.error('Suno generation error:', error);
 
