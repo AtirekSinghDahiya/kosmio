@@ -75,7 +75,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'free',
     description: 'Visual & thinking model',
     icon: '👁️',
-    logoUrl: 'https://avatars.githubusercontent.com/u/135470043'
+    logoUrl: 'https://qianwen.alicdn.com/qianwen_avatar.png'
   },
   'claude-3-haiku': {
     id: 'claude-3-haiku',
@@ -152,7 +152,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'free',
     description: 'Thinking model',
     icon: '🧩',
-    logoUrl: 'https://github.com/PaddlePaddle.png'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Baidu_Logo.svg'
   },
   'kimi-k2': {
     id: 'kimi-k2',
@@ -196,7 +196,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'mid',
     description: 'Advanced visual model',
     icon: '👁️',
-    logoUrl: 'https://avatars.githubusercontent.com/u/135470043'
+    logoUrl: 'https://qianwen.alicdn.com/qianwen_avatar.png'
   },
   'gpt-5-chat': {
     id: 'gpt-5-chat',
@@ -240,7 +240,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tier: 'mid',
     description: 'Advanced model',
     icon: '⚙️',
-    logoUrl: 'https://avatars.githubusercontent.com/u/48584855'
+    logoUrl: 'https://zhipuai.cn/favicon.ico'
   },
   'gpt-5-codex': {
     id: 'gpt-5-codex',

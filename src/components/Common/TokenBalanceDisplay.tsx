@@ -24,10 +24,10 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     try {
       console.log('💰 Fetching token balance for user:', user.uid);
 
-      // Get user's token balance from profiles table - check daily_tokens_remaining for free users
+      // Get user's token balance from profiles table
       const { data: profileData, error } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_tokens_remaining, current_tier, is_paid')
+        .select('tokens_balance')
         .eq('id', user.uid)
         .maybeSingle();
 
@@ -35,12 +35,8 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         console.error('Error fetching token balance:', error);
         setBalance(0);
       } else if (profileData) {
-        // Free users should see daily_tokens_remaining, paid users see tokens_balance
-        const isFreeUser = !profileData.is_paid && profileData.current_tier === 'free';
-        const tokenBalance = isFreeUser
-          ? (profileData.daily_tokens_remaining || 0)
-          : (profileData.tokens_balance || 0);
-        console.log('✅ Token balance:', tokenBalance, '(Free user:', isFreeUser, ')');
+        const tokenBalance = profileData.tokens_balance || 0;
+        console.log('✅ Token balance:', tokenBalance);
         setBalance(tokenBalance);
       } else {
         console.log('⚠️ No profile found for user');
@@ -75,12 +71,8 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         },
         (payload) => {
           console.log('💰 Token balance updated via realtime:', payload);
-          if (payload.new) {
-            const profile = payload.new as any;
-            const isFreeUser = !profile.is_paid && profile.current_tier === 'free';
-            const newBalance = isFreeUser
-              ? (profile.daily_tokens_remaining || 0)
-              : (profile.tokens_balance || 0);
+          if (payload.new && 'tokens_balance' in payload.new) {
+            const newBalance = (payload.new as any).tokens_balance || 0;
             console.log('📊 New balance:', newBalance);
             setBalance(newBalance);
           }
