@@ -3,8 +3,9 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useToast } from '../../contexts/ToastContext';
-import { User, Bell, Shield, Trash2, Sun, Moon, ArrowLeft } from 'lucide-react';
+import { User, Bell, Shield, Trash2, Sun, Moon, ArrowLeft, Palette } from 'lucide-react';
 import { ChatSidebar } from '../Chat/ChatSidebar';
+import { ThemeSelector } from './ThemeSelector';
 import { getProjects, deleteProject, renameProject } from '../../lib/chatService';
 import { supabase } from '../../lib/supabaseClient';
 import { updateProfile } from 'firebase/auth';
@@ -18,7 +19,7 @@ interface NotificationSettings {
 
 export const SettingsView: React.FC = () => {
   const { userData, currentUser } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { themeColors } = useTheme();
   const { navigateTo } = useNavigation();
   const { showToast } = useToast();
   const [displayName, setDisplayName] = useState('');
@@ -196,38 +197,7 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="glass-panel rounded-2xl p-6 border border-white/10 backdrop-blur-xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-yellow-500/30 to-orange-500/30 flex items-center justify-center border border-white/20">
-                {theme === 'dark' ? <Moon className="w-5 h-5 text-yellow-400" /> : <Sun className="w-5 h-5 text-orange-400" />}
-              </div>
-              <h2 className="text-xl font-bold text-white">Appearance</h2>
-            </div>
-
-            <div className="space-y-4">
-              <label className="flex items-center justify-between cursor-pointer p-4 rounded-lg hover:bg-white/5 transition-all">
-                <div>
-                  <div className="font-medium text-white">Theme</div>
-                  <div className="text-sm text-white/60">Switch between light and dark mode</div>
-                </div>
-                <button
-                  onClick={toggleTheme}
-                  className="relative inline-flex items-center h-9 rounded-full w-16 transition-all focus:outline-none focus:ring-2 focus:ring-[#00FFF0] border border-white/10"
-                  style={{ backgroundColor: theme === 'dark' ? 'rgba(138, 43, 226, 0.3)' : 'rgba(255, 165, 0, 0.3)' }}
-                >
-                  <span
-                    className={`inline-block w-7 h-7 transform rounded-full bg-white shadow-lg transition-transform ${
-                      theme === 'dark' ? 'translate-x-8' : 'translate-x-1'
-                    }`}
-                  >
-                    {theme === 'dark' ? (
-                      <Moon className="w-4 h-4 text-purple-600 m-auto mt-1.5" />
-                    ) : (
-                      <Sun className="w-4 h-4 text-orange-500 m-auto mt-1.5" />
-                    )}
-                  </span>
-                </button>
-              </label>
-            </div>
+            <ThemeSelector />
           </div>
 
           <div className="glass-panel rounded-2xl p-6 border border-white/10 backdrop-blur-xl">
