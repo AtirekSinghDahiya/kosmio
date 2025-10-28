@@ -86,14 +86,8 @@ body {
   0% {
     background-position: 0% 50%;
   }
-  25% {
-    background-position: 50% 75%;
-  }
   50% {
     background-position: 100% 50%;
-  }
-  75% {
-    background-position: 50% 25%;
   }
   100% {
     background-position: 0% 50%;
