@@ -59,7 +59,7 @@ export const ContactPage: React.FC = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      content: 'hello@kroniq.ai',
+      content: 'kroniq.ca@gmail.com',
       description: 'We respond within 24 hours'
     },
     {
@@ -71,8 +71,8 @@ export const ContactPage: React.FC = () => {
     {
       icon: MapPin,
       title: 'Office',
-      content: 'San Francisco, CA',
-      description: 'Visit us at our HQ'
+      content: 'Toronto, CA',
+      description: 'Building the future of AI'
     }
   ];
 
@@ -237,26 +237,6 @@ export const ContactPage: React.FC = () => {
               </div>
             </Floating3DCard>
           </div>
-        </div>
-      </section>
-
-      {/* Map Section Placeholder */}
-      <section className="relative py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <Floating3DCard>
-            <div className="glass-panel rounded-3xl overflow-hidden border border-white/20">
-              <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/5 to-[#8A2BE2]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative text-center p-8">
-                  <MapPin className="w-16 h-16 mx-auto mb-6 text-[#00FFF0]" />
-                  <h3 className="text-3xl font-bold text-white mb-4">Visit Our Office</h3>
-                  <p className="text-xl text-white/70">
-                    123 Innovation Drive, San Francisco, CA 94102
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Floating3DCard>
         </div>
       </section>
     </div>

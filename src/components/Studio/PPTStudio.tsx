@@ -3,7 +3,9 @@ import { ArrowLeft, Presentation, Sparkles, Download, Loader2, Layout, Palette, 
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../hooks/useAuth';
 import { getOpenRouterResponse } from '../../lib/openRouterService';
+import { savePPTToProject } from '../../lib/contentSaveService';
 
 interface PPTStudioProps {
   projectId?: string;
@@ -118,6 +120,7 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId }) => {
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { user } = useAuth();
 
   const [topic, setTopic] = useState('');
   const [slideCount, setSlideCount] = useState(10);
@@ -177,6 +180,19 @@ Keep content concise and impactful.`;
       setSlides(generatedSlides);
       setCurrentSlideIndex(0);
       showToast('success', 'Presentation Generated', `Created ${generatedSlides.length} slides successfully!`);
+
+      // Save to project
+      if (user) {
+        try {
+          await savePPTToProject(user.uid, topic, generatedSlides, {
+            slideCount: generatedSlides.length,
+            theme: selectedTemplate.name
+          });
+          console.log('✅ Presentation saved to project');
+        } catch (saveError) {
+          console.error('Failed to save presentation to project:', saveError);
+        }
+      }
     } catch (error: any) {
       console.error('PPT Generation Error:', error);
       showToast('error', 'Generation Failed', error.message || 'Failed to generate presentation. Please try again.');

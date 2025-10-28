@@ -42,11 +42,11 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
       sections: [
         {
           heading: 'How Token-Based Billing Works',
-          content: 'KroniQ uses a fair, transparent token-based pricing system:\n\n• 1 USD = 10,000 KroniQ Tokens (KQ Tokens)\n• You only pay for what you use\n• Tokens never expire\n• No hidden fees or subscriptions (unless you choose monthly auto-refill)',
+          content: 'KroniQ uses a fair, transparent token-based pricing system:\n\n• You only pay for what you use\n• Tokens never expire\n• No hidden fees or subscriptions (unless you choose monthly auto-refill)',
         },
         {
           heading: 'Token Pricing Formula',
-          content: 'Every AI request costs tokens based on:\n\nBase Cost (from AI provider) × 2 = Your Cost\n\nExample:\n• If OpenRouter charges $0.001 for a request\n• You pay: $0.001 × 2 = $0.002\n• In tokens: $0.002 × 10,000 = 20 tokens\n\nThe 2x multiplier covers:\n• Infrastructure costs\n• Platform maintenance\n• Customer support\n• Continuous improvements',
+          content: 'Every AI request costs tokens based on:\n\nBase Cost × 2 = Your Cost\n\nThe 2x multiplier covers:\n• Infrastructure costs\n• Platform maintenance\n• Customer support\n• Continuous improvements',
         },
         {
           heading: 'Free vs Paid Tiers',

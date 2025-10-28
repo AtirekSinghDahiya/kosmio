@@ -73,14 +73,26 @@ export async function generateSunoMusic(
   if (!response.ok) {
     const errorText = await response.text().catch(() => response.statusText);
     console.error('Suno API error:', response.status, errorText);
-    throw new Error(`API Error (${response.status}): ${errorText}`);
+
+    // Try to parse error message
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.message) {
+        throw new Error(`Suno API Error: ${errorData.message}`);
+      }
+    } catch (e) {
+      // Not JSON, use raw text
+    }
+
+    throw new Error(`API Error (${response.status}): ${errorText || 'Unknown error'}`);
   }
 
   const data: SunoGenerationResponse = await response.json();
 
   if (data.code !== 200) {
     console.error('Suno generation failed:', data);
-    throw new Error(data.message || 'Failed to generate music');
+    const errorMsg = data.message || 'Failed to generate music';
+    throw new Error(`Suno Error: ${errorMsg}`);
   }
 
   return data.data.taskId;

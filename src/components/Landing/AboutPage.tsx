@@ -61,10 +61,10 @@ export const AboutPage: React.FC = () => {
   ];
 
   const milestones = [
-    { year: '2023', event: 'Founded with vision to democratize AI', icon: Zap },
-    { year: '2024', event: 'Reached 100K active users', icon: Users },
-    { year: '2024', event: 'Launched Code & Design Studios', icon: Award },
-    { year: '2025', event: 'Serving 500K+ creators globally', icon: Globe }
+    { year: 'Sep 14, 2025', event: 'The Idea - Vision to democratize AI', icon: Zap },
+    { year: 'Sep 30, 2025', event: 'Built basic prototype and structure', icon: Award },
+    { year: 'Oct 25, 2025', event: 'First working prototype completed', icon: Users },
+    { year: 'Oct 27, 2025', event: 'Published and launched to the world', icon: Globe }
   ];
 
   return (
@@ -210,14 +210,9 @@ export const AboutPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {team.map((member, idx) => {
-              const Icon = member.icon;
               return (
                 <Floating3DCard key={idx} delay={idx * 100}>
                   <div className="glass-panel rounded-3xl p-8 border border-white/20 hover:border-[#00FFF0]/50 transition-all duration-500 text-center group h-full">
-                    <div className={`w-36 h-36 mx-auto rounded-2xl bg-gradient-to-br ${member.image} mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <Icon className="w-16 h-16 text-white/90 relative z-10" />
-                    </div>
                     <h3 className="text-2xl font-black text-white mb-2 tracking-tight">{member.name}</h3>
                     <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-[#00FFF0]/20 to-[#0099FF]/20 border border-[#00FFF0]/30 mb-5">
                       <p className="text-[#00FFF0] text-sm font-bold">{member.role}</p>

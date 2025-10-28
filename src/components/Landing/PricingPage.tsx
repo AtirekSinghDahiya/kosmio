@@ -25,48 +25,6 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   useEffect(() => {
     setMounted(true);
     loadPacks();
-
-    // Timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Loading timeout - using fallback data');
-        setTokenPacks([
-          {
-            id: '1',
-            name: 'Starter',
-            tokens: 900000,
-            priceUsd: 2,
-            recurringPriceUsd: 2,
-            bonusTokens: 0,
-            popular: false,
-            active: true
-          },
-          {
-            id: '2',
-            name: 'Popular',
-            tokens: 2250000,
-            priceUsd: 5,
-            recurringPriceUsd: 5,
-            bonusTokens: 0,
-            popular: true,
-            active: true
-          },
-          {
-            id: '3',
-            name: 'Pro',
-            tokens: 9000000,
-            priceUsd: 20,
-            recurringPriceUsd: 20,
-            bonusTokens: 0,
-            popular: false,
-            active: true
-          }
-        ]);
-        setLoading(false);
-      }
-    }, 3000);
-
-    return () => clearTimeout(timeout);
   }, []);
 
   const loadPacks = async () => {
@@ -74,6 +32,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
       const packs = await getTokenPacks();
       if (packs && packs.length > 0) {
         setTokenPacks(packs);
+        setLoading(false);
       } else {
         // Fallback data if Supabase fails
         setTokenPacks([
@@ -152,7 +111,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const faqs = [
     {
       question: 'How does token-based pricing work?',
-      answer: '1 USD = 10,000 KroniQ Tokens. You pay only for what you use. Every AI request costs tokens based on (Provider Cost × 2). Tokens never expire.'
+      answer: 'You pay only for what you use. Every AI request costs tokens based on (Provider Cost × 2). Tokens never expire.'
     },
     {
       question: 'What happens when I run out of tokens?',
@@ -199,10 +158,6 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
             Flexible token packs that never expire. No subscriptions required.
           </p>
 
-          <div className="inline-flex items-center gap-2 px-6 py-3 glass-panel rounded-full border border-[#00FFF0]/30">
-            <Sparkles className="w-5 h-5 text-[#00FFF0]" />
-            <span className="text-white/80 font-semibold">1 USD = 10,000 KroniQ Tokens</span>
-          </div>
         </div>
       </section>
 
