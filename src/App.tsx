@@ -21,6 +21,7 @@ import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { SettingsView } from './components/Settings/SettingsView';
 import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
+import { CookieConsent } from './components/Common/CookieConsent';
 import { Project } from './types';
 
 const MainApp: React.FC = () => {
@@ -148,6 +149,7 @@ function App() {
         <ToastProvider>
           <NavigationProvider>
             <MainApp />
+            <CookieConsent />
           </NavigationProvider>
         </ToastProvider>
       </AuthProvider>

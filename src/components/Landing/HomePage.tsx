@@ -63,10 +63,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
   ];
 
   const stats = [
-    { icon: Users, value: '500K+', label: 'Active Users' },
-    { icon: Sparkles, value: '50M+', label: 'AI Generations' },
-    { icon: TrendingUp, value: '99.9%', label: 'Uptime' },
-    { icon: Star, value: '4.9/5', label: 'User Rating' }
+    { icon: Users, value: '100+', label: 'Active Users' },
+    { icon: Sparkles, value: '2,500+', label: 'AI Generations' },
+    { icon: TrendingUp, value: '99.5%', label: 'Uptime' },
+    { icon: Star, value: '4.4/5', label: 'User Rating' }
+  ];
+
+  const journey = [
+    { date: 'September 15, 2024', event: 'The Idea', description: 'KroniQ AI was born from a vision to democratize AI creativity' },
+    { date: 'September 30, 2024', event: 'Basic Prototype', description: 'Built foundational structure and core architecture' },
+    { date: 'October 25, 2024', event: 'First Prototype', description: 'Completed first working prototype with AI integrations' },
+    { date: 'October 27, 2024', event: 'Public Launch', description: 'Launched first prototype to the world' }
   ];
 
   return (
@@ -240,6 +247,37 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 </Floating3DCard>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Our Journey Section */}
+      <section className="relative py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
+              <span className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                Our Journey
+              </span>
+            </h2>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto">
+              From idea to reality - building the future of AI creativity
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {journey.map((milestone, idx) => (
+              <Floating3DCard key={idx} delay={idx * 100}>
+                <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300 group">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="w-6 h-6 text-[#00FFF0]" />
+                  </div>
+                  <div className="text-sm text-[#00FFF0] font-semibold mb-2">{milestone.date}</div>
+                  <h3 className="text-xl font-bold text-white mb-2">{milestone.event}</h3>
+                  <p className="text-white/60 text-sm leading-relaxed">{milestone.description}</p>
+                </div>
+              </Floating3DCard>
+            ))}
           </div>
         </div>
       </section>

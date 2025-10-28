@@ -46,7 +46,7 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
         },
         {
           heading: 'Token Pricing Formula',
-          content: 'Every AI request costs tokens based on:\n\nBase Cost (from AI provider) × 2 = Your Cost\n\nExample:\n• If OpenRouter charges $0.001 for a request\n• You pay: $0.001 × 2 = $0.002\n• In tokens: $0.002 × 10,000 = 20 tokens\n\nThe 2x multiplier covers:\n• Infrastructure costs\n• Platform maintenance\n• Customer support\n• Continuous improvements',
+          content: 'Every AI request costs tokens based on:\n\nBase Cost × 2 = Your Cost\n\nExample:\n• If a request costs $0.001\n• You pay: $0.001 × 2 = $0.002\n• In tokens: $0.002 × 10,000 = 20 tokens\n\nThe 2x multiplier covers:\n• Infrastructure costs\n• Platform maintenance\n• Customer support\n• Continuous improvements',
         },
         {
           heading: 'Free vs Paid Tiers',
