@@ -26,6 +26,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
     { id: 'home', label: 'Home' },
     { id: 'services', label: 'Services' },
     { id: 'docs', label: 'Docs' },
+    { id: 'careers', label: 'Careers' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'contact', label: 'Contact' }
   ];
