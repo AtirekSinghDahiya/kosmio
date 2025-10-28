@@ -118,12 +118,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
         </nav>
 
         <div className="p-3 border-t border-white/10 space-y-2">
-          {(isExpanded || isMobile) && userData && (
-            <TokenBalanceDisplay
-              isExpanded={true}
-              showDetails={true}
-              onPurchaseClick={() => handleMenuItemClick('billing')}
-            />
+          {userData && (
+            <div className="mb-2">
+              <TokenBalanceDisplay
+                isExpanded={isExpanded || isMobile}
+                showDetails={false}
+                onPurchaseClick={() => handleMenuItemClick('billing')}
+              />
+            </div>
           )}
 
           <button

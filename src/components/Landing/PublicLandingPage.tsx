@@ -102,7 +102,6 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
 
   return (
     <div className="min-h-screen gradient-background relative overflow-hidden">
-      <CosmicBackground />
 
       {/* Floating Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-3 md:px-4 py-3 md:py-5">
@@ -112,7 +111,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
             <div className="relative glass-panel rounded-full px-4 md:px-8 py-2.5 md:py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-2">
                 <img
-                  src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview copy.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"}
+                  src="/kroniq-icon.svg"
                   alt="KroniQ"
                   className="h-10 md:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                 />
@@ -374,7 +373,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="mb-4">
-                <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview copy.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"} alt="KroniQ" className="h-12 object-contain" />
+                <img src="/kroniq-icon.svg" alt="KroniQ" className="h-12 object-contain" />
               </div>
               <p className="text-white/60 text-sm">Crafted with intelligence</p>
             </div>
