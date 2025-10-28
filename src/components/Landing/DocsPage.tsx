@@ -62,7 +62,7 @@ export const DocsPage: React.FC = () => {
       sections: [
         {
           heading: 'What Are Tokens?',
-          content: 'Tokens are KroniQ\'s virtual currency used to access AI features. Think of them like credits:\n• Each AI request consumes tokens\n• Different features cost different amounts\n• Free users get 5,000 tokens daily\n• Purchased tokens never expire\n• 1 USD = 10,000 tokens'
+          content: 'Tokens are KroniQ\'s virtual currency used to access AI features. Think of them like credits:\n• Each AI request consumes tokens\n• Different features cost different amounts\n• Free users get 5,000 tokens daily\n• Purchased tokens never expire'
         },
         {
           heading: 'How Many Tokens Do I Need?',

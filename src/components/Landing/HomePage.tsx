@@ -294,10 +294,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             <p className="text-xl text-white/70 max-w-3xl mx-auto">
               Pay only for what you use. Buy tokens once or subscribe monthly and save 10%.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 glass-panel rounded-full border border-[#00FFF0]/30">
-              <Sparkles className="w-4 h-4 text-[#00FFF0]" />
-              <span className="text-sm text-white/80">1 USD = 10,000 KroniQ Tokens • 2x cost multiplier on all AI requests</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
