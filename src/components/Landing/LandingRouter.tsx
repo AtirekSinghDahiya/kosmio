@@ -6,7 +6,6 @@ import { PricingPage } from './PricingPage';
 import { ContactPage } from './ContactPage';
 import { ServicesPage } from './ServicesPage';
 import { CareersPage } from './CareersPage';
-import { DocsPage } from './DocsPage';
 import { LegalPages } from '../Legal/LegalPages';
 import { FloatingElements } from './FloatingElements';
 import { CosmicBackground } from '../Layout/CosmicBackground';
@@ -18,10 +17,10 @@ interface LandingRouterProps {
 
 export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
   const { theme } = useTheme();
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'privacy' | 'terms' | 'cookies' | 'security'>('home');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security') => {
+  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'privacy' | 'terms' | 'cookies' | 'security') => {
     setCurrentPage(page);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
@@ -48,8 +47,6 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
         return <ServicesPage />;
       case 'careers':
         return <CareersPage />;
-      case 'docs':
-        return <DocsPage />;
       case 'privacy':
         return <LegalPages page="privacy" />;
       case 'terms':
@@ -115,9 +112,7 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => handleNavigate('docs')} className="hover:text-white transition-colors">
-                      Documentation
-                    </button>
+                    <a href="#" className="hover:text-white transition-colors">Documentation</a>
                   </li>
                 </ul>
               </div>
