@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_free_tokens')
+        .select('tokens_balance, daily_free_tokens, daily_tokens_remaining')
         .eq('id', userId)
         .maybeSingle();
 
@@ -95,7 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const { error } = await supabase
             .from('profiles')
             .update({
-              tokens_balance: profile.daily_free_tokens || 5000,
+              tokens_balance: 150000,
+              daily_free_tokens: 150000,
+              daily_tokens_remaining: 150000,
+              daily_token_limit: 150000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -104,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (error) {
             console.error('❌ Error updating token balance:', error);
           } else {
-            console.log('✅ Token balance initialized to 6,667 tokens');
+            console.log('✅ Token balance initialized to 150,000 tokens');
           }
         }
       }
@@ -137,9 +140,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          free_tokens_balance: 6667, // Daily free allocation (~10 messages)
-          paid_tokens_balance: 0,
+          tokens_balance: 150000, // Free tier daily tokens
+          daily_free_tokens: 150000,
+          daily_tokens_remaining: 150000,
+          daily_token_limit: 150000,
           current_tier: 'free',
+          is_token_user: true,
           last_token_refresh: new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()

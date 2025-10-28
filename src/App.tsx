@@ -122,7 +122,7 @@ const MainApp: React.FC = () => {
 
   // Other views use sidebar
   return (
-    <div className="h-screen overflow-hidden gradient-background relative">
+    <div className="h-screen overflow-hidden relative">
       <CosmicBackground />
       <div className="relative z-10 h-screen">
         {currentView === 'chat' || currentView === 'settings' ? (

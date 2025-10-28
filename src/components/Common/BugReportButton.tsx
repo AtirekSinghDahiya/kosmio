@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Bug, X, Send, Image as ImageIcon, Loader } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Bug, X, Send, Image as ImageIcon, Loader, GripVertical } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const BugReportButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,9 +11,56 @@ export const BugReportButton: React.FC = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { themeColors } = useTheme();
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!popupRef.current) return;
+    const rect = popupRef.current.getBoundingClientRect();
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !popupRef.current) return;
+
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+
+      const maxX = window.innerWidth - popupRef.current.offsetWidth;
+      const maxY = window.innerHeight - popupRef.current.offsetHeight;
+
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,35 +159,73 @@ export const BugReportButton: React.FC = () => {
     }
   };
 
+  const buttonGradient = `linear-gradient(135deg, ${themeColors.accent}, ${themeColors.accentSecondary})`;
+
   return (
     <>
       {/* Fixed Bug Report Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        style={{
+          background: buttonGradient,
+          boxShadow: `0 8px 32px ${themeColors.shadow}`,
+        }}
+        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full text-white transition-all duration-300 hover:scale-110 flex items-center justify-center group"
         aria-label="Report a bug"
       >
         <Bug className="w-6 h-6 group-hover:rotate-12 transition-transform" />
       </button>
 
-      {/* Bug Report Popup */}
+      {/* Draggable Bug Report Popup */}
       {isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg glass-panel rounded-2xl border border-white/20 shadow-2xl animate-fade-in-up">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="fixed inset-0 z-[60] pointer-events-none">
+          <div
+            ref={popupRef}
+            style={{
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              background: themeColors.surface,
+              borderColor: themeColors.border,
+              boxShadow: `0 20px 60px ${themeColors.shadow}`,
+            }}
+            className="absolute w-[500px] max-w-[calc(100vw-2rem)] rounded-2xl border shadow-2xl pointer-events-auto"
+          >
+            {/* Draggable Header */}
+            <div
+              onMouseDown={handleMouseDown}
+              style={{
+                background: themeColors.surfaceHover,
+                borderBottomColor: themeColors.border,
+                cursor: isDragging ? 'grabbing' : 'grab',
+              }}
+              className="flex items-center justify-between p-4 border-b rounded-t-2xl"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
-                  <Bug className="w-5 h-5 text-red-400" />
+                <GripVertical style={{ color: themeColors.textMuted }} className="w-5 h-5" />
+                <div
+                  style={{
+                    background: `${themeColors.accent}20`,
+                  }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                >
+                  <Bug style={{ color: themeColors.accent }} className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Report a Bug</h3>
-                  <p className="text-sm text-white/60">Help us improve KroniQ</p>
+                  <h3 style={{ color: themeColors.text }} className="text-xl font-bold">
+                    Report a Bug
+                  </h3>
+                  <p style={{ color: themeColors.textMuted }} className="text-sm">
+                    Help us improve KroniQ
+                  </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center text-white/70 hover:text-white"
+                style={{
+                  background: themeColors.surface,
+                  color: themeColors.textSecondary,
+                }}
+                className="w-8 h-8 rounded-lg hover:opacity-80 transition-opacity flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -149,26 +235,31 @@ export const BugReportButton: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label style={{ color: themeColors.textSecondary }} className="block text-sm font-medium mb-2">
                   Describe the bug *
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What happened? What did you expect to happen?"
-                  className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 focus:bg-white/10 transition-all resize-none"
+                  style={{
+                    background: themeColors.input,
+                    borderColor: themeColors.inputBorder,
+                    color: themeColors.text,
+                  }}
+                  className="w-full h-32 px-4 py-3 border rounded-xl placeholder-opacity-50 focus:outline-none focus:border-opacity-70 transition-all resize-none"
                   required
                 />
               </div>
 
               {/* Screenshot Upload */}
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label style={{ color: themeColors.textSecondary }} className="block text-sm font-medium mb-2">
                   Screenshot (optional)
                 </label>
 
                 {screenshotPreview ? (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10 group">
+                  <div style={{ borderColor: themeColors.border }} className="relative rounded-xl overflow-hidden border group">
                     <img
                       src={screenshotPreview}
                       alt="Screenshot preview"
@@ -186,7 +277,11 @@ export const BugReportButton: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-24 border-2 border-dashed border-white/20 rounded-xl hover:border-[#00FFF0]/50 transition-colors flex flex-col items-center justify-center gap-2 text-white/60 hover:text-white/80"
+                    style={{
+                      borderColor: themeColors.border,
+                      color: themeColors.textMuted,
+                    }}
+                    className="w-full h-24 border-2 border-dashed rounded-xl hover:border-opacity-70 transition-colors flex flex-col items-center justify-center gap-2"
                   >
                     <ImageIcon className="w-6 h-6" />
                     <span className="text-sm">Click to upload screenshot</span>
@@ -204,7 +299,13 @@ export const BugReportButton: React.FC = () => {
 
               {/* User Info Display */}
               {user && (
-                <div className="text-xs text-white/50 bg-white/5 rounded-lg p-3">
+                <div
+                  style={{
+                    color: themeColors.textMuted,
+                    background: themeColors.surface,
+                  }}
+                  className="text-xs rounded-lg p-3"
+                >
                   Submitting as: {user.email}
                 </div>
               )}
@@ -213,7 +314,11 @@ export const BugReportButton: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || !description.trim()}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold hover:shadow-xl hover:shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{
+                  background: buttonGradient,
+                  boxShadow: `0 8px 24px ${themeColors.shadow}`,
+                }}
+                className="w-full py-3 rounded-xl text-white font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>
