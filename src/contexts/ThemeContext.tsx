@@ -228,29 +228,12 @@ export const useTheme = () => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState<ThemeName>(() => {
     const saved = localStorage.getItem('kroniq_theme');
-
-    // Migrate old theme values to new theme names
-    if (saved === 'dark') return 'cosmic-dark';
-    if (saved === 'light') return 'pure-white';
-
-    // Validate that saved theme exists
-    if (saved && themes[saved as ThemeName]) {
-      return saved as ThemeName;
-    }
-
-    // Default to cosmic-dark
-    return 'cosmic-dark';
+    return (saved as ThemeName) || 'cosmic-dark';
   });
 
-  const themeColors = themes[currentTheme] || themes['cosmic-dark'];
+  const themeColors = themes[currentTheme];
 
   useEffect(() => {
-    // Safety check - ensure theme exists
-    if (!themeColors) {
-      console.error('Theme colors not found for:', currentTheme);
-      return;
-    }
-
     localStorage.setItem('kroniq_theme', currentTheme);
     document.documentElement.setAttribute('data-theme', currentTheme);
 

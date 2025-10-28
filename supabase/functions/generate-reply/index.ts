@@ -24,15 +24,6 @@ interface RequestBody {
   preferences: AIPreferences;
 }
 
-interface AIResponse {
-  content: string;
-  tokensUsed: {
-    prompt: number;
-    completion: number;
-    total: number;
-  };
-}
-
 const getSystemPrompt = (preferences: AIPreferences): string => {
   const personalityMap: Record<string, string> = {
     creative: 'Be highly imaginative, artistic, and think outside the box.',
@@ -48,14 +39,7 @@ const getSystemPrompt = (preferences: AIPreferences): string => {
   return `You are Kroniq AI, a helpful assistant. ${personality} Provide helpful, accurate information.`;
 };
 
-// Helper function to estimate tokens if API doesn't provide usage
-function estimateTokens(text: string): number {
-  // Rough estimation: 1 token ≈ 4 characters or 0.75 words
-  const words = text.trim().split(/\s+/).length;
-  return Math.ceil(words * 1.3);
-}
-
-async function callOpenAI(messages: AIMessage[], preferences: AIPreferences): Promise<AIResponse> {
+async function callOpenAI(messages: AIMessage[], preferences: AIPreferences): Promise<string> {
   const apiKey = Deno.env.get('OPENAI_API_KEY');
   if (!apiKey) throw new Error('OpenAI API key not configured');
 
@@ -87,18 +71,10 @@ async function callOpenAI(messages: AIMessage[], preferences: AIPreferences): Pr
   }
 
   const data = await response.json();
-
-  return {
-    content: data.choices[0].message.content,
-    tokensUsed: {
-      prompt: data.usage?.prompt_tokens || estimateTokens(messages.map(m => m.content).join(' ')),
-      completion: data.usage?.completion_tokens || estimateTokens(data.choices[0].message.content),
-      total: data.usage?.total_tokens || 0
-    }
-  };
+  return data.choices[0].message.content;
 }
 
-async function callClaude(messages: AIMessage[], preferences: AIPreferences): Promise<AIResponse> {
+async function callClaude(messages: AIMessage[], preferences: AIPreferences): Promise<string> {
   const apiKey = Deno.env.get('CLAUDE_API_KEY');
   if (!apiKey) throw new Error('Claude API key not configured');
 
@@ -129,18 +105,10 @@ async function callClaude(messages: AIMessage[], preferences: AIPreferences): Pr
   }
 
   const data = await response.json();
-
-  return {
-    content: data.content[0].text,
-    tokensUsed: {
-      prompt: data.usage?.input_tokens || estimateTokens(messages.map(m => m.content).join(' ')),
-      completion: data.usage?.output_tokens || estimateTokens(data.content[0].text),
-      total: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0)
-    }
-  };
+  return data.content[0].text;
 }
 
-async function callGemini(messages: AIMessage[], preferences: AIPreferences): Promise<AIResponse> {
+async function callGemini(messages: AIMessage[], preferences: AIPreferences): Promise<string> {
   const apiKey = Deno.env.get('GEMINI_API_KEY');
   if (!apiKey) throw new Error('Gemini API key not configured');
 
@@ -180,22 +148,10 @@ async function callGemini(messages: AIMessage[], preferences: AIPreferences): Pr
   }
 
   const data = await response.json();
-  const content = data.candidates[0].content.parts[0].text;
-
-  // Gemini provides usageMetadata
-  const usage = data.usageMetadata || {};
-
-  return {
-    content,
-    tokensUsed: {
-      prompt: usage.promptTokenCount || estimateTokens(messages.map(m => m.content).join(' ')),
-      completion: usage.candidatesTokenCount || estimateTokens(content),
-      total: usage.totalTokenCount || 0
-    }
-  };
+  return data.candidates[0].content.parts[0].text;
 }
 
-async function callGrok(messages: AIMessage[], preferences: AIPreferences): Promise<AIResponse> {
+async function callGrok(messages: AIMessage[], preferences: AIPreferences): Promise<string> {
   const apiKey = Deno.env.get('GROK_API_KEY');
   if (!apiKey) throw new Error('Grok API key not configured');
 
@@ -227,15 +183,7 @@ async function callGrok(messages: AIMessage[], preferences: AIPreferences): Prom
   }
 
   const data = await response.json();
-
-  return {
-    content: data.choices[0].message.content,
-    tokensUsed: {
-      prompt: data.usage?.prompt_tokens || estimateTokens(messages.map(m => m.content).join(' ')),
-      completion: data.usage?.completion_tokens || estimateTokens(data.choices[0].message.content),
-      total: data.usage?.total_tokens || 0
-    }
-  };
+  return data.choices[0].message.content;
 }
 
 Deno.serve(async (req: Request) => {
@@ -258,30 +206,27 @@ Deno.serve(async (req: Request) => {
       throw new Error('Provider is required');
     }
 
-    let result: AIResponse;
+    let response: string;
 
     switch (provider) {
       case 'openai':
-        result = await callOpenAI(messages, preferences);
+        response = await callOpenAI(messages, preferences);
         break;
       case 'claude':
-        result = await callClaude(messages, preferences);
+        response = await callClaude(messages, preferences);
         break;
       case 'gemini':
-        result = await callGemini(messages, preferences);
+        response = await callGemini(messages, preferences);
         break;
       case 'grok':
-        result = await callGrok(messages, preferences);
+        response = await callGrok(messages, preferences);
         break;
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
 
     return new Response(
-      JSON.stringify({
-        response: result.content,
-        tokensUsed: result.tokensUsed
-      }),
+      JSON.stringify({ response }),
       {
         headers: {
           ...corsHeaders,
@@ -289,12 +234,11 @@ Deno.serve(async (req: Request) => {
         },
       }
     );
-  } catch (error) {
-    console.error('Error:', error);
-
+  } catch (error: any) {
+    console.error("Error generating AI response:", error);
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error.message || "Failed to generate AI response"
       }),
       {
         status: 500,
