@@ -3,8 +3,8 @@ import { Menu, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface LandingNavbarProps {
-  currentPage: 'home' | 'about' | 'pricing' | 'contact';
-  onNavigate: (page: 'home' | 'about' | 'pricing' | 'contact') => void;
+  currentPage: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers';
+  onNavigate: (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers') => void;
   onGetStarted: () => void;
 }
 
@@ -24,6 +24,7 @@ export const LandingNavbar: React.FC<LandingNavbarProps> = ({ currentPage, onNav
 
   const navItems = [
     { id: 'home', label: 'Home' },
+    { id: 'services', label: 'Services' },
     { id: 'about', label: 'About' },
     { id: 'pricing', label: 'Pricing' },
     { id: 'contact', label: 'Contact' }
