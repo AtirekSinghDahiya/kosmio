@@ -278,10 +278,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Update favicon
     const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     if (favicon) {
-      const isDark = ['cosmic-dark', 'pure-black', 'midnight', 'forest', 'sunset', 'ocean', 'slate'].includes(currentTheme);
-      favicon.href = isDark
-        ? '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png'
-        : '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview copy.png';
+      favicon.href = '/kroniq-icon.svg';
     }
   }, [currentTheme]);
 

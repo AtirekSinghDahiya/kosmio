@@ -162,7 +162,7 @@ export const BugReportButton: React.FC = () => {
         }}
         style={{
           left: `${position.x}px`,
-          bottom: `${position.y}px`,
+          top: `${position.y}px`,
         }}
         className={`fixed z-50 w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
           isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'

@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
       >
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-white/10 flex items-center gap-3 cursor-pointer" onClick={() => onViewChange('chat')}>
-          <img src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"} alt="KroniQ" className="w-10 h-10 flex-shrink-0" />
+          <img src="/kroniq-icon.svg" alt="KroniQ" className="w-10 h-10 flex-shrink-0 drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]" />
           {(isExpanded || isMobile) && (
             <div className="overflow-hidden">
               <p className="text-white font-bold text-sm whitespace-nowrap">KroniQ</p>

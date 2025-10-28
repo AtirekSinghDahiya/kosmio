@@ -112,7 +112,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
             <div className="relative glass-panel rounded-full px-4 md:px-8 py-2.5 md:py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl">
               <div className="flex items-center justify-between gap-2">
                 <img
-                  src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+                  src="/kroniq-icon.svg"
                   alt="KroniQ"
                   className="h-10 md:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(0,255,240,0.5)]"
                 />
@@ -152,7 +152,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
         <div className={`max-w-6xl mx-auto text-center relative z-10 ${mounted ? 'animate-fade-in-up' : 'opacity-0'}`}>
           <div className="inline-flex items-center justify-center w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 shadow-2xl shadow-[#00FFF0]/30 backdrop-blur-xl border-2 border-white/20 p-3 md:p-4 mb-6 md:mb-8 animate-pulse-glow">
             <img
-              src="/logo.svg"
+              src="/kroniq-icon.svg"
               alt="KroniQ"
               className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(0,255,240,0.6)]"
             />
@@ -374,7 +374,7 @@ export const PublicLandingPage: React.FC<PublicLandingPageProps> = ({ onGetStart
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="mb-4">
-                <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png" alt="KroniQ" className="h-12 object-contain" />
+                <img src="/kroniq-icon.svg" alt="KroniQ" className="h-12 object-contain" />
               </div>
               <p className="text-white/60 text-sm">Crafted with intelligence</p>
             </div>

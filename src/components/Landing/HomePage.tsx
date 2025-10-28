@@ -89,7 +89,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           {/* Logo Animation */}
           <div className="relative inline-block mb-8">
             <img
-              src={theme === 'light' ? "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview.png" : "/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"}
+              src="/kroniq-icon.svg"
               alt="KroniQ"
               className="relative h-48 md:h-64 w-auto mx-auto object-contain drop-shadow-[0_0_30px_rgba(0,255,240,0.8)] floating-animation"
             />

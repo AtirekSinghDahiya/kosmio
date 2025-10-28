@@ -47,9 +47,9 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
         {/* Logo and Title */}
         <div className={`text-center mb-8 md:mb-12 ${mounted ? 'opacity-100 transition-opacity duration-700' : 'opacity-0'}`}>
           <img
-            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview.png"
+            src="/kroniq-icon.svg"
             alt="KroniQ"
-            className="h-48 sm:h-56 md:h-64 lg:h-72 w-auto object-contain mb-3 mx-auto"
+            className="h-48 sm:h-56 md:h-64 lg:h-72 w-auto object-contain mb-3 mx-auto drop-shadow-[0_0_20px_rgba(0,255,240,0.5)]"
           />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-medium text-white mb-3">
             Welcome to KroniQ
