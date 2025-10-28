@@ -10,6 +10,9 @@ export const BugReportButton: React.FC = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [position, setPosition] = useState({ x: 24, y: 24 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -68,6 +71,44 @@ export const BugReportButton: React.FC = () => {
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+
+    const maxX = window.innerWidth - 56;
+    const maxY = window.innerHeight - 56;
+
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY)),
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -113,13 +154,22 @@ export const BugReportButton: React.FC = () => {
 
   return (
     <>
-      {/* Fixed Bug Report Button */}
+      {/* Draggable Bug Report Button */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        onMouseDown={handleMouseDown}
+        onClick={(e) => {
+          if (!isDragging) setIsOpen(true);
+        }}
+        style={{
+          left: `${position.x}px`,
+          bottom: `${position.y}px`,
+        }}
+        className={`fixed z-50 w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
+          isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
+        }`}
         aria-label="Report a bug"
       >
-        <Bug className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+        <Bug className="w-6 h-6 group-hover:rotate-12 transition-transform pointer-events-none" />
       </button>
 
       {/* Bug Report Popup */}
