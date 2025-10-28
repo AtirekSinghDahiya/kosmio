@@ -1,164 +1,98 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, MapPin, DollarSign, Clock, Users, Heart, Zap, Target } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Clock, Rocket, Globe, TrendingUp, Code, Lightbulb, Award } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
+import { JobApplicationForm } from './JobApplicationForm';
+import { supabase } from '../../lib/supabase';
+
+interface JobPosting {
+  id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  description: string;
+  requirements: string[];
+  responsibilities: string[];
+  salary_range: string | null;
+  is_active: boolean;
+}
 
 export const CareersPage: React.FC = () => {
   const [mounted, setMounted] = useState(false);
+  const [positions, setPositions] = useState<JobPosting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    loadJobPostings();
   }, []);
 
-  const positions = [
-    {
-      title: 'Frontend Developer',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$8,000 - $12,000',
-      description: 'Polish UI/UX, animations, and responsiveness across all platforms',
-      requirements: [
-        'Expert in React, TypeScript, and modern CSS',
-        'Experience with animation libraries and responsive design',
-        'Strong eye for detail and user experience',
-        'Portfolio showcasing UI/UX work'
-      ]
-    },
-    {
-      title: 'Backend Developer (Firebase/Node)',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$9,000 - $13,000',
-      description: 'Optimize APIs, handle scaling, and maintain backend infrastructure',
-      requirements: [
-        'Strong experience with Node.js and Firebase',
-        'Database optimization and scaling expertise',
-        'API design and microservices architecture',
-        'Experience with cloud platforms (GCP, AWS)'
-      ]
-    },
-    {
-      title: 'AI Engineer / ML Developer',
-      department: 'AI & ML',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$10,000 - $15,000',
-      description: 'Improve model integrations, optimize tokens, and build custom LLM pipelines',
-      requirements: [
-        'Deep understanding of LLMs and AI models',
-        'Experience with model optimization and fine-tuning',
-        'Strong Python and ML framework knowledge',
-        'Experience integrating various AI APIs'
-      ]
-    },
-    {
-      title: 'Full-Stack Engineer',
-      department: 'Engineering',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$10,000 - $14,000',
-      description: 'Unify backend + frontend updates across the entire platform',
-      requirements: [
-        'Full-stack development experience',
-        'Proficient in React, Node.js, and databases',
-        'Strong problem-solving and architecture skills',
-        'Experience with agile development'
-      ]
-    },
-    {
-      title: 'UI/UX Designer',
-      department: 'Design',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$7,000 - $11,000',
-      description: 'Create premium branding, design flows, and enhance user experience',
-      requirements: [
-        'Strong portfolio of UI/UX work',
-        'Expert in Figma, Adobe Creative Suite',
-        'Understanding of design systems',
-        'Experience with user research and testing'
-      ]
-    },
-    {
-      title: 'QA Tester',
-      department: 'Quality',
-      location: 'Remote',
-      type: 'Part-time',
-      salary: '$5,000 - $8,000',
-      description: 'Catch bugs before launch and ensure quality across all features',
-      requirements: [
-        'Experience with manual and automated testing',
-        'Detail-oriented with strong documentation skills',
-        'Familiarity with testing frameworks',
-        'Ability to reproduce and report bugs effectively'
-      ]
-    },
-    {
-      title: 'Marketing Strategist',
-      department: 'Marketing',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$7,000 - $11,000',
-      description: 'Handle launch, social media, SEO, and partnerships',
-      requirements: [
-        'Proven marketing campaign experience',
-        'SEO and content marketing expertise',
-        'Strong social media management skills',
-        'Data-driven approach to growth'
-      ]
-    },
-    {
-      title: 'Community Manager',
-      department: 'Community',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$6,000 - $9,000',
-      description: 'Engage users, collect feedback, and build brand loyalty',
-      requirements: [
-        'Excellent communication skills',
-        'Experience managing online communities',
-        'Passion for user engagement',
-        'Ability to handle feedback and criticism constructively'
-      ]
-    },
-    {
-      title: 'Customer Support Lead',
-      department: 'Support',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$6,000 - $9,000',
-      description: 'Handle helpdesk, user onboarding, and issue tracking',
-      requirements: [
-        'Customer service experience',
-        'Technical troubleshooting skills',
-        'Excellent written and verbal communication',
-        'Experience with support ticketing systems'
-      ]
-    },
-    {
-      title: 'Finance & Operations Manager',
-      department: 'Operations',
-      location: 'Remote',
-      type: 'Full-time',
-      salary: '$8,000 - $12,000',
-      description: 'Handle transactions, cost tracking, and pricing optimizations',
-      requirements: [
-        'Financial management experience',
-        'Understanding of SaaS business models',
-        'Data analysis and reporting skills',
-        'Experience with financial software and tools'
-      ]
-    }
-  ];
+  const loadJobPostings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('job_postings')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-  const benefits = [
-    { icon: MapPin, title: 'Remote First', description: 'Work from anywhere in the world' },
-    { icon: Heart, title: 'Health & Wellness', description: 'Comprehensive health benefits' },
-    { icon: Zap, title: 'Growth', description: 'Learning and development budget' },
-    { icon: Users, title: 'Great Team', description: 'Collaborate with talented people' },
-    { icon: Target, title: 'Impact', description: 'Build products used by thousands' },
-    { icon: Clock, title: 'Flexibility', description: 'Flexible working hours' }
+      if (error) throw error;
+      setPositions(data || []);
+    } catch (error) {
+      console.error('Error loading job postings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplyClick = (position: JobPosting) => {
+    setSelectedJob(position);
+    setShowApplicationForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowApplicationForm(false);
+    setSelectedJob(null);
+  };
+
+  const whyJoinReasons = [
+    {
+      icon: Rocket,
+      title: 'Shape the Future of AI',
+      description: 'Work on cutting-edge AI technology that empowers millions of creators worldwide. Your code and ideas will directly impact how people create, innovate, and express themselves.',
+      highlight: 'Direct Impact'
+    },
+    {
+      icon: Globe,
+      title: 'Remote-First Culture',
+      description: 'Work from anywhere in the world with flexible hours. We believe in results over presence, giving you the freedom to work when and where you\'re most productive.',
+      highlight: 'True Flexibility'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Rapid Growth & Learning',
+      description: 'Join a fast-growing startup where you\'ll wear multiple hats and learn quickly. Access to courses, conferences, and mentorship to accelerate your career growth.',
+      highlight: 'Career Acceleration'
+    },
+    {
+      icon: Code,
+      title: 'Modern Tech Stack',
+      description: 'Work with the latest technologies including React, TypeScript, Node.js, Firebase, Supabase, and cutting-edge AI APIs. Use the best tools for the job.',
+      highlight: 'Latest Technology'
+    },
+    {
+      icon: Lightbulb,
+      title: 'Innovation & Autonomy',
+      description: 'Your ideas matter here. We encourage experimentation, innovation, and taking calculated risks. Own your projects from conception to launch.',
+      highlight: 'Ownership Culture'
+    },
+    {
+      icon: Award,
+      title: 'Competitive & Fair',
+      description: 'Market-competitive salaries, equity options, and transparent compensation. We believe in rewarding talent fairly and providing clear growth paths.',
+      highlight: 'Fair Compensation'
+    }
   ];
 
   return (
@@ -181,34 +115,43 @@ export const CareersPage: React.FC = () => {
           </h1>
 
           <p className="text-2xl text-white/70 leading-relaxed max-w-3xl mx-auto">
-            We're looking for talented individuals to help shape the next generation of AI-powered creative tools
+            Join a team of passionate innovators building the next generation of AI-powered creative tools
           </p>
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Why Join KroniQ Section */}
       <section className="relative px-4 pb-20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Why Join KroniQ?
             </h2>
-            <p className="text-lg text-white/60">
-              We offer more than just a job - join a mission
+            <p className="text-xl text-white/60">
+              More than a job - join a mission to democratize AI creativity
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {benefits.map((benefit, idx) => {
-              const Icon = benefit.icon;
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {whyJoinReasons.map((reason, idx) => {
+              const Icon = reason.icon;
               return (
                 <Floating3DCard key={idx} delay={idx * 100}>
-                  <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center mb-4">
-                      <Icon className="w-6 h-6 text-[#00FFF0]" />
+                  <div className="glass-panel rounded-2xl p-8 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300 h-full">
+                    <div className="flex items-start gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-7 h-7 text-[#00FFF0]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-2xl font-bold text-white">{reason.title}</h3>
+                          <span className="px-3 py-1 text-xs font-bold text-[#00FFF0] bg-[#00FFF0]/10 rounded-full border border-[#00FFF0]/30 whitespace-nowrap ml-2">
+                            {reason.highlight}
+                          </span>
+                        </div>
+                        <p className="text-white/70 leading-relaxed">{reason.description}</p>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">{benefit.title}</h3>
-                    <p className="text-white/60 text-sm">{benefit.description}</p>
                   </div>
                 </Floating3DCard>
               );
@@ -227,17 +170,26 @@ export const CareersPage: React.FC = () => {
               </span>
             </h2>
             <p className="text-lg text-white/60">
-              {positions.length} openings across multiple departments
+              {loading ? 'Loading...' : `${positions.length} openings across multiple departments`}
             </p>
           </div>
 
-          <div className="space-y-6">
-            {positions.map((position, idx) => (
-              <Floating3DCard key={idx} delay={idx * 50}>
-                <div className="glass-panel rounded-3xl p-8 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300 group">
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-4 mb-4">
+          {loading ? (
+            <div className="text-center py-20">
+              <div className="inline-block w-12 h-12 border-4 border-[#00FFF0]/20 border-t-[#00FFF0] rounded-full animate-spin"></div>
+              <p className="text-white/60 mt-4">Loading positions...</p>
+            </div>
+          ) : positions.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-white/60 text-lg">No open positions at the moment. Check back soon!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {positions.map((position, idx) => (
+                <Floating3DCard key={position.id} delay={idx * 50}>
+                  <div className="glass-panel rounded-3xl p-8 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300 group">
+                    <div className="flex flex-col gap-6">
+                      <div className="flex items-start gap-4">
                         <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center flex-shrink-0">
                           <Briefcase className="w-7 h-7 text-[#00FFF0]" />
                         </div>
@@ -245,7 +197,7 @@ export const CareersPage: React.FC = () => {
                           <h3 className="text-2xl font-bold text-white mb-2">{position.title}</h3>
                           <p className="text-white/70 mb-4">{position.description}</p>
 
-                          <div className="flex flex-wrap gap-3 mb-4">
+                          <div className="flex flex-wrap gap-3 mb-6">
                             <div className="flex items-center gap-2 px-3 py-1 glass-panel rounded-full border border-white/10">
                               <Briefcase className="w-4 h-4 text-[#00FFF0]" />
                               <span className="text-sm text-white/80">{position.department}</span>
@@ -258,35 +210,59 @@ export const CareersPage: React.FC = () => {
                               <Clock className="w-4 h-4 text-[#00FFF0]" />
                               <span className="text-sm text-white/80">{position.type}</span>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-1 glass-panel rounded-full border border-green-500/30 bg-green-500/10">
-                              <DollarSign className="w-4 h-4 text-green-300" />
-                              <span className="text-sm text-green-300 font-semibold">{position.salary}/mo</span>
-                            </div>
+                            {position.salary_range && (
+                              <div className="flex items-center gap-2 px-3 py-1 glass-panel rounded-full border border-green-500/30 bg-green-500/10">
+                                <DollarSign className="w-4 h-4 text-green-300" />
+                                <span className="text-sm text-green-300 font-semibold">{position.salary_range}</span>
+                              </div>
+                            )}
                           </div>
 
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-white/80">Requirements:</h4>
-                            <ul className="space-y-1">
-                              {position.requirements.map((req, rIdx) => (
-                                <li key={rIdx} className="text-sm text-white/60 flex items-start gap-2">
-                                  <span className="text-[#00FFF0] mt-1">•</span>
-                                  <span>{req}</span>
-                                </li>
-                              ))}
-                            </ul>
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <h4 className="text-sm font-semibold text-white/80 mb-3">Requirements:</h4>
+                              <ul className="space-y-2">
+                                {position.requirements.map((req, rIdx) => (
+                                  <li key={rIdx} className="text-sm text-white/60 flex items-start gap-2">
+                                    <span className="text-[#00FFF0] mt-1">•</span>
+                                    <span>{req}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div>
+                              <h4 className="text-sm font-semibold text-white/80 mb-3">Responsibilities:</h4>
+                              <ul className="space-y-2">
+                                {position.responsibilities.slice(0, 4).map((resp, rIdx) => (
+                                  <li key={rIdx} className="text-sm text-white/60 flex items-start gap-2">
+                                    <span className="text-[#00FFF0] mt-1">•</span>
+                                    <span>{resp}</span>
+                                  </li>
+                                ))}
+                                {position.responsibilities.length > 4 && (
+                                  <li className="text-sm text-white/40 italic">
+                                    + {position.responsibilities.length - 4} more...
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <button className="px-6 py-3 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white rounded-xl font-semibold hover:scale-105 active:scale-95 transition-all duration-300 whitespace-nowrap">
-                      Apply Now
-                    </button>
+                      <button
+                        onClick={() => handleApplyClick(position)}
+                        className="w-full md:w-auto md:self-end px-8 py-3 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white rounded-xl font-semibold hover:scale-105 active:scale-95 transition-all duration-300"
+                      >
+                        Apply Now
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </Floating3DCard>
-            ))}
-          </div>
+                </Floating3DCard>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -300,7 +276,7 @@ export const CareersPage: React.FC = () => {
                 Don't See Your Role?
               </h2>
               <p className="text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-                We're always looking for talented people. Send us your resume and let's talk!
+                We're always looking for talented people. Send us your resume and let's talk about how you can contribute!
               </p>
               <button
                 onClick={() => window.location.href = '/contact'}
@@ -312,6 +288,15 @@ export const CareersPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Application Form Modal */}
+      {showApplicationForm && selectedJob && (
+        <JobApplicationForm
+          jobId={selectedJob.id}
+          jobTitle={selectedJob.title}
+          onClose={handleCloseForm}
+        />
+      )}
     </div>
   );
 };
