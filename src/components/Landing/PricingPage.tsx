@@ -111,7 +111,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
   const faqs = [
     {
       question: 'How does token-based pricing work?',
-      answer: 'You pay only for what you use. Every AI request costs tokens based on (Provider Cost × 2). Tokens never expire.'
+      answer: '1 USD = 10,000 KroniQ Tokens. You pay only for what you use. Every AI request costs tokens based on (Provider Cost × 2). Tokens never expire.'
     },
     {
       question: 'What happens when I run out of tokens?',
@@ -158,6 +158,10 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onGetStarted }) => {
             Flexible token packs that never expire. No subscriptions required.
           </p>
 
+          <div className="inline-flex items-center gap-2 px-6 py-3 glass-panel rounded-full border border-[#00FFF0]/30">
+            <Sparkles className="w-5 h-5 text-[#00FFF0]" />
+            <span className="text-white/80 font-semibold">1 USD = 10,000 KroniQ Tokens</span>
+          </div>
         </div>
       </section>
 

@@ -89,7 +89,7 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
               <div>
                 <div className="mb-6">
-                  <img src="/kroniq-full-logo.svg" alt="KroniQ" className="h-12 w-auto object-contain" />
+                  <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo-removebg-preview.png" alt="KroniQ" className="h-12 w-auto object-contain" />
                 </div>
                 <p className="text-white/60 text-sm leading-relaxed">
                   Empowering creators with AI-powered tools for the future of digital creation.

@@ -22,7 +22,6 @@ import { SettingsView } from './components/Settings/SettingsView';
 import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
-import { BugReportButton } from './components/Common/BugReportButton';
 import { Project } from './types';
 
 const MainApp: React.FC = () => {
@@ -122,7 +121,7 @@ const MainApp: React.FC = () => {
 
   // Other views use sidebar
   return (
-    <div className="h-screen overflow-hidden relative">
+    <div className="h-screen overflow-hidden gradient-background relative">
       <CosmicBackground />
       <div className="relative z-10 h-screen">
         {currentView === 'chat' || currentView === 'settings' ? (
@@ -151,7 +150,6 @@ function App() {
           <NavigationProvider>
             <MainApp />
             <CookieConsent />
-            <BugReportButton />
           </NavigationProvider>
         </ToastProvider>
       </AuthProvider>
