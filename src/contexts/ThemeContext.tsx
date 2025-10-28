@@ -9,6 +9,8 @@ export type ThemeName =
   | 'sunset'           // Warm orange/pink theme
   | 'ocean'            // Blue/teal theme
   | 'slate'            // Grey professional theme
+  | 'aurora'           // Vibrant gradient theme
+  | 'nebula'           // Cosmic gradient theme
 
 export interface ThemeColors {
   name: ThemeName;
@@ -206,6 +208,46 @@ export const themes: Record<ThemeName, ThemeColors> = {
     gradient: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
     shadow: 'rgba(100, 116, 139, 0.2)',
   },
+  'aurora': {
+    name: 'aurora',
+    displayName: 'Aurora',
+    description: 'Vibrant multicolor gradient theme',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
+    backgroundSecondary: 'rgba(102, 126, 234, 0.95)',
+    surface: 'rgba(118, 75, 162, 0.2)',
+    surfaceHover: 'rgba(118, 75, 162, 0.3)',
+    text: '#ffffff',
+    textSecondary: '#f3f4f6',
+    textMuted: 'rgba(255, 255, 255, 0.7)',
+    accent: '#a78bfa',
+    accentSecondary: '#8b5cf6',
+    border: 'rgba(167, 139, 250, 0.3)',
+    borderHover: 'rgba(167, 139, 250, 0.5)',
+    input: 'rgba(118, 75, 162, 0.2)',
+    inputBorder: 'rgba(167, 139, 250, 0.4)',
+    gradient: 'linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%)',
+    shadow: 'rgba(167, 139, 250, 0.3)',
+  },
+  'nebula': {
+    name: 'nebula',
+    displayName: 'Nebula',
+    description: 'Deep space gradient theme',
+    background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 35%, #24243e 70%, #0f0c29 100%)',
+    backgroundSecondary: 'rgba(15, 12, 41, 0.95)',
+    surface: 'rgba(48, 43, 99, 0.3)',
+    surfaceHover: 'rgba(48, 43, 99, 0.5)',
+    text: '#ffffff',
+    textSecondary: '#e0e7ff',
+    textMuted: 'rgba(255, 255, 255, 0.6)',
+    accent: '#c084fc',
+    accentSecondary: '#9333ea',
+    border: 'rgba(192, 132, 252, 0.2)',
+    borderHover: 'rgba(192, 132, 252, 0.4)',
+    input: 'rgba(48, 43, 99, 0.3)',
+    inputBorder: 'rgba(192, 132, 252, 0.3)',
+    gradient: 'linear-gradient(135deg, #c084fc 0%, #9333ea 100%)',
+    shadow: 'rgba(192, 132, 252, 0.2)',
+  },
 };
 
 interface ThemeContextType {
@@ -238,8 +280,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return saved as ThemeName;
     }
 
-    // Default to cosmic-dark
-    return 'cosmic-dark';
+    // Default to nebula for landing page
+    return 'nebula';
   });
 
   const themeColors = themes[currentTheme] || themes['cosmic-dark'];
@@ -278,7 +320,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Update favicon
     const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     if (favicon) {
-      const isDark = ['cosmic-dark', 'pure-black', 'midnight', 'forest', 'sunset', 'ocean', 'slate'].includes(currentTheme);
+      const isDark = ['cosmic-dark', 'pure-black', 'midnight', 'forest', 'sunset', 'ocean', 'slate', 'aurora', 'nebula'].includes(currentTheme);
       favicon.href = isDark
         ? '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png'
         : '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__2_-removebg-preview copy.png';

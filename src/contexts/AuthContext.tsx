@@ -95,10 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const { error } = await supabase
             .from('profiles')
             .update({
-              tokens_balance: 150000,
-              daily_free_tokens: 150000,
-              daily_tokens_remaining: 150000,
-              daily_token_limit: 150000,
+              tokens_balance: 5000,
+              daily_free_tokens: 5000,
+              daily_tokens_remaining: 5000,
+              daily_token_limit: 5000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (error) {
             console.error('❌ Error updating token balance:', error);
           } else {
-            console.log('✅ Token balance initialized to 150,000 tokens');
+            console.log('✅ Token balance initialized to 5,000 tokens');
           }
         }
       }
@@ -140,10 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          tokens_balance: 150000, // Free tier daily tokens
-          daily_free_tokens: 150000,
-          daily_tokens_remaining: 150000,
-          daily_token_limit: 150000,
+          tokens_balance: 5000, // Free tier daily tokens
+          daily_free_tokens: 5000,
+          daily_tokens_remaining: 5000,
+          daily_token_limit: 5000,
           current_tier: 'free',
           is_token_user: true,
           last_token_refresh: new Date().toISOString(),

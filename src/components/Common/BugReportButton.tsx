@@ -11,21 +11,42 @@ export const BugReportButton: React.FC = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [position, setPosition] = useState({ x: 50, y: 50 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  // Popup position and dragging
+  const [popupPosition, setPopupPosition] = useState({ x: 50, y: 50 });
+  const [isPopupDragging, setIsPopupDragging] = useState(false);
+  const [popupDragOffset, setPopupDragOffset] = useState({ x: 0, y: 0 });
+
+  // Button position and dragging
+  const [buttonPosition, setButtonPosition] = useState({ x: 24, y: window.innerHeight - 80 });
+  const [isButtonDragging, setIsButtonDragging] = useState(false);
+  const [buttonDragOffset, setButtonDragOffset] = useState({ x: 0, y: 0 });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const { user } = useAuth();
   const { showToast } = useToast();
   const { themeColors } = useTheme();
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Popup dragging handlers
+  const handlePopupMouseDown = (e: React.MouseEvent) => {
     if (!popupRef.current) return;
     const rect = popupRef.current.getBoundingClientRect();
-    setIsDragging(true);
-    setDragOffset({
+    setIsPopupDragging(true);
+    setPopupDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  // Button dragging handlers
+  const handleButtonMouseDown = (e: React.MouseEvent) => {
+    if (!buttonRef.current) return;
+    e.stopPropagation();
+    const rect = buttonRef.current.getBoundingClientRect();
+    setIsButtonDragging(true);
+    setButtonDragOffset({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     });
@@ -33,25 +54,39 @@ export const BugReportButton: React.FC = () => {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !popupRef.current) return;
+      // Handle popup dragging
+      if (isPopupDragging && popupRef.current) {
+        const newX = e.clientX - popupDragOffset.x;
+        const newY = e.clientY - popupDragOffset.y;
+        const maxX = window.innerWidth - popupRef.current.offsetWidth;
+        const maxY = window.innerHeight - popupRef.current.offsetHeight;
 
-      const newX = e.clientX - dragOffset.x;
-      const newY = e.clientY - dragOffset.y;
+        setPopupPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(0, Math.min(newY, maxY)),
+        });
+      }
 
-      const maxX = window.innerWidth - popupRef.current.offsetWidth;
-      const maxY = window.innerHeight - popupRef.current.offsetHeight;
+      // Handle button dragging
+      if (isButtonDragging && buttonRef.current) {
+        const newX = e.clientX - buttonDragOffset.x;
+        const newY = e.clientY - buttonDragOffset.y;
+        const maxX = window.innerWidth - buttonRef.current.offsetWidth;
+        const maxY = window.innerHeight - buttonRef.current.offsetHeight;
 
-      setPosition({
-        x: Math.max(0, Math.min(newX, maxX)),
-        y: Math.max(0, Math.min(newY, maxY)),
-      });
+        setButtonPosition({
+          x: Math.max(0, Math.min(newX, maxX)),
+          y: Math.max(0, Math.min(newY, maxY)),
+        });
+      }
     };
 
     const handleMouseUp = () => {
-      setIsDragging(false);
+      setIsPopupDragging(false);
+      setIsButtonDragging(false);
     };
 
-    if (isDragging) {
+    if (isPopupDragging || isButtonDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
@@ -60,7 +95,7 @@ export const BugReportButton: React.FC = () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, dragOffset]);
+  }, [isPopupDragging, isButtonDragging, popupDragOffset, buttonDragOffset]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,17 +198,26 @@ export const BugReportButton: React.FC = () => {
 
   return (
     <>
-      {/* Fixed Bug Report Button */}
+      {/* Draggable Bug Report Button */}
       <button
-        onClick={() => setIsOpen(true)}
+        ref={buttonRef}
+        onMouseDown={handleButtonMouseDown}
+        onClick={(e) => {
+          if (!isButtonDragging) {
+            setIsOpen(true);
+          }
+        }}
         style={{
+          left: `${buttonPosition.x}px`,
+          top: `${buttonPosition.y}px`,
           background: buttonGradient,
           boxShadow: `0 8px 32px ${themeColors.shadow}`,
+          cursor: isButtonDragging ? 'grabbing' : 'grab',
         }}
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full text-white transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        className="fixed z-50 w-14 h-14 rounded-full text-white transition-all duration-300 hover:scale-110 flex items-center justify-center group"
         aria-label="Report a bug"
       >
-        <Bug className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+        <Bug className="w-6 h-6 group-hover:rotate-12 transition-transform pointer-events-none" />
       </button>
 
       {/* Draggable Bug Report Popup */}
@@ -182,8 +226,8 @@ export const BugReportButton: React.FC = () => {
           <div
             ref={popupRef}
             style={{
-              left: `${position.x}px`,
-              top: `${position.y}px`,
+              left: `${popupPosition.x}px`,
+              top: `${popupPosition.y}px`,
               background: themeColors.surface,
               borderColor: themeColors.border,
               boxShadow: `0 20px 60px ${themeColors.shadow}`,
@@ -192,11 +236,11 @@ export const BugReportButton: React.FC = () => {
           >
             {/* Draggable Header */}
             <div
-              onMouseDown={handleMouseDown}
+              onMouseDown={handlePopupMouseDown}
               style={{
                 background: themeColors.surfaceHover,
                 borderBottomColor: themeColors.border,
-                cursor: isDragging ? 'grabbing' : 'grab',
+                cursor: isPopupDragging ? 'grabbing' : 'grab',
               }}
               className="flex items-center justify-between p-4 border-b rounded-t-2xl"
             >
