@@ -3,6 +3,7 @@ import { Bug, X, Send, Image as ImageIcon, Loader } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../contexts/ToastContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const BugReportButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +17,7 @@ export const BugReportButton: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { showToast } = useToast();
+  const { themeColors } = useTheme();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,13 +165,18 @@ export const BugReportButton: React.FC = () => {
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
+          background: themeColors.gradient,
+          boxShadow: `0 20px 60px ${themeColors.shadow}`,
         }}
-        className={`fixed z-50 w-14 h-14 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
+        className={`fixed z-50 w-14 h-14 rounded-full shadow-2xl hover:shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
           isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
         }`}
         aria-label="Report a bug"
       >
-        <Bug className="w-6 h-6 group-hover:rotate-12 transition-transform pointer-events-none" />
+        <Bug
+          className="w-6 h-6 group-hover:rotate-12 transition-transform pointer-events-none"
+          style={{ color: themeColors.text }}
+        />
       </button>
 
       {/* Bug Report Popup */}
@@ -177,19 +184,39 @@ export const BugReportButton: React.FC = () => {
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="relative w-full max-w-lg glass-panel rounded-2xl border border-white/20 shadow-2xl animate-fade-in-up">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <div
+              className="flex items-center justify-between p-6 border-b"
+              style={{ borderColor: themeColors.border }}
+            >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
-                  <Bug className="w-5 h-5 text-red-400" />
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{
+                    background: `${themeColors.accent}20`,
+                  }}
+                >
+                  <Bug className="w-5 h-5" style={{ color: themeColors.accent }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">Report a Bug</h3>
-                  <p className="text-sm text-white/60">Help us improve KroniQ</p>
+                  <h3 className="text-xl font-bold" style={{ color: themeColors.text }}>Report a Bug</h3>
+                  <p className="text-sm" style={{ color: themeColors.textMuted }}>Help us improve KroniQ</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition-colors flex items-center justify-center text-white/70 hover:text-white"
+                className="w-8 h-8 rounded-lg transition-colors flex items-center justify-center"
+                style={{
+                  backgroundColor: themeColors.surface,
+                  color: themeColors.textMuted,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = themeColors.surfaceHover;
+                  e.currentTarget.style.color = themeColors.text;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = themeColors.surface;
+                  e.currentTarget.style.color = themeColors.textMuted;
+                }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -199,26 +226,50 @@ export const BugReportButton: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: themeColors.textSecondary }}
+                >
                   Describe the bug *
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="What happened? What did you expect to happen?"
-                  className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 focus:bg-white/10 transition-all resize-none"
+                  className="w-full h-32 px-4 py-3 rounded-xl focus:outline-none transition-all resize-none"
+                  style={{
+                    backgroundColor: themeColors.input,
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: themeColors.inputBorder,
+                    color: themeColors.text,
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = themeColors.accent;
+                    e.currentTarget.style.backgroundColor = themeColors.surfaceHover;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = themeColors.inputBorder;
+                    e.currentTarget.style.backgroundColor = themeColors.input;
+                  }}
                   required
                 />
               </div>
 
               {/* Screenshot Upload */}
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: themeColors.textSecondary }}
+                >
                   Screenshot (optional)
                 </label>
 
                 {screenshotPreview ? (
-                  <div className="relative rounded-xl overflow-hidden border border-white/10 group">
+                  <div
+                    className="relative rounded-xl overflow-hidden border group"
+                    style={{ borderColor: themeColors.border }}
+                  >
                     <img
                       src={screenshotPreview}
                       alt="Screenshot preview"
@@ -227,7 +278,17 @@ export const BugReportButton: React.FC = () => {
                     <button
                       type="button"
                       onClick={removeScreenshot}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-red-500/80 hover:bg-red-500 transition-colors flex items-center justify-center text-white"
+                      className="absolute top-2 right-2 w-8 h-8 rounded-lg transition-colors flex items-center justify-center"
+                      style={{
+                        backgroundColor: `${themeColors.accent}cc`,
+                        color: themeColors.text,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = themeColors.accent;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = `${themeColors.accent}cc`;
+                      }}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -236,7 +297,19 @@ export const BugReportButton: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-24 border-2 border-dashed border-white/20 rounded-xl hover:border-[#00FFF0]/50 transition-colors flex flex-col items-center justify-center gap-2 text-white/60 hover:text-white/80"
+                    className="w-full h-24 border-2 border-dashed rounded-xl transition-colors flex flex-col items-center justify-center gap-2"
+                    style={{
+                      borderColor: themeColors.border,
+                      color: themeColors.textMuted,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = themeColors.accent;
+                      e.currentTarget.style.color = themeColors.text;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = themeColors.border;
+                      e.currentTarget.style.color = themeColors.textMuted;
+                    }}
                   >
                     <ImageIcon className="w-6 h-6" />
                     <span className="text-sm">Click to upload screenshot</span>
@@ -254,7 +327,13 @@ export const BugReportButton: React.FC = () => {
 
               {/* User Info Display */}
               {user && (
-                <div className="text-xs text-white/50 bg-white/5 rounded-lg p-3">
+                <div
+                  className="text-xs rounded-lg p-3"
+                  style={{
+                    color: themeColors.textMuted,
+                    backgroundColor: themeColors.surface,
+                  }}
+                >
                   Submitting as: {user.email}
                 </div>
               )}
@@ -263,7 +342,20 @@ export const BugReportButton: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || !description.trim()}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold hover:shadow-xl hover:shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl font-semibold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{
+                  background: themeColors.gradient,
+                  color: themeColors.text,
+                  boxShadow: `0 10px 40px ${themeColors.shadow}`,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSubmitting && description.trim()) {
+                    e.currentTarget.style.boxShadow = `0 20px 60px ${themeColors.shadow}`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 10px 40px ${themeColors.shadow}`;
+                }}
               >
                 {isSubmitting ? (
                   <>
