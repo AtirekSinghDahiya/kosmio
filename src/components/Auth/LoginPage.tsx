@@ -110,7 +110,7 @@ export const LoginPage: React.FC = () => {
       <div className={`w-full max-w-md relative z-10 px-2 ${mounted ? 'animate-scale-in' : 'opacity-0'}`}>
         <div className="text-center mb-8 md:mb-10 flex flex-col items-center">
           <img
-            src="/kroniq-icon.svg"
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"
             alt="KroniQ"
             className="h-32 md:h-40 w-auto object-contain mb-3 drop-shadow-[0_0_20px_rgba(0,255,240,0.6)]"
           />

@@ -278,7 +278,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Update favicon
     const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
     if (favicon) {
-      favicon.href = '/kroniq-icon.svg';
+      favicon.href = '/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png';
     }
   }, [currentTheme]);
 

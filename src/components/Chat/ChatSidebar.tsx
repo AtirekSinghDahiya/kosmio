@@ -128,7 +128,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className={`p-4 border-b flex items-center justify-center ${theme === 'light' ? 'border-gray-200' : 'border-white/10'}`}>
         <div className="flex items-center justify-center">
           <img
-            src="/kroniq-icon.svg"
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"
             alt="KroniQ"
             className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(0,255,240,0.5)]"
           />

@@ -46,7 +46,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <img
-            src="/kroniq-icon.svg"
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"
             alt="KroniQ"
             className="h-20 w-auto object-contain mb-3 mx-auto drop-shadow-[0_0_15px_rgba(0,255,240,0.5)]"
           />
