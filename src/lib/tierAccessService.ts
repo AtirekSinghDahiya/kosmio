@@ -8,18 +8,25 @@ export interface TierInfo {
   firstPurchaseAt: string | null;
 }
 
-// Paid models require a purchased token pack
+// Paid models require purchased tokens
 const PAID_MODELS = new Set([
-  // Chat models
+  // Premium Chat models
   'gpt-5-chat',
   'deepseek-v3.2',
   'nemotron-super',
   'qwen-vl-32b',
   'claude-sonnet',
+  'claude-haiku-4.5',
+  'claude-opus-4',
+  'claude-opus-4.1',
   'gemini-flash-image',
   'kimi-k2',
+  'kimi-k2-0905',
   'llama-4-maverick',
   'glm-4.6',
+  'perplexity-sonar-pro',
+  'perplexity-sonar-reasoning',
+  'perplexity-sonar-deep',
 
   // Code models
   'gpt-5-codex',
@@ -42,7 +49,7 @@ const PAID_MODELS = new Set([
 export const getUserTier = async (userId: string): Promise<TierInfo> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('user_tier, has_purchased, first_purchase_at')
+    .select('current_tier, is_paid, tokens_remaining, last_purchase_date')
     .eq('id', userId)
     .maybeSingle();
 
@@ -51,10 +58,14 @@ export const getUserTier = async (userId: string): Promise<TierInfo> => {
     return { tier: 'free', hasPurchased: false, firstPurchaseAt: null };
   }
 
+  // User is paid if they have tokens_remaining > 0 OR is_paid = true
+  const hasPaidTokens = (data?.tokens_remaining || 0) > 0;
+  const isPaidUser = data?.is_paid === true;
+
   return {
-    tier: data?.user_tier || 'free',
-    hasPurchased: data?.has_purchased || false,
-    firstPurchaseAt: data?.first_purchase_at || null
+    tier: (hasPaidTokens || isPaidUser) ? 'paid' : 'free',
+    hasPurchased: isPaidUser,
+    firstPurchaseAt: data?.last_purchase_date || null
   };
 };
 
@@ -76,7 +87,8 @@ export const canAccessModel = async (userId: string, modelId: string): Promise<b
     return true;
   }
 
-  // Paid models require paid tier
+  // Paid models require paid tier (user must have tokens_remaining > 0)
+  console.log(`🔒 Checking access for ${modelId}:`, tierInfo);
   return tierInfo.tier === 'paid';
 };
 
@@ -85,7 +97,13 @@ export const canAccessModel = async (userId: string, modelId: string): Promise<b
  */
 export const upgradeUserToPaidTier = async (userId: string): Promise<void> => {
   const { error } = await supabase
-    .rpc('upgrade_user_to_paid_tier', { user_id: userId });
+    .from('profiles')
+    .update({
+      is_paid: true,
+      current_tier: 'premium',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId);
 
   if (error) {
     console.error('Error upgrading user to paid tier:', error);
