@@ -6,8 +6,7 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { auth } from '../lib/firebase';
 import { supabase } from '../lib/supabaseClient';
 
 interface UserData {
@@ -179,11 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     try {
-      await setDoc(doc(db, 'profiles', userId), profileData);
-      console.log('✅ Firestore profile created successfully');
-
       await createSupabaseProfile(userId, email, displayName);
-
+      console.log('✅ Supabase profile created successfully');
       setUserData(profileData);
     } catch (error) {
       console.error('❌ Error creating profile:', error);
@@ -195,14 +191,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('👤 Fetching user data for:', userId);
 
     try {
-      const userDoc = await getDoc(doc(db, 'profiles', userId));
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-      if (userDoc.exists()) {
-        const data = userDoc.data() as UserData;
-        console.log('✅ Profile loaded from Firestore');
-        setUserData(data);
+      if (error) throw error;
 
-        await createSupabaseProfile(userId, email, data.displayName);
+      if (profile) {
+        console.log('✅ Profile loaded from Supabase');
+        setUserData({
+          id: profile.id,
+          email: profile.email,
+          displayName: profile.display_name,
+          photoURL: profile.photo_url,
+          bio: profile.bio,
+          birthday: profile.birthday,
+          location: profile.location,
+          phone: profile.phone,
+          plan: profile.current_tier,
+        });
       } else {
         console.log('⚠️ Profile not found, creating new one...');
         await createDefaultProfile(userId, email);
@@ -326,25 +335,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('   Data to update:', Object.keys(data));
 
     try {
-      const updatedData = {
-        ...data,
-        updatedAt: new Date()
-      };
+      console.log('📤 Sending update to Supabase...');
 
-      console.log('📤 Sending update to Firestore...');
-      await updateDoc(doc(db, 'profiles', currentUser.uid), updatedData);
-      console.log('✅ Profile updated successfully in Firestore');
+      const supabaseData: any = {};
+      if (data.displayName) supabaseData.display_name = data.displayName;
+      if (data.photoURL) supabaseData.photo_url = data.photoURL;
+      if (data.bio) supabaseData.bio = data.bio;
+      if (data.birthday) supabaseData.birthday = data.birthday;
+      if (data.location) supabaseData.location = data.location;
+      if (data.phone) supabaseData.phone = data.phone;
 
-      setUserData(prev => prev ? { ...prev, ...updatedData } : null);
+      supabaseData.updated_at = new Date().toISOString();
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(supabaseData)
+        .eq('id', currentUser.uid);
+
+      if (error) throw error;
+
+      console.log('✅ Profile updated successfully in Supabase');
+
+      setUserData(prev => prev ? { ...prev, ...data } : null);
       console.log('✅ Local user data updated');
     } catch (error: any) {
       console.error('❌ Error updating profile:', error);
-      console.error('   Error code:', error.code);
       console.error('   Error message:', error.message);
 
-      // Provide more helpful error messages
-      if (error.code === 'permission-denied') {
-        throw new Error('Permission denied. Firebase rules need to be deployed. Run: firebase deploy --only firestore:rules');
+      if (error.code === 'PGRST116') {
+        throw new Error('Profile not found. Please contact support.');
       } else if (error.code === 'unavailable') {
         throw new Error('Network error. Please check your internet connection.');
       } else if (error.code === 'not-found') {
