@@ -35,12 +35,18 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         console.error('Error fetching token balance:', error);
         setBalance(0);
       } else if (profileData) {
-        // Free users should see daily_tokens_remaining, paid users see tokens_balance
-        const isFreeUser = !profileData.is_paid && profileData.current_tier === 'free';
-        const tokenBalance = isFreeUser
-          ? (profileData.daily_tokens_remaining || 0)
-          : (profileData.tokens_balance || 0);
-        console.log('✅ Token balance:', tokenBalance, '(Free user:', isFreeUser, ')');
+        // Show the maximum of tokens_balance and daily_tokens_remaining
+        // This ensures free users see their daily tokens (5000) and paid users see their purchased balance
+        const tokenBalance = Math.max(
+          profileData.tokens_balance || 0,
+          profileData.daily_tokens_remaining || 0
+        );
+        console.log('✅ Token balance:', tokenBalance, {
+          tokens_balance: profileData.tokens_balance,
+          daily_tokens_remaining: profileData.daily_tokens_remaining,
+          is_paid: profileData.is_paid,
+          tier: profileData.current_tier
+        });
         setBalance(tokenBalance);
       } else {
         console.log('⚠️ No profile found for user');
@@ -77,10 +83,10 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
           console.log('💰 Token balance updated via realtime:', payload);
           if (payload.new) {
             const profile = payload.new as any;
-            const isFreeUser = !profile.is_paid && profile.current_tier === 'free';
-            const newBalance = isFreeUser
-              ? (profile.daily_tokens_remaining || 0)
-              : (profile.tokens_balance || 0);
+            const newBalance = Math.max(
+              profile.tokens_balance || 0,
+              profile.daily_tokens_remaining || 0
+            );
             console.log('📊 New balance:', newBalance);
             setBalance(newBalance);
           }
