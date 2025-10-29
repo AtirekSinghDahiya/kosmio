@@ -111,11 +111,13 @@ export async function deductTokensForRequest(
 ): Promise<TokenDeductionResult> {
   try {
     const modelCost = getModelCost(modelId);
-    const tokens = modelCost.tokensPerMessage;
+    const baseTokens = modelCost.tokensPerMessage;
+
+    const tokensToDeduct = baseTokens * 2;
 
     const { data, error } = await supabase.rpc('deduct_tokens', {
       p_user_id: userId,
-      p_tokens: tokens,
+      p_tokens: tokensToDeduct,
       p_model: modelId,
       p_provider: provider,
       p_cost_usd: providerCostUSD,

@@ -80,11 +80,14 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [userTier, setUserTier] = useState<UserTier>('free');
+  const [hasTokens, setHasTokens] = useState(false);
 
   useEffect(() => {
     if (user?.uid) {
       getUserTier(user.uid).then(tierInfo => {
+        console.log('🔍 User tier info:', tierInfo);
         setUserTier(tierInfo.tier);
+        setHasTokens(tierInfo.tier === 'paid');
       });
     }
   }, [user]);
@@ -152,7 +155,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
                 const isPaid = !isModelFree(model.id);
-                const isLocked = isPaid && userTier === 'free';
+                const isLocked = isPaid && !hasTokens;
 
                 return (
                   <button

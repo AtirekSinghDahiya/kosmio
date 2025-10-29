@@ -47,7 +47,7 @@ export async function getUserTierInfo(userId: string): Promise<TierInfo | null> 
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('current_tier, tokens_balance, tokens_lifetime_purchased')
+      .select('current_tier, is_paid, tokens_balance, tokens_remaining, tokens_lifetime_purchased')
       .eq('id', userId)
       .maybeSingle();
 
@@ -61,14 +61,15 @@ export async function getUserTierInfo(userId: string): Promise<TierInfo | null> 
     }
 
     const totalBalance = data.tokens_balance || 0;
-    const hasPurchased = (data.tokens_lifetime_purchased || 0) > 0;
+    const tokensRemaining = data.tokens_remaining || 0;
+    const isPaidUser = data.is_paid === true || tokensRemaining > 0;
 
     return {
-      tier: hasPurchased ? 'paid' : 'free',
-      paidBalance: hasPurchased ? totalBalance : 0,
-      freeBalance: hasPurchased ? 0 : totalBalance,
+      tier: isPaidUser ? 'paid' : 'free',
+      paidBalance: isPaidUser ? totalBalance : 0,
+      freeBalance: isPaidUser ? 0 : totalBalance,
       totalBalance: totalBalance,
-      canAccessPaidModels: hasPurchased,
+      canAccessPaidModels: isPaidUser,
     };
   } catch (error) {
     console.error('Error in getUserTierInfo:', error);
