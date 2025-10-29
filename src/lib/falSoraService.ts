@@ -3,16 +3,7 @@
  * Uses official @fal-ai/client library to access OpenAI Sora 2 text-to-video model
  */
 
-import { fal } from '@fal-ai/client';
-
-const FAL_KEY = import.meta.env.VITE_FAL_KEY || '';
-
-// Configure fal client with API key
-if (FAL_KEY && !FAL_KEY.includes('your-')) {
-  fal.config({
-    credentials: FAL_KEY
-  });
-}
+import { fal, isFalConfigured } from './falClient';
 
 export interface FalSoraRequest {
   prompt: string;
@@ -45,7 +36,7 @@ function log(level: 'info' | 'success' | 'error', message: string) {
  * Check if Fal.ai Sora is available
  */
 export function isFalSoraAvailable(): boolean {
-  return !!FAL_KEY && !FAL_KEY.includes('your-');
+  return isFalConfigured();
 }
 
 /**
@@ -56,7 +47,7 @@ export async function generateFalSoraVideo(
   request: FalSoraRequest,
   onProgress?: (status: string, percent: number) => void
 ): Promise<string> {
-  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+  if (!isFalConfigured()) {
     throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
   }
 
@@ -151,7 +142,7 @@ export async function createAndPollFalSoraVideo(
 export async function submitFalSoraRequest(
   request: FalSoraRequest
 ): Promise<string> {
-  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+  if (!isFalConfigured()) {
     throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
   }
 

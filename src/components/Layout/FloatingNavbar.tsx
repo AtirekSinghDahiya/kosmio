@@ -43,11 +43,11 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
 
   return (
     <>
-      <nav className="hidden md:flex fixed top-0 left-0 right-0 z-30 items-center justify-center pt-4 md:pt-6 px-4">
+      <nav className="flex fixed top-0 left-0 right-0 z-30 items-center justify-center pt-2 md:pt-6 px-2 md:px-4">
         <div className="relative group w-full max-w-5xl">
           <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/20 via-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="relative glass-panel rounded-full px-6 md:px-8 py-3 md:py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl animate-fade-in-up hover:border-white/30 transition-all duration-300">
-            <div className="flex items-center justify-center gap-4 md:gap-8 overflow-x-auto scrollbar-none">
+          <div className="relative glass-panel rounded-full px-3 md:px-8 py-2 md:py-3.5 shadow-2xl border border-white/20 backdrop-blur-2xl animate-fade-in-up hover:border-white/30 transition-all duration-300">
+            <div className="flex items-center justify-center gap-2 md:gap-8 overflow-x-auto scrollbar-none">
               <button
                 onClick={handleHomeClick}
                 className="relative flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-white/70 hover:text-white font-medium transition-all hover:scale-105 active:scale-95 group/item whitespace-nowrap px-2 md:px-0"
@@ -109,7 +109,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
         </div>
       </nav>
 
-      <div className="fixed top-4 md:top-6 right-4 md:right-6 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
+      <div className="fixed top-2 md:top-6 right-2 md:right-6 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
         <TokenBalanceDisplay
           onPurchaseClick={() => setShowPricing(true)}
           showDetails={false}

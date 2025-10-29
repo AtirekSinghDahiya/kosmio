@@ -224,9 +224,9 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] animate-fade-in">
-      <div className="relative w-full max-w-7xl mx-auto px-4 py-6">
-        <div className="relative bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 backdrop-blur-2xl rounded-3xl border-2 border-orange-500/30 shadow-2xl shadow-orange-500/20 overflow-hidden">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] animate-fade-in p-2 md:p-4">
+      <div className="relative w-full max-w-7xl mx-auto h-full md:h-auto overflow-y-auto">
+        <div className="relative bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 backdrop-blur-2xl rounded-2xl md:rounded-3xl border-2 border-orange-500/30 shadow-2xl shadow-orange-500/20 overflow-hidden">
 
           <div className="absolute -inset-[2px] bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-3xl blur-xl animate-pulse opacity-50" />
 
@@ -256,17 +256,17 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
             </div>
           </div>
 
-          <div className="relative p-8">
-            <div className="grid lg:grid-cols-2 gap-8">
+          <div className="relative p-4 md:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
 
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
 
                 <div className="space-y-3">
                   <label className="text-sm font-semibold text-white/90 flex items-center gap-2">
                     <Video className="w-4 h-4 text-orange-400" />
                     Video Provider
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 md:gap-3">
                     <button
                       onClick={() => setProvider('veo3')}
                       disabled={isGenerating || !veo3Available}
@@ -338,7 +338,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-white/90 flex items-center gap-2">
                       <Maximize className="w-4 h-4 text-blue-400" />
@@ -421,8 +421,8 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                 </button>
               </div>
 
-              <div className="space-y-6">
-                <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border-2 border-white/10 overflow-hidden shadow-2xl">
+              <div className="space-y-4 md:space-y-6">
+                <div className="relative aspect-video bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl md:rounded-2xl border-2 border-white/10 overflow-hidden shadow-2xl">
                   {generatedVideoUrl ? (
                     <div className="relative w-full h-full group">
                       <video

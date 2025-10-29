@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FolderOpen, CreditCard, Settings, LogOut, BarChart3, Sparkles, Mic, Menu, X, Presentation, User, Database } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { TokenBalanceDisplay } from '../Common/TokenBalanceDisplay';
 
 interface SidebarProps {
   currentView: string;
@@ -117,25 +118,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
         </nav>
 
         <div className="p-3 border-t border-white/10 space-y-2">
-          {(isExpanded || isMobile) && userData && (
-            <div className="px-3 py-3 bg-white/5 rounded-xl mb-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-white/70">Token Usage</span>
-                <span className="text-xs font-bold text-cyan-400 uppercase">
-                  {userData.plan}
-                </span>
-              </div>
-              <div className="w-full bg-white/10 rounded-full h-1.5 mb-1">
-                <div
-                  className="bg-gradient-to-r from-cyan-500 to-blue-600 h-1.5 rounded-full transition-all"
-                  style={{
-                    width: `${Math.min(((userData.tokensUsed || 0) / (userData.tokensLimit || 1)) * 100, 100)}%`
-                  }}
-                />
-              </div>
-              <p className="text-xs text-white/50">
-                {userData.tokensUsed?.toLocaleString() || 0} / {userData.tokensLimit?.toLocaleString() || 0}
-              </p>
+          {(isExpanded || isMobile) && (
+            <div className="mb-2">
+              <TokenBalanceDisplay
+                isExpanded={true}
+                showDetails={true}
+                onPurchaseClick={() => handleMenuItemClick('billing')}
+              />
             </div>
           )}
 
