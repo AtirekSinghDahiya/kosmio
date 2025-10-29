@@ -148,30 +148,13 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
       </div>
 
       {balance && (
-        <>
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-orange-400" />
-            <span className="text-2xl font-bold text-white">
-              {displayBalance.toLocaleString()}
-            </span>
-            <span className="text-sm text-white/50 ml-1">tokens</span>
-          </div>
-          {showDetails && balance.tier === 'free' && balance.dailyTokens > 0 && (
-            <div className="text-xs text-white/50 mt-1">
-              Daily: {balance.dailyTokens.toLocaleString()} • Resets at midnight UTC
-            </div>
-          )}
-          {showDetails && balance.paidTokens > 0 && (
-            <div className="text-xs text-green-400 mt-1">
-              💎 Paid: {balance.paidTokens.toLocaleString()} • Daily: {balance.dailyTokens.toLocaleString()}
-            </div>
-          )}
-          {showDetails && balance.paidTokens === 0 && balance.tier === 'premium' && (
-            <div className="text-xs text-yellow-400 mt-1">
-              ⚠️ Purchase tokens to access premium models
-            </div>
-          )}
-        </>
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-orange-400" />
+          <span className="text-2xl font-bold text-white">
+            {displayBalance.toLocaleString()}
+          </span>
+          <span className="text-sm text-white/50 ml-1">tokens</span>
+        </div>
       )}
     </div>
   );
