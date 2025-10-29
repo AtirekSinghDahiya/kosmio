@@ -109,7 +109,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
         </div>
       </nav>
 
-      <div className="fixed top-2 md:top-6 right-2 md:right-6 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
+      <div className="fixed top-14 md:top-6 right-2 md:right-6 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
         <TokenBalanceDisplay
           onPurchaseClick={() => setShowPricing(true)}
           showDetails={false}

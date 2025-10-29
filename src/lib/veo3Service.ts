@@ -113,19 +113,29 @@ export async function generateVeo3Video(
 
     return videoData.video.url;
   } catch (error: any) {
-    log('error', `Video generation failed: ${error.message}`);
+    const errorMessage = error?.message || error?.toString() || 'Unknown error';
+    const errorBody = error?.body ? JSON.stringify(error.body) : '';
 
-    if (error.message.includes('401') || error.message.includes('authentication')) {
-      throw new Error('Invalid Fal.ai API key. Please check your VITE_FAL_KEY configuration.');
-    } else if (error.message.includes('429')) {
-      throw new Error('Rate limit exceeded. Please try again in a few minutes.');
-    } else if (error.message.includes('timeout')) {
-      throw new Error('Video generation timed out. Please try with a shorter duration or simpler prompt.');
-    } else if (error.message.includes('content policy')) {
-      throw new Error('Prompt violates content policy. Please try a different prompt.');
+    log('error', `Video generation failed: ${errorMessage}`);
+    if (errorBody) {
+      log('error', `Error details: ${errorBody}`);
     }
 
-    throw error;
+    console.error('Full Veo3 error:', error);
+
+    if (errorMessage.includes('401') || errorMessage.includes('authentication')) {
+      throw new Error('Invalid Fal.ai API key. Please check your VITE_FAL_KEY configuration.');
+    } else if (errorMessage.includes('429')) {
+      throw new Error('Rate limit exceeded. Please try again in a few minutes.');
+    } else if (errorMessage.includes('timeout')) {
+      throw new Error('Video generation timed out. Please try with a shorter duration or simpler prompt.');
+    } else if (errorMessage.includes('content policy')) {
+      throw new Error('Prompt violates content policy. Please try a different prompt.');
+    } else if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+      throw new Error('Veo3 model endpoint not found. The model may not be available on Fal.ai yet.');
+    }
+
+    throw new Error(`Veo3 generation failed: ${errorMessage}`);
   }
 }
 

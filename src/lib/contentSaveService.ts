@@ -1,31 +1,18 @@
 /**
  * Content Save Service
- * Saves all types of generated content (images, videos, music, etc.) to projects
+ * Saves all types of generated content (images, videos, music, etc.) to projects in Supabase
  */
 
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { db } from './firebase';
-import { createProject, addMessageToProject } from './projectService';
+import { createProject, createMessage } from './dataService';
+import { auth } from './firebase';
 
 export type ContentType = 'image' | 'video' | 'music' | 'voiceover' | 'ppt' | 'code' | 'design';
 
-export interface SavedContent {
-  id: string;
-  projectId: string;
-  type: ContentType;
-  prompt: string;
-  url?: string;
-  data?: any;
-  metadata?: {
-    model?: string;
-    duration?: number;
-    dimensions?: string;
-    fileSize?: string;
-    provider?: string;
-    [key: string]: any;
-  };
-  createdAt: Date;
-}
+const getCurrentUserId = (): string => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  return user.uid;
+};
 
 /**
  * Save generated image to project
@@ -43,36 +30,34 @@ export async function saveImageToProject(
   try {
     console.log('💾 Saving image to project...');
 
-    // Create or find project
-    const projectId = await createProject(userId, `Image: ${prompt.substring(0, 50)}`, 'gemini');
-
-    // Add the prompt as a user message
-    await addMessageToProject(projectId, 'user', prompt);
-
-    // Add the image as an assistant response
-    const imageMessage = `I've generated your image!\n\n![Generated Image](${imageUrl})\n\n**Prompt:** ${prompt}`;
-    await addMessageToProject(projectId, 'assistant', imageMessage);
-
-    // Save to content collection for easy retrieval
-    const contentData = {
-      userId,
-      projectId,
-      type: 'image',
+    const project = await createProject(
+      `Image: ${prompt.substring(0, 40)}...`,
+      'design',
       prompt,
-      url: imageUrl,
+      metadata?.model || 'flux-schnell'
+    );
+
+    await createMessage(project.id, {
+      role: 'user',
+      content: prompt,
+      metadata: { type: 'image_request' }
+    });
+
+    const imageMessage = `I've generated your image!\n\n![Generated Image](${imageUrl})\n\n**Model:** ${metadata?.model || 'Unknown'}\n**Provider:** ${metadata?.provider || 'Unknown'}`;
+    await createMessage(project.id, {
+      role: 'assistant',
+      content: imageMessage,
       metadata: {
-        model: metadata?.model || 'flux-schnell',
-        dimensions: metadata?.dimensions || 'unknown',
-        provider: metadata?.provider || 'replicate',
-        generatedAt: Timestamp.now()
-      },
-      createdAt: Timestamp.now()
-    };
+        type: 'image',
+        url: imageUrl,
+        model: metadata?.model,
+        dimensions: metadata?.dimensions,
+        provider: metadata?.provider
+      }
+    });
 
-    await addDoc(collection(db, 'generated_content'), contentData);
-
-    console.log('✅ Image saved to project:', projectId);
-    return projectId;
+    console.log('✅ Image saved to project:', project.id);
+    return project.id;
   } catch (error) {
     console.error('❌ Error saving image to project:', error);
     throw error;
@@ -95,36 +80,34 @@ export async function saveVideoToProject(
   try {
     console.log('💾 Saving video to project...');
 
-    // Create or find project
-    const projectId = await createProject(userId, `Video: ${prompt.substring(0, 50)}`, 'gemini');
-
-    // Add the prompt as a user message
-    await addMessageToProject(projectId, 'user', prompt);
-
-    // Add the video as an assistant response
-    const videoMessage = `I've generated your video!\n\n🎬 **Video Ready**\n\n[Download Video](${videoUrl})\n\n**Prompt:** ${prompt}\n**Duration:** ${metadata?.duration || 5}s`;
-    await addMessageToProject(projectId, 'assistant', videoMessage);
-
-    // Save to content collection
-    const contentData = {
-      userId,
-      projectId,
-      type: 'video',
+    const project = await createProject(
+      `Video: ${prompt.substring(0, 40)}...`,
+      'video',
       prompt,
-      url: videoUrl,
+      metadata?.model || 'unknown'
+    );
+
+    await createMessage(project.id, {
+      role: 'user',
+      content: prompt,
+      metadata: { type: 'video_request' }
+    });
+
+    const videoMessage = `I've generated your video!\n\n🎬 **Video Ready**\n\n[View Video](${videoUrl})\n\n**Model:** ${metadata?.model || 'Unknown'}\n**Duration:** ${metadata?.duration || '?'}s\n**Provider:** ${metadata?.provider || 'Unknown'}`;
+    await createMessage(project.id, {
+      role: 'assistant',
+      content: videoMessage,
       metadata: {
-        model: metadata?.model || 'unknown',
-        duration: metadata?.duration || 5,
-        provider: metadata?.provider || 'unknown',
-        generatedAt: Timestamp.now()
-      },
-      createdAt: Timestamp.now()
-    };
+        type: 'video',
+        url: videoUrl,
+        model: metadata?.model,
+        duration: metadata?.duration,
+        provider: metadata?.provider
+      }
+    });
 
-    await addDoc(collection(db, 'generated_content'), contentData);
-
-    console.log('✅ Video saved to project:', projectId);
-    return projectId;
+    console.log('✅ Video saved to project:', project.id);
+    return project.id;
   } catch (error) {
     console.error('❌ Error saving video to project:', error);
     throw error;
@@ -147,36 +130,34 @@ export async function saveMusicToProject(
   try {
     console.log('💾 Saving music to project...');
 
-    // Create or find project
-    const projectId = await createProject(userId, `Music: ${prompt.substring(0, 50)}`, 'gemini');
-
-    // Add the prompt as a user message
-    await addMessageToProject(projectId, 'user', prompt);
-
-    // Add the music as an assistant response
-    const musicMessage = `I've generated your music!\n\n🎵 **${metadata?.title || 'Music Track'}**\n\n[Listen Now](${audioUrl})\n\n**Prompt:** ${prompt}`;
-    await addMessageToProject(projectId, 'assistant', musicMessage);
-
-    // Save to content collection
-    const contentData = {
-      userId,
-      projectId,
-      type: 'music',
+    const project = await createProject(
+      `Music: ${metadata?.title || prompt.substring(0, 40)}...`,
+      'voice',
       prompt,
-      url: audioUrl,
+      metadata?.model || 'suno'
+    );
+
+    await createMessage(project.id, {
+      role: 'user',
+      content: prompt,
+      metadata: { type: 'music_request' }
+    });
+
+    const musicMessage = `I've generated your music!\n\n🎵 **${metadata?.title || 'Music Track'}**\n\n[Listen Now](${audioUrl})\n\n**Model:** ${metadata?.model || 'Suno'}`;
+    await createMessage(project.id, {
+      role: 'assistant',
+      content: musicMessage,
       metadata: {
-        model: metadata?.model || 'suno',
-        duration: metadata?.duration || 30,
-        title: metadata?.title || 'Untitled',
-        generatedAt: Timestamp.now()
-      },
-      createdAt: Timestamp.now()
-    };
+        type: 'music',
+        url: audioUrl,
+        model: metadata?.model,
+        duration: metadata?.duration,
+        title: metadata?.title
+      }
+    });
 
-    await addDoc(collection(db, 'generated_content'), contentData);
-
-    console.log('✅ Music saved to project:', projectId);
-    return projectId;
+    console.log('✅ Music saved to project:', project.id);
+    return project.id;
   } catch (error) {
     console.error('❌ Error saving music to project:', error);
     throw error;
@@ -198,35 +179,33 @@ export async function saveVoiceoverToProject(
   try {
     console.log('💾 Saving voiceover to project...');
 
-    // Create or find project
-    const projectId = await createProject(userId, `Voiceover: ${text.substring(0, 50)}`, 'gemini');
+    const project = await createProject(
+      `Voiceover: ${text.substring(0, 40)}...`,
+      'voice',
+      text,
+      'elevenlabs'
+    );
 
-    // Add the text as a user message
-    await addMessageToProject(projectId, 'user', `Generate voiceover: ${text}`);
+    await createMessage(project.id, {
+      role: 'user',
+      content: `Generate voiceover: ${text}`,
+      metadata: { type: 'voiceover_request' }
+    });
 
-    // Add the voiceover as an assistant response
-    const voiceMessage = `I've generated your voiceover!\n\n🎙️ **Voiceover Ready**\n\n[Listen Now](${audioUrl})\n\n**Text:** ${text}`;
-    await addMessageToProject(projectId, 'assistant', voiceMessage);
-
-    // Save to content collection
-    const contentData = {
-      userId,
-      projectId,
-      type: 'voiceover',
-      prompt: text,
-      url: audioUrl,
+    const voiceMessage = `I've generated your voiceover!\n\n🎙️ **Voiceover Ready**\n\n[Listen Now](${audioUrl})\n\n**Voice:** ${metadata?.voice || 'Default'}`;
+    await createMessage(project.id, {
+      role: 'assistant',
+      content: voiceMessage,
       metadata: {
-        voice: metadata?.voice || 'default',
-        duration: metadata?.duration || 0,
-        generatedAt: Timestamp.now()
-      },
-      createdAt: Timestamp.now()
-    };
+        type: 'voiceover',
+        url: audioUrl,
+        voice: metadata?.voice,
+        duration: metadata?.duration
+      }
+    });
 
-    await addDoc(collection(db, 'generated_content'), contentData);
-
-    console.log('✅ Voiceover saved to project:', projectId);
-    return projectId;
+    console.log('✅ Voiceover saved to project:', project.id);
+    return project.id;
   } catch (error) {
     console.error('❌ Error saving voiceover to project:', error);
     throw error;
@@ -248,35 +227,33 @@ export async function savePPTToProject(
   try {
     console.log('💾 Saving PPT to project...');
 
-    // Create or find project
-    const projectId = await createProject(userId, `Presentation: ${prompt.substring(0, 50)}`, 'gemini');
-
-    // Add the prompt as a user message
-    await addMessageToProject(projectId, 'user', prompt);
-
-    // Add the PPT as an assistant response
-    const pptMessage = `I've generated your presentation!\n\n📊 **Presentation Ready**\n\n**Slides:** ${metadata?.slideCount || 0}\n**Theme:** ${metadata?.theme || 'Default'}\n\n**Prompt:** ${prompt}`;
-    await addMessageToProject(projectId, 'assistant', pptMessage);
-
-    // Save to content collection
-    const contentData = {
-      userId,
-      projectId,
-      type: 'ppt',
+    const project = await createProject(
+      `Presentation: ${prompt.substring(0, 40)}...`,
+      'design',
       prompt,
-      data: pptData,
+      'presentation'
+    );
+
+    await createMessage(project.id, {
+      role: 'user',
+      content: prompt,
+      metadata: { type: 'ppt_request' }
+    });
+
+    const pptMessage = `I've generated your presentation!\n\n📊 **Presentation Ready**\n\n**Slides:** ${metadata?.slideCount || 0}\n**Theme:** ${metadata?.theme || 'Default'}`;
+    await createMessage(project.id, {
+      role: 'assistant',
+      content: pptMessage,
       metadata: {
-        slideCount: metadata?.slideCount || 0,
-        theme: metadata?.theme || 'default',
-        generatedAt: Timestamp.now()
-      },
-      createdAt: Timestamp.now()
-    };
+        type: 'ppt',
+        data: pptData,
+        slideCount: metadata?.slideCount,
+        theme: metadata?.theme
+      }
+    });
 
-    await addDoc(collection(db, 'generated_content'), contentData);
-
-    console.log('✅ PPT saved to project:', projectId);
-    return projectId;
+    console.log('✅ PPT saved to project:', project.id);
+    return project.id;
   } catch (error) {
     console.error('❌ Error saving PPT to project:', error);
     throw error;
@@ -284,15 +261,49 @@ export async function savePPTToProject(
 }
 
 /**
- * Get all generated content for a user
+ * Save generated code to project
  */
-export async function getUserContent(userId: string, type?: ContentType): Promise<SavedContent[]> {
+export async function saveCodeToProject(
+  userId: string,
+  prompt: string,
+  code: string,
+  metadata?: {
+    language?: string;
+    framework?: string;
+  }
+): Promise<string> {
   try {
-    // This would use Firestore queries in production
-    // For now, returning empty array as placeholder
-    return [];
+    console.log('💾 Saving code to project...');
+
+    const project = await createProject(
+      `Code: ${prompt.substring(0, 40)}...`,
+      'code',
+      prompt,
+      'gpt-4'
+    );
+
+    await createMessage(project.id, {
+      role: 'user',
+      content: prompt,
+      metadata: { type: 'code_request' }
+    });
+
+    const codeMessage = `I've generated your code!\n\n\`\`\`${metadata?.language || 'javascript'}\n${code}\n\`\`\`\n\n**Language:** ${metadata?.language || 'JavaScript'}\n**Framework:** ${metadata?.framework || 'None'}`;
+    await createMessage(project.id, {
+      role: 'assistant',
+      content: codeMessage,
+      metadata: {
+        type: 'code',
+        code,
+        language: metadata?.language,
+        framework: metadata?.framework
+      }
+    });
+
+    console.log('✅ Code saved to project:', project.id);
+    return project.id;
   } catch (error) {
-    console.error('❌ Error fetching user content:', error);
-    return [];
+    console.error('❌ Error saving code to project:', error);
+    throw error;
   }
 }
