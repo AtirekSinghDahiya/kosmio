@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Code, Palette, Video, Volume2, Send, ArrowRight } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { AIModelSelector } from './AIModelSelector';
 
 interface MobileLandingViewProps {
   onQuickAction: (prompt: string) => void;
@@ -8,6 +9,8 @@ interface MobileLandingViewProps {
   setInput: (value: string) => void;
   onSendMessage: () => void;
   onOpenSidebar?: () => void;
+  selectedModel?: string;
+  onModelChange?: (modelId: string) => void;
 }
 
 export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
@@ -15,6 +18,8 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
   input,
   setInput,
   onSendMessage,
+  selectedModel = 'grok-4-fast',
+  onModelChange,
 }) => {
   const { theme } = useTheme();
   const suggestions = [
@@ -88,6 +93,16 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
             }}
             className="relative"
           >
+            {/* AI Model Selector */}
+            {onModelChange && (
+              <div className="mb-3">
+                <AIModelSelector
+                  selectedModel={selectedModel}
+                  onModelChange={onModelChange}
+                  category="chat"
+                />
+              </div>
+            )}
             <div className="relative flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
               <input
                 type="text"

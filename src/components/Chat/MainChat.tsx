@@ -578,6 +578,8 @@ export const MainChat: React.FC = () => {
                   input={inputValue}
                   setInput={setInputValue}
                   onSendMessage={() => handleSendMessage(inputValue)}
+                  selectedModel={selectedModel}
+                  onModelChange={setSelectedModel}
                 />
               </div>
               {/* Desktop Landing View */}
