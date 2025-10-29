@@ -93,7 +93,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
 
   return (
-    <div className="relative group">
+    <div className="relative group w-full max-w-full">
       {/* Gradient Border Effect */}
       <div className={`relative rounded-xl p-[2px] shadow-lg ${
         theme === 'light'
@@ -105,33 +105,33 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             e.stopPropagation();
             setIsOpen(!isOpen);
           }}
-          className={`relative w-full flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 min-w-[220px] ${
+          className={`relative w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl transition-all duration-300 ${
             theme === 'light'
               ? 'bg-white/95 hover:bg-white text-gray-900 backdrop-blur-xl'
               : 'bg-slate-900/95 hover:bg-slate-800/95 text-white backdrop-blur-xl'
           }`}
         >
         {getModelCost(selected.id).logoUrl ? (
-          <img src={getModelCost(selected.id).logoUrl} alt={selected.provider} className="w-6 h-6 rounded" />
+          <img src={getModelCost(selected.id).logoUrl} alt={selected.provider} className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0" />
         ) : (
-          <span className="text-xl">{getModelCost(selected.id).icon}</span>
+          <span className="text-lg sm:text-xl flex-shrink-0">{getModelCost(selected.id).icon}</span>
         )}
-        <div className="flex-1 text-left">
-          <div className={`text-sm font-semibold ${
+        <div className="flex-1 text-left min-w-0">
+          <div className={`text-xs sm:text-sm font-semibold truncate ${
             theme === 'light' ? 'text-gray-900' : 'text-white/90'
           }`}>{selected.name}</div>
-          <div className={`text-xs mt-0.5 flex items-center gap-2 ${
+          <div className={`text-[10px] sm:text-xs mt-0.5 flex items-center gap-1 sm:gap-2 ${
             theme === 'light' ? 'text-gray-500' : 'text-white/50'
           }`}>
-            <span>{selected.provider}</span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
+            <span className="truncate">{selected.provider}</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:flex items-center gap-1">
               <Zap className="w-3 h-3" />
               {formatTokenDisplay(getModelCost(selected.id).tokensPerMessage)}
             </span>
           </div>
         </div>
-        <ChevronDown className={`w-4 h-4 transition-all duration-300 ${
+        <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 flex-shrink-0 ${
           theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
         } ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -143,12 +143,12 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className={`absolute bottom-full left-0 mb-3 w-full backdrop-blur-3xl border rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in ${
+          <div className={`absolute bottom-full left-0 right-0 mb-3 w-full backdrop-blur-3xl border rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in ${
             theme === 'light'
               ? 'bg-white/95 border-gray-200'
               : 'glass-panel border-white/20'
           }`}>
-            <div className="p-2 max-h-72 overflow-y-auto scrollbar-thin">
+            <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
                 const isPaid = !isModelFree(model.id);

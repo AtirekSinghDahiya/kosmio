@@ -103,7 +103,7 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     };
   }, [user]);
 
-  if (!user || isLoading) {
+  if (!user) {
     return null;
   }
 
