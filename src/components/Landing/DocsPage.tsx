@@ -62,23 +62,23 @@ export const DocsPage: React.FC = () => {
       sections: [
         {
           heading: 'What Are Tokens?',
-          content: 'Tokens are KroniQ\'s virtual currency used to access AI features. Think of them like credits:\n• Each AI request consumes tokens\n• Different features cost different amounts\n• Free users get 5,000 tokens daily\n• Purchased tokens never expire'
+          content: 'Tokens are KroniQ\'s virtual currency used to access AI features. Think of them like credits:\n• Each AI request consumes tokens\n• Different features use different amounts\n• Free users get daily tokens\n• Purchased tokens never expire'
         },
         {
           heading: 'How Many Tokens Do I Need?',
-          content: 'General estimates:\n• Simple chat: 10-50 tokens\n• Detailed conversation: 100-500 tokens\n• Image generation: 500-3,000 tokens\n• Short video (5s): 5,000-10,000 tokens\n• Code generation: 50-2,000 tokens\n• Music creation: 2,000-5,000 tokens\n\nNote: Actual usage varies based on complexity and model choice.'
+          content: 'General estimates:\n• Simple chat: Light usage\n• Detailed conversation: Moderate usage\n• Image generation: Medium usage\n• Short video: Higher usage\n• Code generation: Varies by complexity\n• Music creation: Moderate to high usage\n\nNote: Actual usage varies based on complexity and model choice. Check the dashboard for real-time usage.'
         },
         {
           heading: 'Checking Your Balance',
-          content: 'View your token balance:\n• Top-right corner of dashboard\n• Billing section for detailed history\n• Real-time updates after each request\n• Separate counters for free vs paid tokens\n\nLow balance warnings:\n• Alert when below 1,000 tokens\n• Reminder to purchase more\n• Option to upgrade plan'
+          content: 'View your token balance:\n• Top-right corner of dashboard\n• Billing section for detailed history\n• Real-time updates after each request\n• Separate counters for free vs paid tokens\n\nLow balance warnings:\n• Alert when balance is low\n• Reminder to purchase more\n• Option to upgrade plan'
         },
         {
           heading: 'Purchasing Tokens',
-          content: 'Available options:\n• One-time purchase (use anytime)\n• Monthly subscription (save 10%)\n• Multiple tiers available\n• Secure payment via Stripe\n• Instant activation\n\nPayment methods:\n• All major credit cards\n• Debit cards\n• Secure processing\n• No card details stored on our servers'
+          content: 'Available options:\n• One-time purchase (use anytime)\n• Monthly subscription (with discounts)\n• Multiple tiers available\n• Secure payment via Stripe\n• Instant activation\n\nPayment methods:\n• All major credit cards\n• Debit cards\n• Secure processing\n• No card details stored on our servers'
         },
         {
           heading: 'Free Daily Tokens',
-          content: 'Every user gets:\n• 5,000 tokens per day\n• Resets at midnight UTC\n• Available even with paid plan\n• Use them or lose them (don\'t stack)\n• Perfect for testing and light usage'
+          content: 'Every user gets:\n• Free tokens per day\n• Resets at midnight UTC\n• Available even with paid plan\n• Use them or lose them (don\'t stack)\n• Perfect for testing and light usage'
         }
       ]
     },

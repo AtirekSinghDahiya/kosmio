@@ -40,140 +40,64 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
 
   useEffect(() => {
     loadTokenPacks();
-
-    // Timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Modal loading timeout - using fallback');
-        const fallbackPacks = [
-          {
-            id: '1',
-            name: 'Starter',
-            tokens: 900000,
-            priceUsd: 2,
-            recurringPriceUsd: 2,
-            bonusTokens: 0,
-            popular: false
-          },
-          {
-            id: '2',
-            name: 'Popular',
-            tokens: 2250000,
-            priceUsd: 5,
-            recurringPriceUsd: 5,
-            bonusTokens: 0,
-            popular: true
-          },
-          {
-            id: '3',
-            name: 'Power User',
-            tokens: 4500000,
-            priceUsd: 10,
-            recurringPriceUsd: 10,
-            bonusTokens: 0,
-            popular: false
-          },
-          {
-            id: '4',
-            name: 'Pro',
-            tokens: 9000000,
-            priceUsd: 20,
-            recurringPriceUsd: 20,
-            bonusTokens: 0,
-            popular: false
-          }
-        ];
-        setTokenPacks(fallbackPacks);
-        setSelectedPack(fallbackPacks[1]);
-        setLoading(false);
-      }
-    }, 3000);
-
-    return () => clearTimeout(timeout);
   }, []);
 
   const loadTokenPacks = async () => {
+    const fallbackPacks = [
+      {
+        id: '1',
+        name: 'Starter',
+        tokens: 900000,
+        priceUsd: 2,
+        recurringPriceUsd: 2,
+        bonusTokens: 0,
+        popular: false
+      },
+      {
+        id: '2',
+        name: 'Popular',
+        tokens: 2250000,
+        priceUsd: 5,
+        recurringPriceUsd: 5,
+        bonusTokens: 0,
+        popular: true
+      },
+      {
+        id: '3',
+        name: 'Power User',
+        tokens: 4500000,
+        priceUsd: 10,
+        recurringPriceUsd: 10,
+        bonusTokens: 0,
+        popular: false
+      },
+      {
+        id: '4',
+        name: 'Pro',
+        tokens: 9000000,
+        priceUsd: 20,
+        recurringPriceUsd: 20,
+        bonusTokens: 0,
+        popular: false
+      }
+    ];
+
     try {
-      const packs = await getTokenPacks();
+      const packs = await Promise.race([
+        getTokenPacks(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 1500))
+      ]) as TokenPack[];
+
       if (packs && packs.length > 0) {
         setTokenPacks(packs);
         const popularPack = packs.find(p => p.popular) || packs[1] || packs[0];
         setSelectedPack(popularPack);
       } else {
-        // Use fallback
-        const fallbackPacks = [
-          {
-            id: '1',
-            name: 'Starter',
-            tokens: 900000,
-            priceUsd: 2,
-            recurringPriceUsd: 2,
-            bonusTokens: 0,
-            popular: false
-          },
-          {
-            id: '2',
-            name: 'Popular',
-            tokens: 2250000,
-            priceUsd: 5,
-            recurringPriceUsd: 5,
-            bonusTokens: 0,
-            popular: true
-          },
-          {
-            id: '3',
-            name: 'Power User',
-            tokens: 4500000,
-            priceUsd: 10,
-            recurringPriceUsd: 10,
-            bonusTokens: 0,
-            popular: false
-          },
-          {
-            id: '4',
-            name: 'Pro',
-            tokens: 9000000,
-            priceUsd: 20,
-            recurringPriceUsd: 20,
-            bonusTokens: 0,
-            popular: false
-          }
-        ];
         setTokenPacks(fallbackPacks);
         setSelectedPack(fallbackPacks[1]);
       }
     } catch (error) {
-      console.error('Error loading token packs:', error);
-      // Use fallback on error
-      const fallbackPacks = [
-        {
-          id: '1',
-          name: 'Starter',
-          tokens: 900000,
-          priceUsd: 2,
-          recurringPriceUsd: 2,
-          bonusTokens: 0,
-          popular: false
-        },
-        {
-          id: '2',
-          name: 'Popular',
-          tokens: 2250000,
-          priceUsd: 5,
-          recurringPriceUsd: 5,
-          bonusTokens: 0,
-          popular: true
-        },
-        {
-          id: '3',
-          name: 'Pro',
-          tokens: 9000000,
-          priceUsd: 20,
-          recurringPriceUsd: 20,
-          bonusTokens: 0,
-          popular: false
-        }
-      ];
+      console.log('Using fallback packs');
       setTokenPacks(fallbackPacks);
       setSelectedPack(fallbackPacks[1]);
     } finally {

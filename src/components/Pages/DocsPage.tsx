@@ -45,10 +45,6 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
           content: 'KroniQ uses a fair, transparent token-based pricing system:\n\n• You only pay for what you use\n• Tokens never expire\n• No hidden fees or subscriptions (unless you choose monthly auto-refill)',
         },
         {
-          heading: 'Token Pricing Formula',
-          content: 'Every AI request costs tokens based on:\n\nBase Cost × 2 = Your Cost\n\nThe 2x multiplier covers:\n• Infrastructure costs\n• Platform maintenance\n• Customer support\n• Continuous improvements',
-        },
-        {
           heading: 'Free vs Paid Tiers',
           content: '🆓 FREE TIER:\n• 10,000 tokens (refreshes daily)\n• Access to 14 free AI models\n• All basic features included\n• Perfect for trying out KroniQ\n\n💎 PAID TIER:\n• Purchase tokens as needed\n• Access to ALL 27 AI models (free + premium)\n• Priority support\n• Advanced features\n• Tokens never expire',
         },
@@ -58,11 +54,11 @@ export const DocsPage: React.FC<DocsPageProps> = ({ onClose }) => {
         },
         {
           heading: 'Token Packs Available',
-          content: 'Choose from flexible token packs:\n\n📦 STARTER PACK\n• 10,000 tokens\n• One-time: $2.00\n• Monthly: $1.80 (save 10%)\n\n⚡ POPULAR PACK (Most Popular!)\n• 50,000 + 5,000 bonus = 55,000 tokens\n• One-time: $8.00\n• Monthly: $7.20 (save 10%)\n\n👑 PRO PACK\n• 150,000 + 20,000 bonus = 170,000 tokens\n• One-time: $20.00\n• Monthly: $18.00 (save 10%)\n\n🏢 ENTERPRISE PACK\n• 500,000 + 100,000 bonus = 600,000 tokens\n• One-time: $60.00\n• Monthly: $54.00 (save 10%)',
+          content: 'Choose from flexible token packs to fit your needs:\n\n• Multiple tiers available\n• One-time purchases or monthly subscriptions\n• Bonus tokens with larger packs\n• Save 10% with monthly auto-refill\n• Visit Billing page to see current pricing',
         },
         {
           heading: 'Monthly Subscriptions',
-          content: 'Save 10% with automatic monthly refills:\n\n✅ BENEFITS:\n• Automatic token refill every 30 days\n• 10% discount on every cycle\n• Cancel anytime\n• Keep all unused tokens after cancellation\n• Email notifications before each refill\n\n❌ NO COMMITMENT:\n• No long-term contracts\n• Cancel at end of billing period\n• Tokens remain yours forever\n• Switch back to one-time purchases anytime',
+          content: 'Save with automatic monthly refills:\n\n✅ BENEFITS:\n• Automatic token refill every 30 days\n• Discounts on monthly plans\n• Cancel anytime\n• Keep all unused tokens after cancellation\n• Email notifications before each refill\n\n❌ NO COMMITMENT:\n• No long-term contracts\n• Cancel at end of billing period\n• Tokens remain yours forever\n• Switch back to one-time purchases anytime',
         },
         {
           heading: 'Usage Examples',
