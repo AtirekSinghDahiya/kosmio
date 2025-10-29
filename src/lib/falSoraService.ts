@@ -1,17 +1,24 @@
 /**
  * Fal.ai Sora 2 Video Generation Service
- * Uses Fal.ai API to access OpenAI Sora 2 text-to-video model
+ * Uses official @fal-ai/client library to access OpenAI Sora 2 text-to-video model
  */
 
+import { fal } from '@fal-ai/client';
+
 const FAL_KEY = import.meta.env.VITE_FAL_KEY || '';
-const FAL_SORA_ENDPOINT = 'fal-ai/sora-2/text-to-video';
+
+// Configure fal client with API key
+if (FAL_KEY && !FAL_KEY.includes('your-')) {
+  fal.config({
+    credentials: FAL_KEY
+  });
+}
 
 export interface FalSoraRequest {
   prompt: string;
   resolution?: '720p';
   aspect_ratio?: '9:16' | '16:9';
   duration?: 4 | 8 | 12;
-  api_key?: string;
 }
 
 export interface FalSoraVideo {
@@ -29,11 +36,6 @@ export interface FalSoraVideo {
   video_id: string;
 }
 
-export interface FalQueueStatus {
-  status: 'QUEUED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
-  logs?: Array<{ message: string; timestamp: string }>;
-}
-
 function log(level: 'info' | 'success' | 'error', message: string) {
   const emoji = { info: '🎬', success: '✅', error: '❌' }[level];
   console.log(`${emoji} [Fal.ai Sora] ${message}`);
@@ -47,90 +49,147 @@ export function isFalSoraAvailable(): boolean {
 }
 
 /**
- * Create headers for Fal.ai API
+ * Generate video using Fal.ai Sora 2 with the subscribe pattern
+ * This automatically handles queuing, polling, and returns the final result
  */
-function createHeaders(): HeadersInit {
-  return {
-    'Authorization': `Key ${FAL_KEY}`,
-    'Content-Type': 'application/json',
-  };
-}
-
-/**
- * Submit a video generation request to the queue
- */
-export async function submitFalSoraRequest(
-  request: FalSoraRequest
+export async function generateFalSoraVideo(
+  request: FalSoraRequest,
+  onProgress?: (status: string, percent: number) => void
 ): Promise<string> {
-  if (!FAL_KEY) {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
     throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
   }
 
-  log('info', `Submitting request to Fal.ai Sora 2`);
-  log('info', `Prompt: ${request.prompt.substring(0, 100)}...`);
-  log('info', `Settings: ${request.aspect_ratio || '16:9'}, ${request.duration || 4}s`);
+  log('info', 'Starting Fal.ai Sora 2 video generation...');
+  log('info', `Prompt: ${request.prompt.substring(0, 100)}${request.prompt.length > 100 ? '...' : ''}`);
+  log('info', `Settings: ${request.aspect_ratio || '16:9'}, ${request.duration || 4}s, ${request.resolution || '720p'}`);
 
   try {
-    const response = await fetch('https://queue.fal.run/fal-ai/sora-2/text-to-video', {
-      method: 'POST',
-      headers: createHeaders(),
-      body: JSON.stringify({
+    onProgress?.('Submitting video generation request...', 5);
+
+    const result = await fal.subscribe('fal-ai/sora-2/text-to-video', {
+      input: {
         prompt: request.prompt,
         resolution: request.resolution || '720p',
         aspect_ratio: request.aspect_ratio || '16:9',
         duration: request.duration || 4,
-      }),
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        // Handle queue status updates
+        if (update.status === 'IN_QUEUE') {
+          log('info', 'Request queued, waiting for processing...');
+          onProgress?.('Waiting in queue...', 10);
+        } else if (update.status === 'IN_PROGRESS') {
+          log('info', 'Video generation in progress...');
+          onProgress?.('Generating video...', 50);
+
+          // Log any progress messages
+          if (update.logs && update.logs.length > 0) {
+            update.logs.forEach((logEntry) => {
+              console.log(`[Fal.ai] ${logEntry.message}`);
+            });
+          }
+        }
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      log('error', `HTTP Status: ${response.status}`);
-      log('error', `Error Response: ${errorText}`);
-      throw new Error(`Fal.ai API Error: ${response.status} - ${errorText}`);
+    if (!result || !result.data) {
+      throw new Error('Invalid response from Fal.ai: no data returned');
     }
 
-    const data = await response.json();
-    const requestId = data.request_id;
+    const videoData = result.data as FalSoraVideo;
 
-    if (!requestId) {
-      throw new Error('No request ID returned from Fal.ai');
+    if (!videoData.video || !videoData.video.url) {
+      throw new Error('Invalid response: no video URL returned');
     }
 
-    log('success', `Request submitted: ${requestId}`);
-    return requestId;
+    log('success', 'Video generation completed!');
+    log('info', `Video URL: ${videoData.video.url}`);
+    log('info', `Video ID: ${videoData.video_id}`);
+
+    if (videoData.video.duration) {
+      log('info', `Duration: ${videoData.video.duration}s`);
+    }
+    if (videoData.video.width && videoData.video.height) {
+      log('info', `Resolution: ${videoData.video.width}x${videoData.video.height}`);
+    }
+
+    onProgress?.('Video generation complete!', 100);
+
+    return videoData.video.url;
   } catch (error: any) {
-    log('error', `Exception: ${error.message}`);
+    log('error', `Video generation failed: ${error.message}`);
+
+    // Provide more helpful error messages
+    if (error.message.includes('401') || error.message.includes('authentication')) {
+      throw new Error('Invalid Fal.ai API key. Please check your VITE_FAL_KEY configuration.');
+    } else if (error.message.includes('429')) {
+      throw new Error('Rate limit exceeded. Please try again in a few minutes.');
+    } else if (error.message.includes('timeout')) {
+      throw new Error('Video generation timed out. Please try with a shorter duration or simpler prompt.');
+    }
+
     throw error;
   }
 }
 
 /**
- * Check the status of a video generation request
+ * Legacy method name for backwards compatibility
  */
-export async function checkFalSoraStatus(requestId: string): Promise<FalQueueStatus> {
-  if (!FAL_KEY) {
+export async function createAndPollFalSoraVideo(
+  request: FalSoraRequest,
+  onProgress?: (status: string, percent: number) => void
+): Promise<string> {
+  return generateFalSoraVideo(request, onProgress);
+}
+
+/**
+ * Submit a video generation request to the queue (queue pattern)
+ * Returns a request ID that can be used to check status later
+ */
+export async function submitFalSoraRequest(
+  request: FalSoraRequest
+): Promise<string> {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+    throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
+  }
+
+  log('info', 'Submitting request to Fal.ai Sora 2 queue...');
+
+  try {
+    const { request_id } = await fal.queue.submit('fal-ai/sora-2/text-to-video', {
+      input: {
+        prompt: request.prompt,
+        resolution: request.resolution || '720p',
+        aspect_ratio: request.aspect_ratio || '16:9',
+        duration: request.duration || 4,
+      },
+    });
+
+    log('success', `Request submitted: ${request_id}`);
+    return request_id;
+  } catch (error: any) {
+    log('error', `Failed to submit request: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Check the status of a queued video generation request
+ */
+export async function checkFalSoraStatus(requestId: string): Promise<any> {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
     throw new Error('Fal.ai API key is not configured');
   }
 
   try {
-    const response = await fetch(
-      `https://queue.fal.run/fal-ai/sora-2/text-to-video/requests/${requestId}/status`,
-      {
-        method: 'GET',
-        headers: createHeaders(),
-      }
-    );
+    const status = await fal.queue.status('fal-ai/sora-2/text-to-video', {
+      requestId,
+      logs: true,
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Status check failed: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    return {
-      status: data.status,
-      logs: data.logs,
-    };
+    return status;
   } catch (error: any) {
     log('error', `Status check failed: ${error.message}`);
     throw error;
@@ -141,108 +200,29 @@ export async function checkFalSoraStatus(requestId: string): Promise<FalQueueSta
  * Get the result of a completed video generation
  */
 export async function getFalSoraResult(requestId: string): Promise<FalSoraVideo> {
-  if (!FAL_KEY) {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
     throw new Error('Fal.ai API key is not configured');
   }
 
   try {
-    const response = await fetch(
-      `https://queue.fal.run/fal-ai/sora-2/text-to-video/requests/${requestId}`,
-      {
-        method: 'GET',
-        headers: createHeaders(),
-      }
-    );
+    const result = await fal.queue.result('fal-ai/sora-2/text-to-video', {
+      requestId,
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to get result: ${response.status} - ${errorText}`);
+    if (!result || !result.data) {
+      throw new Error('Invalid response: no data returned');
     }
 
-    const result = await response.json();
+    const videoData = result.data as FalSoraVideo;
 
-    if (!result.video || !result.video.url) {
+    if (!videoData.video || !videoData.video.url) {
       throw new Error('Invalid response: no video URL returned');
     }
 
-    log('success', 'Video generation completed!');
-    return result;
+    log('success', 'Video result retrieved!');
+    return videoData;
   } catch (error: any) {
     log('error', `Failed to get result: ${error.message}`);
     throw error;
   }
-}
-
-/**
- * Generate video and poll until completion
- */
-export async function createAndPollFalSoraVideo(
-  request: FalSoraRequest,
-  onProgress?: (status: string, percent: number) => void
-): Promise<string> {
-  log('info', 'Starting Fal.ai Sora 2 video generation...');
-
-  // Submit the request
-  const requestId = await submitFalSoraRequest(request);
-  onProgress?.('Video generation started...', 10);
-
-  const maxAttempts = 120; // 10 minutes max (120 * 5s)
-  let attempts = 0;
-
-  while (attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-
-    try {
-      const status = await checkFalSoraStatus(requestId);
-
-      if (status.status === 'COMPLETED') {
-        log('success', 'Video generation completed!');
-        onProgress?.('Video generation complete!', 100);
-
-        // Get the final result
-        const result = await getFalSoraResult(requestId);
-        return result.video.url;
-      }
-
-      if (status.status === 'FAILED') {
-        log('error', 'Video generation failed');
-        throw new Error('Video generation failed');
-      }
-
-      // Still in progress
-      const progress = 10 + (attempts / maxAttempts) * 80; // Scale to 10-90%
-      const statusMessage = status.status === 'IN_PROGRESS'
-        ? 'Generating video...'
-        : 'Queued...';
-
-      onProgress?.(statusMessage, progress);
-      log('info', `Status: ${status.status}, Progress: ${Math.round(progress)}%`);
-
-      // Log any new messages
-      if (status.logs && status.logs.length > 0) {
-        status.logs.forEach(log => {
-          console.log(`[Fal.ai Log] ${log.message}`);
-        });
-      }
-
-      attempts++;
-    } catch (error: any) {
-      log('error', `Error during polling: ${error.message}`);
-      throw error;
-    }
-  }
-
-  throw new Error('Video generation timed out after 10 minutes');
-}
-
-/**
- * Generate video using the subscribe pattern (blocking until complete)
- */
-export async function generateFalSoraVideo(
-  request: FalSoraRequest,
-  onProgress?: (status: string, percent: number) => void
-): Promise<string> {
-  // This uses the same polling approach as createAndPollFalSoraVideo
-  // but with a cleaner API name
-  return createAndPollFalSoraVideo(request, onProgress);
 }
