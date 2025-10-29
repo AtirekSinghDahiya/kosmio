@@ -62,8 +62,19 @@ export const getUserTier = async (userId: string): Promise<TierInfo> => {
   const hasPaidTokens = (data?.tokens_remaining || 0) > 0;
   const isPaidUser = data?.is_paid === true;
 
+  const tier = (hasPaidTokens || isPaidUser) ? 'paid' : 'free';
+
+  console.log('🔍 tierAccessService.getUserTier:', {
+    userId,
+    is_paid: data?.is_paid,
+    tokens_remaining: data?.tokens_remaining,
+    hasPaidTokens,
+    isPaidUser,
+    finalTier: tier
+  });
+
   return {
-    tier: (hasPaidTokens || isPaidUser) ? 'paid' : 'free',
+    tier,
     hasPurchased: isPaidUser,
     firstPurchaseAt: data?.last_purchase_date || null
   };
