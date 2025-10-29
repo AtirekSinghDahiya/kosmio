@@ -1,145 +1,237 @@
 /**
- * KIE Veo-3 Text-to-Video Service
- * Integrates with KIE.ai Veo-3 API for AI video generation
+ * Fal.ai Veo3 Video Generation Service
+ * Uses official @fal-ai/client library to access Google's Veo 3 Fast model
  */
 
-interface Veo3VideoRequest {
-  prompt: string;
-  aspectRatio?: '16:9' | '9:16' | '1:1';
-  model?: 'veo3_fast' | 'veo3_standard';
-  watermark?: string;
-  enableTranslation?: boolean;
-}
+import { fal } from '@fal-ai/client';
 
-interface Veo3TaskResponse {
-  code: number;
-  msg: string;
-  data: {
-    taskId: string;
-  };
-}
+const FAL_KEY = import.meta.env.VITE_FAL_KEY || '';
 
-interface Veo3StatusResponse {
-  code: number;
-  msg: string;
-  data: {
-    status: 'PENDING' | 'PROCESSING' | 'SUCCESS' | 'FAILED';
-    videoUrl?: string;
-    error?: string;
-  };
-}
-
-const KIE_API_BASE = 'https://api.kie.ai/api/v1';
-
-/**
- * Create a video generation task with Veo-3
- */
-export async function createVeo3VideoTask(
-  request: Veo3VideoRequest,
-  apiKey: string
-): Promise<string> {
-  const requestBody = {
-    prompt: request.prompt,
-    model: request.model || 'veo3_fast',
-    aspectRatio: request.aspectRatio || '16:9',
-    watermark: request.watermark || '',
-    enableTranslation: request.enableTranslation ?? true,
-    generationType: 'TEXT_2_VIDEO',
-  };
-
-  console.log('📤 Veo-3 request:', requestBody);
-
-  const response = await fetch(`${KIE_API_BASE}/veo/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(requestBody),
+if (FAL_KEY && !FAL_KEY.includes('your-')) {
+  fal.config({
+    credentials: FAL_KEY
   });
+}
 
-  const responseText = await response.text();
-  console.log('📥 Veo-3 response:', responseText);
+export interface Veo3Request {
+  prompt: string;
+  aspect_ratio?: '9:16' | '16:9' | '1:1';
+  duration?: '4s' | '6s' | '8s';
+  negative_prompt?: string;
+  enhance_prompt?: boolean;
+  seed?: number;
+  auto_fix?: boolean;
+  resolution?: '720p' | '1080p';
+  generate_audio?: boolean;
+}
 
-  if (!response.ok) {
-    console.error('Veo-3 API error:', response.status, responseText);
-    throw new Error(`API Error (${response.status}): ${responseText}`);
-  }
+export interface Veo3Video {
+  video: {
+    url: string;
+    content_type?: string;
+    file_name?: string;
+    file_size?: number;
+  };
+}
 
-  const data: Veo3TaskResponse = await response.json();
-
-  if (data.code !== 200) {
-    console.error('Veo-3 video generation failed:', data);
-    throw new Error(data.msg || 'Failed to create video generation task');
-  }
-
-  return data.data.taskId;
+function log(level: 'info' | 'success' | 'error', message: string) {
+  const emoji = { info: '🎥', success: '✅', error: '❌' }[level];
+  console.log(`${emoji} [Veo3] ${message}`);
 }
 
 /**
- * Check the status of a Veo-3 video generation task
+ * Check if Veo3 is available
  */
-export async function checkVeo3TaskStatus(
-  taskId: string,
-  apiKey: string
-): Promise<Veo3StatusResponse['data']> {
-  const response = await fetch(
-    `${KIE_API_BASE}/jobs/getTask?taskId=${taskId}`,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => response.statusText);
-    console.error('Veo-3 status check error:', response.status, errorText);
-    throw new Error(`Status Check Error (${response.status}): ${errorText}`);
-  }
-
-  const data: Veo3StatusResponse = await response.json();
-
-  if (data.code !== 200) {
-    console.error('Veo-3 status check failed:', data);
-    throw new Error(data.msg || 'Failed to check task status');
-  }
-
-  return data.data;
+export function isVeo3Available(): boolean {
+  return !!FAL_KEY && !FAL_KEY.includes('your-');
 }
 
 /**
- * Generate video with Veo-3 and poll for completion
+ * Generate video using Google Veo 3 Fast with the subscribe pattern
+ * This automatically handles queuing, polling, and returns the final result
+ */
+export async function generateVeo3Video(
+  request: Veo3Request,
+  onProgress?: (status: string, percent: number) => void
+): Promise<string> {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+    throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
+  }
+
+  log('info', 'Starting Google Veo 3 Fast video generation...');
+  log('info', `Prompt: ${request.prompt.substring(0, 100)}${request.prompt.length > 100 ? '...' : ''}`);
+  log('info', `Settings: ${request.aspect_ratio || '16:9'}, ${request.duration || '8s'}, ${request.resolution || '720p'}`);
+
+  if (request.generate_audio !== undefined) {
+    log('info', `Audio: ${request.generate_audio ? 'enabled' : 'disabled (33% discount)'}`);
+  }
+
+  try {
+    onProgress?.('Submitting video generation request...', 5);
+
+    const result = await fal.subscribe('fal-ai/veo3/fast', {
+      input: {
+        prompt: request.prompt,
+        aspect_ratio: request.aspect_ratio || '16:9',
+        duration: request.duration || '8s',
+        negative_prompt: request.negative_prompt,
+        enhance_prompt: request.enhance_prompt !== undefined ? request.enhance_prompt : true,
+        seed: request.seed,
+        auto_fix: request.auto_fix !== undefined ? request.auto_fix : true,
+        resolution: request.resolution || '720p',
+        generate_audio: request.generate_audio !== undefined ? request.generate_audio : true,
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === 'IN_QUEUE') {
+          log('info', 'Request queued, waiting for processing...');
+          onProgress?.('Waiting in queue...', 10);
+        } else if (update.status === 'IN_PROGRESS') {
+          log('info', 'Video generation in progress...');
+          onProgress?.('Generating video with Veo 3...', 50);
+
+          if (update.logs && update.logs.length > 0) {
+            update.logs.forEach((logEntry) => {
+              console.log(`[Veo3] ${logEntry.message}`);
+            });
+          }
+        }
+      },
+    });
+
+    if (!result || !result.data) {
+      throw new Error('Invalid response from Veo3: no data returned');
+    }
+
+    const videoData = result.data as Veo3Video;
+
+    if (!videoData.video || !videoData.video.url) {
+      throw new Error('Invalid response: no video URL returned');
+    }
+
+    log('success', 'Video generation completed!');
+    log('info', `Video URL: ${videoData.video.url}`);
+
+    if (videoData.video.file_size) {
+      const sizeMB = (videoData.video.file_size / (1024 * 1024)).toFixed(2);
+      log('info', `File size: ${sizeMB} MB`);
+    }
+
+    onProgress?.('Video generation complete!', 100);
+
+    return videoData.video.url;
+  } catch (error: any) {
+    log('error', `Video generation failed: ${error.message}`);
+
+    if (error.message.includes('401') || error.message.includes('authentication')) {
+      throw new Error('Invalid Fal.ai API key. Please check your VITE_FAL_KEY configuration.');
+    } else if (error.message.includes('429')) {
+      throw new Error('Rate limit exceeded. Please try again in a few minutes.');
+    } else if (error.message.includes('timeout')) {
+      throw new Error('Video generation timed out. Please try with a shorter duration or simpler prompt.');
+    } else if (error.message.includes('content policy')) {
+      throw new Error('Prompt violates content policy. Please try a different prompt.');
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Submit a video generation request to the queue (queue pattern)
+ * Returns a request ID that can be used to check status later
+ */
+export async function submitVeo3Request(
+  request: Veo3Request
+): Promise<string> {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+    throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
+  }
+
+  log('info', 'Submitting request to Veo3 queue...');
+
+  try {
+    const { request_id } = await fal.queue.submit('fal-ai/veo3/fast', {
+      input: {
+        prompt: request.prompt,
+        aspect_ratio: request.aspect_ratio || '16:9',
+        duration: request.duration || '8s',
+        negative_prompt: request.negative_prompt,
+        enhance_prompt: request.enhance_prompt !== undefined ? request.enhance_prompt : true,
+        seed: request.seed,
+        auto_fix: request.auto_fix !== undefined ? request.auto_fix : true,
+        resolution: request.resolution || '720p',
+        generate_audio: request.generate_audio !== undefined ? request.generate_audio : true,
+      },
+    });
+
+    log('success', `Request submitted: ${request_id}`);
+    return request_id;
+  } catch (error: any) {
+    log('error', `Failed to submit request: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Check the status of a queued video generation request
+ */
+export async function checkVeo3Status(requestId: string): Promise<any> {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+    throw new Error('Fal.ai API key is not configured');
+  }
+
+  try {
+    const status = await fal.queue.status('fal-ai/veo3/fast', {
+      requestId,
+      logs: true,
+    });
+
+    return status;
+  } catch (error: any) {
+    log('error', `Status check failed: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Get the result of a completed video generation
+ */
+export async function getVeo3Result(requestId: string): Promise<Veo3Video> {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
+    throw new Error('Fal.ai API key is not configured');
+  }
+
+  try {
+    const result = await fal.queue.result('fal-ai/veo3/fast', {
+      requestId,
+    });
+
+    if (!result || !result.data) {
+      throw new Error('Invalid response: no data returned');
+    }
+
+    const videoData = result.data as Veo3Video;
+
+    if (!videoData.video || !videoData.video.url) {
+      throw new Error('Invalid response: no video URL returned');
+    }
+
+    log('success', 'Video result retrieved!');
+    return videoData;
+  } catch (error: any) {
+    log('error', `Failed to get result: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Legacy method names for backwards compatibility
  */
 export async function generateAndWaitForVeo3Video(
-  request: Veo3VideoRequest,
+  request: Veo3Request,
   apiKey: string,
   onProgress?: (status: string, percent: number) => void
 ): Promise<string> {
-  const taskId = await createVeo3VideoTask(request, apiKey);
-  onProgress?.('Video generation started...', 10);
-
-  const maxAttempts = 120;
-  let attempts = 0;
-
-  while (attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    const status = await checkVeo3TaskStatus(taskId, apiKey);
-    const progressPercent = 10 + (attempts / maxAttempts) * 80;
-
-    if (status.status === 'SUCCESS' && status.videoUrl) {
-      onProgress?.('Video generation complete!', 100);
-      return status.videoUrl;
-    } else if (status.status === 'FAILED') {
-      throw new Error(status.error || 'Video generation failed');
-    } else {
-      onProgress?.(`Generating video... (${status.status})`, progressPercent);
-    }
-
-    attempts++;
-  }
-
-  throw new Error('Video generation timed out after 10 minutes');
+  return generateVeo3Video(request, onProgress);
 }
