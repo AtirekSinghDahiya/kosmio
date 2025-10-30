@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
@@ -83,6 +83,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [isLoadingTier, setIsLoadingTier] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Check tier on mount and when dropdown opens
   useEffect(() => {
@@ -114,11 +115,27 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
     }
   }, [isOpen, user]);
 
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
+
   const availableModels = AI_MODELS.filter(m => m.category === category);
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
 
   return (
-    <div className="relative group w-full max-w-full">
+    <div ref={dropdownRef} className="relative group w-full max-w-full">
       {/* Gradient Border Effect */}
       <div className={`relative rounded-xl p-[2px] shadow-lg ${
         theme === 'light'

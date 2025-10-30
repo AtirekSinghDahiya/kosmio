@@ -30,6 +30,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   const [estimatedCost, setEstimatedCost] = useState<number>(0);
   const [hasAccess, setHasAccess] = useState<boolean>(false);
   const [isCheckingAccess, setIsCheckingAccess] = useState<boolean>(true);
+  const [userTier, setUserTier] = useState<'free' | 'paid'>('free');
 
   const soraAvailable = isFalSoraAvailable();
   const veo3Available = isVeo3Available();
@@ -46,6 +47,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       const accessStatus = await checkPaidAccess(user.uid);
       console.log('🎬 VideoGenerator - Access status:', accessStatus);
       setHasAccess(accessStatus.hasAccess);
+      setUserTier(accessStatus.hasAccess ? 'paid' : 'free');
       setIsCheckingAccess(false);
     };
 
