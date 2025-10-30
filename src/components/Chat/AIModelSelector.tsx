@@ -207,7 +207,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                     style={{ animationDelay: `${index * 30}ms` }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
                       isLocked
-                        ? 'opacity-50 cursor-not-allowed'
+                        ? 'opacity-40 cursor-not-allowed'
                         : selectedModel === model.id
                           ? theme === 'light'
                             ? 'bg-blue-50 border border-blue-200'
@@ -237,7 +237,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
                         <span>{model.description}</span>
-                        {isLocked && isPaidModel && <span>• Requires paid tokens</span>}
+                        {isLocked && <span>• No tokens available</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
