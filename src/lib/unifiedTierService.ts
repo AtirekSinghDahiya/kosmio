@@ -19,32 +19,15 @@ export interface TierInfo {
   canAccessVideoGeneration: boolean;
 }
 
-const PAID_MODELS = new Set([
-  'gpt-5-chat',
-  'deepseek-v3.2',
-  'nemotron-super',
-  'qwen-vl-32b',
-  'claude-sonnet',
-  'claude-haiku-4.5',
+const PREMIUM_MODELS = new Set([
   'claude-opus-4',
   'claude-opus-4.1',
-  'gemini-flash-image',
-  'kimi-k2',
-  'kimi-k2-0905',
-  'llama-4-maverick',
-  'glm-4.6',
+  'gpt-5-chat',
+  'gpt-5-codex',
+  'deepseek-v3.2',
   'perplexity-sonar-pro',
   'perplexity-sonar-reasoning',
-  'perplexity-sonar-deep',
-  'gpt-5-codex',
-  'dall-e-3',
-  'stable-diffusion-xl',
-  'firefly',
-  'sora',
-  'sora-2',
-  'veo3',
-  'veo-3',
-  'eleven-labs'
+  'perplexity-sonar-deep'
 ]);
 
 export async function getUserTierInfo(userId: string): Promise<TierInfo> {
@@ -127,41 +110,27 @@ function getDefaultFreeTier(): TierInfo {
 }
 
 export function isModelPaid(modelId: string): boolean {
-  return PAID_MODELS.has(modelId);
+  return PREMIUM_MODELS.has(modelId);
 }
 
-export function canAccessModel(tierInfo: TierInfo, modelId: string): boolean {
-  const isPaidModel = isModelPaid(modelId);
-
-  // STRICT: Free tier users CANNOT access premium models AT ALL
-  if (tierInfo.isFreeTier && isPaidModel) {
-    console.log(`🚫 BLOCKED: Free tier cannot access premium model: ${modelId}`);
-    return false;
+export function canAccessModel(tierInfo: TierInfo | null, modelId: string): boolean {
+  // If no tier info, allow free models only
+  if (!tierInfo) {
+    return !isModelPaid(modelId);
   }
 
-  // Free tier with free models - check if they have tokens
-  if (tierInfo.isFreeTier && !isPaidModel) {
-    const hasTokens = tierInfo.dailyTokensRemaining > 0 || tierInfo.freeTokens > 0;
-    console.log(`✓ Free tier accessing free model ${modelId}: ${hasTokens ? 'ALLOWED' : 'NO TOKENS'}`);
-    return hasTokens;
-  }
+  const isPremium = isModelPaid(modelId);
 
-  // Paid tier - check if they have paid tokens and permission
-  if (!tierInfo.isFreeTier) {
-    if (isPaidModel) {
-      const canAccess = tierInfo.canAccessPaidModels && tierInfo.paidTokens > 0;
-      console.log(`${canAccess ? '✓' : '🚫'} Paid tier accessing premium model ${modelId}: ${canAccess ? 'ALLOWED' : 'BLOCKED'}`);
-      return canAccess;
-    } else {
-      // Paid tier can use free models with any tokens
-      const hasTokens = tierInfo.totalTokens > 0;
-      console.log(`✓ Paid tier accessing free model ${modelId}: ${hasTokens ? 'ALLOWED' : 'NO TOKENS'}`);
-      return hasTokens;
+  // Premium models: Only accessible to paid tier with paid tokens
+  if (isPremium) {
+    if (tierInfo.isFreeTier) {
+      return false;
     }
+    return tierInfo.canAccessPaidModels && tierInfo.paidTokens > 0;
   }
 
-  console.log(`🚫 DEFAULT BLOCK for model ${modelId}`);
-  return false;
+  // Free models: Accessible to anyone with tokens
+  return tierInfo.totalTokens > 0;
 }
 
 export async function checkModelAccess(userId: string, modelId: string): Promise<{
