@@ -98,10 +98,34 @@ export async function generateNanoBananaImage(
       message: error.message,
       stack: error.stack,
       body: error.body,
-      status: error.status
+      status: error.status,
+      response: error.response,
+      data: error.data
     });
 
-    const errorMessage = error.body?.message || error.message || 'Unknown error occurred';
+    // Extract detailed error message
+    let errorMessage = 'Unknown error occurred';
+
+    if (error.body?.detail) {
+      errorMessage = error.body.detail;
+    } else if (error.body?.message) {
+      errorMessage = error.body.message;
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    // Check for API key issues
+    if (error.status === 401 || error.status === 403 || errorMessage.includes('credentials') || errorMessage.includes('authentication')) {
+      throw new Error('API authentication failed. Please check your FAL_KEY_IMAGE configuration.');
+    }
+
+    // Check for quota issues
+    if (error.status === 429 || errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
+      throw new Error('API rate limit exceeded. Please try again in a few moments.');
+    }
+
     throw new Error(`Image generation failed: ${errorMessage}`);
   }
 }
