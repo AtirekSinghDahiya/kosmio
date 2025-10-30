@@ -1,7 +1,7 @@
 export interface IntentResult {
-  intent: 'chat' | 'code' | 'design' | 'video' | 'voice' | 'music' | 'image';
+  intent: 'chat' | 'code' | 'design' | 'video' | 'video-edit' | 'voice' | 'music' | 'image';
   confidence: number;
-  suggestedStudio: 'Chat Studio' | 'Code Studio' | 'Design Studio' | 'Video Studio' | 'Voice Studio' | 'Music Studio' | 'Image Studio';
+  suggestedStudio: 'Chat Studio' | 'Code Studio' | 'Design Studio' | 'Video Studio' | 'Video Editor' | 'Voice Studio' | 'Music Studio' | 'Image Studio';
   reasoning: string;
   suggestedModel?: string; // Specific AI model if detected
 }
@@ -28,13 +28,19 @@ const DESIGN_KEYWORDS = [
   'photo', 'picture', 'artwork', 'creative', 'artistic'
 ];
 
-const VIDEO_KEYWORDS = [
-  'video', 'edit', 'clip', 'montage', 'footage', 'timeline', 'render',
-  'transition', 'effect', 'animation', 'movie', 'film', 'cinematic',
+const VIDEO_GEN_KEYWORDS = [
+  'generate video', 'create video', 'make video', 'video of', 'video showing',
+  'dancing', 'dance', 'moving', 'action', 'scene', 'sequence', 'cinematic',
+  'sora', 'veo', 'video generation'
+];
+
+const VIDEO_EDIT_KEYWORDS = [
+  'edit', 'clip', 'montage', 'footage', 'timeline', 'render',
+  'transition', 'effect', 'animation', 'movie', 'film',
   'premiere', 'aftereffects', 'davinci', 'finalcut', 'editing',
   'cut', 'trim', 'splice', 'export', 'encode', 'mp4', 'mov',
   'frame', 'fps', 'resolution', '4k', 'hd', 'video editing',
-  'dancing', 'dance', 'moving', 'action', 'scene', 'sequence'
+  'modify video', 'change video', 'alter video', 'wan vace', 'wanvace'
 ];
 
 const VOICE_KEYWORDS = [
@@ -72,11 +78,17 @@ const DESIGN_PHRASES = [
   'design a layout', 'create graphics', 'design a flyer'
 ];
 
-const VIDEO_PHRASES = [
-  'edit a video', 'create a video', 'make a video', 'edit this clip',
-  'video editing', 'create montage', 'edit footage', 'make a movie',
-  'cut the video', 'add transitions', 'render video', 'generate a video',
-  'video of', 'show me a video', 'dancing', 'moving'
+const VIDEO_GEN_PHRASES = [
+  'create a video', 'make a video', 'generate a video', 'generate video',
+  'video of', 'show me a video', 'make a movie', 'create animation',
+  'generate animation'
+];
+
+const VIDEO_EDIT_PHRASES = [
+  'edit a video', 'edit this clip', 'video editing', 'edit video',
+  'create montage', 'edit footage', 'cut the video', 'add transitions',
+  'render video', 'modify video', 'change video', 'alter video',
+  'apply effects to video', 'add effects', 'slow motion', 'speed up video'
 ];
 
 const VOICE_PHRASES = [
@@ -176,7 +188,8 @@ export const classifyIntent = (prompt: string): IntentResult => {
 
   let codeScore = 0;
   let designScore = 0;
-  let videoScore = 0;
+  let videoGenScore = 0;
+  let videoEditScore = 0;
   let voiceScore = 0;
   let musicScore = 0;
   let imageScore = 0;
@@ -197,11 +210,19 @@ export const classifyIntent = (prompt: string): IntentResult => {
     }
   });
 
-  VIDEO_KEYWORDS.forEach(keyword => {
+  VIDEO_GEN_KEYWORDS.forEach(keyword => {
     const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
     const matches = lowerPrompt.match(regex);
     if (matches) {
-      videoScore += matches.length * 2;
+      videoGenScore += matches.length * 2;
+    }
+  });
+
+  VIDEO_EDIT_KEYWORDS.forEach(keyword => {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+    const matches = lowerPrompt.match(regex);
+    if (matches) {
+      videoEditScore += matches.length * 2;
     }
   });
 
@@ -241,9 +262,15 @@ export const classifyIntent = (prompt: string): IntentResult => {
     }
   });
 
-  VIDEO_PHRASES.forEach(phrase => {
+  VIDEO_GEN_PHRASES.forEach(phrase => {
     if (lowerPrompt.includes(phrase)) {
-      videoScore += 5;
+      videoGenScore += 5;
+    }
+  });
+
+  VIDEO_EDIT_PHRASES.forEach(phrase => {
+    if (lowerPrompt.includes(phrase)) {
+      videoEditScore += 5;
     }
   });
 
@@ -280,7 +307,7 @@ export const classifyIntent = (prompt: string): IntentResult => {
   if (lowerPrompt.includes('.mp4') || lowerPrompt.includes('.mov') ||
       lowerPrompt.includes('.avi') || lowerPrompt.includes('.mkv') ||
       lowerPrompt.includes('.wmv') || lowerPrompt.includes('.flv')) {
-    videoScore += 10;
+    videoEditScore += 10;
   }
 
   if (lowerPrompt.includes('.mp3') || lowerPrompt.includes('.wav') ||
@@ -289,8 +316,8 @@ export const classifyIntent = (prompt: string): IntentResult => {
     voiceScore += 10;
   }
 
-  const totalScore = codeScore + designScore + videoScore + voiceScore + musicScore + imageScore;
-  const maxScore = Math.max(codeScore, designScore, videoScore, voiceScore, musicScore, imageScore);
+  const totalScore = codeScore + designScore + videoGenScore + videoEditScore + voiceScore + musicScore + imageScore;
+  const maxScore = Math.max(codeScore, designScore, videoGenScore, videoEditScore, voiceScore, musicScore, imageScore);
 
   // Require higher score threshold to avoid false positives
   if (totalScore === 0 || maxScore < 8) {
@@ -330,12 +357,20 @@ export const classifyIntent = (prompt: string): IntentResult => {
       reasoning: `Detected voice generation intent with score ${voiceScore}`,
       suggestedModel
     };
-  } else if (videoScore === maxScore && videoScore > 0) {
+  } else if (videoEditScore === maxScore && videoEditScore > 0) {
+    return {
+      intent: 'video-edit',
+      confidence: Math.min(confidence, 1.0),
+      suggestedStudio: 'Video Editor',
+      reasoning: `Detected video editing intent with score ${videoEditScore}`,
+      suggestedModel
+    };
+  } else if (videoGenScore === maxScore && videoGenScore > 0) {
     return {
       intent: 'video',
       confidence: Math.min(confidence, 1.0),
       suggestedStudio: 'Video Studio',
-      reasoning: `Detected video editing intent with score ${videoScore}`,
+      reasoning: `Detected video generation intent with score ${videoGenScore}`,
       suggestedModel
     };
   } else if (codeScore === maxScore && codeScore > 0) {
