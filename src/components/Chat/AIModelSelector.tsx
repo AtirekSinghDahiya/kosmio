@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { canAccessModel, isModelPremium } from '../../lib/currencyService';
-import { getModelCost, formatTokenDisplay } from '../../lib/modelTokenPricing';
+import { getUserTierInfo, isModelPaid, canAccessModel, type TierInfo } from '../../lib/unifiedTierService';
+import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
   id: string;
@@ -80,26 +80,6 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [lockedModels, setLockedModels] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (user?.uid) {
-      checkModelAccess();
-    }
-  }, [user]);
-
-  const checkModelAccess = async () => {
-    if (!user?.uid) return;
-
-    const locked = new Set<string>();
-    for (const model of availableModels) {
-      const hasAccess = await canAccessModel(user.uid, model.id);
-      if (!hasAccess) {
-        locked.add(model.id);
-      }
-    }
-    setLockedModels(locked);
-  };
 
   // Refresh tier when dropdown opens
   useEffect(() => {
@@ -186,8 +166,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                const isLocked = lockedModels.has(model.id);
-                const isPremiumModel = isModelPremium(model.id);
+                // No locking - all models are available for selection
+                const isLocked = false;
 
                 return (
                   <button
@@ -233,7 +213,6 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
                         <span>{model.description}</span>
-                        {isLocked && <span className="text-yellow-500">• Premium Only</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${

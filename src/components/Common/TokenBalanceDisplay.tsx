@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Coins, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { getUserBalance, formatBalance, type UserBalance } from '../../lib/currencyService';
 
 interface TokenBalanceDisplayProps {
   isExpanded?: boolean;
@@ -10,11 +9,20 @@ interface TokenBalanceDisplayProps {
   onPurchaseClick?: () => void;
 }
 
+interface TokenBalance {
+  tier: string;
+  dailyTokens: number;
+  paidTokens: number;
+  totalTokens: number;
+  canUsePaidModels: boolean;
+}
+
 export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpanded = false, showDetails = true, onPurchaseClick }) => {
   const { user } = useAuth();
-  const [balance, setBalance] = useState<UserBalance | null>(null);
+  const [balance, setBalance] = useState<TokenBalance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch token balance using new tier-based function
   const fetchBalance = async () => {
     if (!user) {
       setIsLoading(false);
@@ -22,18 +30,31 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     }
 
     try {
-      console.log('💰 Fetching balance for user:', user.uid);
-      const userBalance = await getUserBalance(user.uid);
+      console.log('💰 Fetching token balance for user:', user.uid);
 
-      if (userBalance) {
-        setBalance(userBalance);
-        console.log(`✅ Balance: ${formatBalance(userBalance.balance, userBalance.currencyType)} (${userBalance.isPremium ? 'Premium' : 'Free'})`);
+      // Use the new get_user_token_balance function
+      const { data, error } = await supabase
+        .rpc('get_user_token_balance', { p_user_id: user.uid });
+
+      if (error) {
+        console.error('Error fetching token balance:', error);
+        setBalance(null);
+      } else if (data && data.length > 0) {
+        const balanceData = data[0];
+        setBalance({
+          tier: balanceData.tier,
+          dailyTokens: balanceData.daily_tokens || 0,
+          paidTokens: balanceData.paid_tokens || 0,
+          totalTokens: balanceData.total_tokens || 0,
+          canUsePaidModels: balanceData.can_use_paid_models || false
+        });
+        console.log('✅ Token balance:', balanceData);
       } else {
         console.log('⚠️ No balance data found');
         setBalance(null);
       }
     } catch (error) {
-      console.error('Exception fetching balance:', error);
+      console.error('Exception fetching token balance:', error);
       setBalance(null);
     } finally {
       setIsLoading(false);
@@ -80,21 +101,23 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     return null;
   }
 
+  // Determine color based on tier and balance
   const getBalanceColor = () => {
     if (!balance) return 'from-gray-500 to-gray-600';
-    if (balance.isPremium) return 'from-green-500 to-emerald-600';
-    if (balance.balance >= 100000) return 'from-blue-500 to-cyan-600';
-    if (balance.balance >= 50000) return 'from-orange-500 to-orange-600';
+    if (balance.tier === 'premium' || balance.paidTokens > 0) return 'from-green-500 to-emerald-600';
+    if (balance.totalTokens >= 10000) return 'from-blue-500 to-cyan-600';
+    if (balance.totalTokens >= 1000) return 'from-orange-500 to-orange-600';
     return 'from-red-500 to-red-600';
   };
 
   const getTierLabel = () => {
     if (!balance) return 'FREE';
-    return balance.isPremium ? 'PREMIUM' : 'FREE';
+    if (balance.tier === 'premium' && balance.paidTokens > 0) return 'PREMIUM';
+    if (balance.tier === 'premium') return 'PREMIUM (No Tokens)';
+    return 'FREE';
   };
 
-  const displayBalance = balance?.balance || 0;
-  const currencyLabel = balance?.currencyType === 'tokens' ? 'tokens' : 'coins';
+  const displayBalance = balance?.totalTokens || 0;
 
   if (!isExpanded && !showDetails) {
     // Compact view for navbar - just icon and balance
@@ -128,9 +151,9 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         <div className="flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-orange-400" />
           <span className="text-2xl font-bold text-white">
-            {formatBalance(displayBalance, balance.currencyType)}
+            {displayBalance.toLocaleString()}
           </span>
-          <span className="text-sm text-white/50 ml-1">{currencyLabel}</span>
+          <span className="text-sm text-white/50 ml-1">tokens</span>
         </div>
       )}
     </div>
