@@ -68,19 +68,6 @@ export async function createSoraVideo(
       const errorText = await response.text();
       log('error', `HTTP Status: ${response.status}`);
       log('error', `Error Response: ${errorText}`);
-
-      if (response.status === 401) {
-        throw new Error('Invalid OpenAI API key. Please verify your API key is correct and has Sora access.');
-      } else if (response.status === 403) {
-        throw new Error('Access denied. Your OpenAI account may not have access to Sora 2. This is currently in limited beta.');
-      } else if (response.status === 404) {
-        throw new Error('Sora 2 endpoint not found. The API may not be available yet or your account lacks access.');
-      } else if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a few minutes.');
-      } else if (response.status === 402 || errorText.includes('insufficient')) {
-        throw new Error('Insufficient OpenAI credits. Please add credits to your account.');
-      }
-
       throw new Error(`OpenAI Sora API Error: ${response.status} - ${errorText}`);
     }
 
@@ -312,16 +299,14 @@ export async function deleteSoraVideo(videoId: string): Promise<void> {
  * Check if Sora is available
  */
 export function isSoraAvailable(): boolean {
+  // OpenAI Sora 2 is not yet publicly available
+  // Requires special API access from OpenAI
+  // OpenRouter keys (sk-or-v1-...) will NOT work
   const hasKey = !!OPENAI_API_KEY;
   const isOpenRouterKey = OPENAI_API_KEY && OPENAI_API_KEY.includes('sk-or-');
 
   if (hasKey && isOpenRouterKey) {
-    console.warn('⚠️ [Sora] OpenRouter keys detected. Sora 2 requires official OpenAI API key with special access.');
-    return false;
-  }
-
-  if (!hasKey) {
-    console.warn('⚠️ [Sora] No OpenAI API key configured');
+    console.warn('⚠️ [Sora] OpenRouter keys do not have access to Sora 2. You need a real OpenAI API key with Sora access.');
     return false;
   }
 

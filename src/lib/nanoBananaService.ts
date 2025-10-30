@@ -3,7 +3,16 @@
  * Uses fal.ai nano-banana model for image generation
  */
 
-import { getFalClient } from './falClient';
+import { fal } from '@fal-ai/client';
+
+// Configure fal client
+const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+
+if (FAL_KEY) {
+  fal.config({
+    credentials: FAL_KEY
+  });
+}
 
 export interface NanoBananaInput {
   prompt: string;
@@ -36,14 +45,14 @@ export async function generateNanoBananaImage(
     outputFormat?: 'jpeg' | 'png' | 'webp';
   }
 ): Promise<{ url: string; description?: string }> {
-  const fal = getFalClient('image');
-  if (!fal) {
-    throw new Error('Image generation API key is not configured. Please check VITE_FAL_KEY_IMAGE.');
+  if (!FAL_KEY) {
+    throw new Error('FAL_KEY is not configured. Please check your environment variables.');
   }
 
   try {
-    console.log('🎨 Generating image with Nano Banana...');
-    console.log('🎨 Prompt:', prompt);
+    console.log('🍌 Generating image with Nano Banana...');
+    console.log('🍌 Prompt:', prompt);
+    console.log('🍌 FAL_KEY configured:', !!FAL_KEY);
 
     const input: NanoBananaInput = {
       prompt,
@@ -53,16 +62,16 @@ export async function generateNanoBananaImage(
       sync_mode: false
     };
 
-    console.log('🎨 Input:', JSON.stringify(input, null, 2));
+    console.log('🍌 Input:', JSON.stringify(input, null, 2));
 
     const result = await fal.subscribe('fal-ai/nano-banana', {
       input,
       logs: true,
       onQueueUpdate: (update) => {
-        console.log('🎨 Queue status:', update.status);
-        if (update.status === 'IN_PROGRESS' && update.logs) {
-          update.logs.forEach((log) => {
-            console.log('🎨 Log:', log.message);
+        console.log('🍌 Queue status:', update.status);
+        if (update.status === 'IN_PROGRESS') {
+          update.logs.map((log) => log.message).forEach((msg) => {
+            console.log('🍌 Log:', msg);
           });
         }
       },
@@ -98,34 +107,10 @@ export async function generateNanoBananaImage(
       message: error.message,
       stack: error.stack,
       body: error.body,
-      status: error.status,
-      response: error.response,
-      data: error.data
+      status: error.status
     });
 
-    // Extract detailed error message
-    let errorMessage = 'Unknown error occurred';
-
-    if (error.body?.detail) {
-      errorMessage = error.body.detail;
-    } else if (error.body?.message) {
-      errorMessage = error.body.message;
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    // Check for API key issues
-    if (error.status === 401 || error.status === 403 || errorMessage.includes('credentials') || errorMessage.includes('authentication')) {
-      throw new Error('API authentication failed. Please check your FAL_KEY_IMAGE configuration.');
-    }
-
-    // Check for quota issues
-    if (error.status === 429 || errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
-      throw new Error('API rate limit exceeded. Please try again in a few moments.');
-    }
-
+    const errorMessage = error.body?.message || error.message || 'Unknown error occurred';
     throw new Error(`Image generation failed: ${errorMessage}`);
   }
 }
@@ -134,6 +119,5 @@ export async function generateNanoBananaImage(
  * Check if Nano Banana is available
  */
 export function isNanoBananaAvailable(): boolean {
-  const fal = getFalClient('image');
-  return !!fal;
+  return !!FAL_KEY;
 }
