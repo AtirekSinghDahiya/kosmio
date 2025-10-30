@@ -63,12 +63,12 @@ export const subscribeToProjects = (callback: (projects: Project[]) => void) => 
       const projects = await getProjects();
       console.log('✅ Loaded projects:', projects.length);
 
-      // Only trigger callback if project count changed or on first load
-      if (projects.length !== lastProjectCount || lastProjectCount === 0) {
+      // Always trigger callback to ensure UI updates
+      if (projects.length !== lastProjectCount) {
         console.log('🆕 Project count changed:', lastProjectCount, '->', projects.length);
-        lastProjectCount = projects.length;
-        callback(projects);
       }
+      lastProjectCount = projects.length;
+      callback(projects);
     } catch (error) {
       console.error('❌ Error loading projects:', error);
     }

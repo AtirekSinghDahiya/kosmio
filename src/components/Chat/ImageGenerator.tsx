@@ -5,12 +5,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Image, Download, Wand2, X, Loader, Sparkles, RefreshCw } from 'lucide-react';
-import { generateImageSmart, GeneratedImage } from '../../lib/imageService';
+import { generateNanoBananaImage, isNanoBananaAvailable } from '../../lib/nanoBananaService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveImageToProject } from '../../lib/contentSaveService';
 import { DynamicTokenEstimator } from '../../lib/dynamicTokenEstimator';
+
+// Legacy type for compatibility
+interface GeneratedImage {
+  url: string;
+  model?: string;
+}
 
 interface ImageGeneratorProps {
   onClose: () => void;
@@ -54,16 +60,26 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     setImageLoading(true);
 
     try {
-      const image = await generateImageSmart(prompt, selectedModel);
+      const result = await generateNanoBananaImage(prompt, {
+        aspectRatio: '1:1',
+        numImages: 1,
+        outputFormat: 'jpeg'
+      });
+
+      const image: GeneratedImage = {
+        url: result.url,
+        model: 'nano-banana'
+      };
+
       setGeneratedImage(image);
       showToast('success', 'Success!', 'Your image is ready');
 
       if (user) {
         try {
           await saveImageToProject(user.uid, prompt, image.url, {
-            model: selectedModel || image.model,
+            model: 'nano-banana',
             dimensions: '1024x1024',
-            provider: 'replicate'
+            provider: 'fal-ai'
           });
           console.log('✅ Image saved to project');
         } catch (saveError) {

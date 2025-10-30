@@ -49,28 +49,33 @@ const PAID_MODELS = new Set([
 export const getUserTier = async (userId: string): Promise<TierInfo> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('current_tier, is_paid, tokens_remaining, last_purchase_date')
+    .select('current_tier, is_paid, paid_tokens_balance, last_purchase_date')
     .eq('id', userId)
     .maybeSingle();
 
   if (error) {
-    console.error('Error fetching user tier:', error);
+    console.error('❌ Error fetching user tier:', error);
     return { tier: 'free', hasPurchased: false, firstPurchaseAt: null };
   }
 
-  // User is paid if they have tokens_remaining > 0 OR is_paid = true
-  const hasPaidTokens = (data?.tokens_remaining || 0) > 0;
+  if (!data) {
+    console.error('❌ No user data found for:', userId);
+    return { tier: 'free', hasPurchased: false, firstPurchaseAt: null };
+  }
+
+  // User is paid if they have paid_tokens_balance > 0 AND is_paid = true
+  const paidTokens = data?.paid_tokens_balance || 0;
   const isPaidUser = data?.is_paid === true;
 
-  const tier = (hasPaidTokens || isPaidUser) ? 'paid' : 'free';
+  // Must have BOTH paid status AND tokens to access paid models
+  const tier = (isPaidUser && paidTokens > 0) ? 'paid' : 'free';
 
   console.log('🔍 tierAccessService.getUserTier:', {
     userId,
-    is_paid: data?.is_paid,
-    tokens_remaining: data?.tokens_remaining,
-    hasPaidTokens,
-    isPaidUser,
-    finalTier: tier
+    is_paid: isPaidUser,
+    paid_tokens_balance: paidTokens,
+    finalTier: tier,
+    hasPaidAccess: isPaidUser && paidTokens > 0
   });
 
   return {
