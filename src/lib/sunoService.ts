@@ -1,6 +1,6 @@
 /**
  * Suno Music Generation Service
- * Integrates with KIE.ai API for AI music generation using Suno V3.5
+ * Uses sunoapi.org API for music generation
  */
 
 interface SunoGenerationRequest {
@@ -10,8 +10,6 @@ interface SunoGenerationRequest {
   customMode?: boolean;
   instrumental?: boolean;
   model?: string;
-  callBackUrl?: string;
-  negativeTags?: string;
 }
 
 interface SunoGenerationResponse {
@@ -38,28 +36,24 @@ interface SunoStatusResponse {
   };
 }
 
-const SUNO_API_BASE = 'https://api.kie.ai/api/v1';
+const SUNO_API_BASE = 'https://api.sunoapi.org/api/v1';
 
-/**
- * Generate music using Suno AI
- */
 export async function generateSunoMusic(
   request: SunoGenerationRequest,
   apiKey: string
 ): Promise<string> {
-  const requestBody: any = {
+  console.log('🎵 Starting Suno generation with sunoapi.org...');
+
+  const requestBody = {
     prompt: request.prompt,
     style: request.style,
     title: request.title,
     customMode: request.customMode ?? true,
     instrumental: request.instrumental ?? false,
     model: request.model ?? 'V3_5',
-    callBackUrl: request.callBackUrl || 'https://example.com/callback',
   };
 
-  if (request.negativeTags) {
-    requestBody.negativeTags = request.negativeTags;
-  }
+  console.log('🎵 Request body:', JSON.stringify(requestBody, null, 2));
 
   const response = await fetch(`${SUNO_API_BASE}/generate`, {
     method: 'POST',
@@ -72,35 +66,21 @@ export async function generateSunoMusic(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => response.statusText);
-    console.error('Suno API error:', response.status, errorText);
-
-    // Try to parse error message
-    try {
-      const errorData = JSON.parse(errorText);
-      if (errorData.message) {
-        throw new Error(`Suno API Error: ${errorData.message}`);
-      }
-    } catch (e) {
-      // Not JSON, use raw text
-    }
-
+    console.error('❌ Suno API error:', response.status, errorText);
     throw new Error(`API Error (${response.status}): ${errorText || 'Unknown error'}`);
   }
 
   const data: SunoGenerationResponse = await response.json();
+  console.log('✅ Suno response:', data);
 
   if (data.code !== 200) {
-    console.error('Suno generation failed:', data);
-    const errorMsg = data.message || 'Failed to generate music';
-    throw new Error(`Suno Error: ${errorMsg}`);
+    console.error('❌ Suno generation failed:', data);
+    throw new Error(`Suno Error: ${data.message || 'Failed to generate music'}`);
   }
 
   return data.data.taskId;
 }
 
-/**
- * Check the status of a music generation task
- */
 export async function checkSunoStatus(
   taskId: string,
   apiKey: string
@@ -117,38 +97,33 @@ export async function checkSunoStatus(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => response.statusText);
-    console.error('Suno status check error:', response.status, errorText);
+    console.error('❌ Suno status check error:', response.status, errorText);
     throw new Error(`Status Check Error (${response.status}): ${errorText}`);
   }
 
   const data: SunoStatusResponse = await response.json();
 
   if (data.code !== 200) {
-    console.error('Suno status check failed:', data);
+    console.error('❌ Suno status check failed:', data);
     throw new Error(data.message || 'Failed to check status');
   }
 
   return data.data;
 }
 
-/**
- * Generate music and wait for completion
- */
 export async function generateAndWaitForMusic(
   request: SunoGenerationRequest,
   apiKey: string,
   onProgress?: (status: string) => void
 ): Promise<Array<{ audioUrl: string; title: string }>> {
-  // Start generation
   const taskId = await generateSunoMusic(request, apiKey);
   onProgress?.('Music generation started...');
 
-  // Poll for completion
-  const maxAttempts = 60; // 10 minutes max (10 seconds per attempt)
+  const maxAttempts = 60;
   let attempts = 0;
 
   while (attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+    await new Promise(resolve => setTimeout(resolve, 10000));
 
     const status = await checkSunoStatus(taskId, apiKey);
 

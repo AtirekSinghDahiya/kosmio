@@ -1,3 +1,11 @@
+/**
+ * Unified Tier Service - SIMPLIFIED
+ *
+ * SIMPLE RULE:
+ * - If paid_tokens_balance > 0 → PAID tier → Everything unlocked
+ * - If paid_tokens_balance = 0 → FREE tier → Only free models
+ */
+
 import { supabase } from './supabaseClient';
 
 export type UserTier = 'free' | 'starter' | 'pro' | 'enterprise';
@@ -19,6 +27,7 @@ export interface TierInfo {
   canAccessVideoGeneration: boolean;
 }
 
+// ONLY THESE MODELS ARE PREMIUM - EVERYTHING ELSE IS FREE
 const PREMIUM_MODELS = new Set([
   'claude-opus-4',
   'claude-opus-4.1',
@@ -32,60 +41,56 @@ const PREMIUM_MODELS = new Set([
 
 export async function getUserTierInfo(userId: string): Promise<TierInfo> {
   try {
-    const { data: tierData, error } = await supabase
-      .rpc('get_user_tier_config', { user_id: userId });
+    console.log('📊 Fetching tier info for user:', userId);
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('paid_tokens_balance, free_tokens_balance, daily_tokens_remaining, current_tier')
+      .eq('id', userId)
+      .maybeSingle();
 
     if (error) {
-      console.error('Error fetching tier info from database:', error);
+      console.error('❌ Error fetching profile:', error);
       return getDefaultFreeTier();
     }
 
-    if (!tierData || tierData.length === 0) {
-      console.warn('No tier data found for user:', userId);
+    if (!profile) {
+      console.warn('⚠️  No profile found, using default free tier');
       return getDefaultFreeTier();
     }
 
-    const tier = tierData[0];
-    const paidTokens = Number(tier.paid_tokens_available) || 0;
-    const freeTokens = Number(tier.free_tokens_available) || 0;
+    console.log('✅ Profile data:', profile);
+
+    const paidTokens = Number(profile.paid_tokens_balance) || 0;
+    const freeTokens = Number(profile.free_tokens_balance) || 0;
+    const dailyRemaining = Number(profile.daily_tokens_remaining) || 0;
     const totalTokens = paidTokens + freeTokens;
-    const dailyTokensRemaining = Number(tier.daily_tokens_remaining) || 0;
 
-    const hasPaidAccess = paidTokens > 0;
-    const canAccessPaidModels = hasPaidAccess && tier.can_access_premium_models;
-    const canAccessVideoGeneration = hasPaidAccess && tier.can_access_video_generation;
+    const isPaidTier = paidTokens > 0;
+    const isFreeTier = !isPaidTier;
+
+    console.log(`🎯 Tier: ${isPaidTier ? 'PAID' : 'FREE'} (paid=${paidTokens}, free=${freeTokens})`);
 
     const tierInfo: TierInfo = {
-      tier: tier.tier_name as UserTier,
-      tierLevel: tier.tier_level,
-      isFreeTier: tier.is_free_tier,
-      hasPaidAccess,
+      tier: isPaidTier ? 'starter' : 'free',
+      tierLevel: isPaidTier ? 1 : 0,
+      isFreeTier,
+      hasPaidAccess: isPaidTier,
       paidTokens,
       freeTokens,
       totalTokens,
-      dailyTokensRemaining,
+      dailyTokensRemaining: dailyRemaining,
       monthlyTokensRemaining: freeTokens,
-      dailyTokenLimit: tier.daily_token_limit,
-      monthlyTokenLimit: tier.monthly_token_limit,
+      dailyTokenLimit: 5000,
+      monthlyTokenLimit: 150000,
       messagesRemaining: 0,
-      canAccessPaidModels,
-      canAccessVideoGeneration
+      canAccessPaidModels: isPaidTier,
+      canAccessVideoGeneration: isPaidTier
     };
-
-    console.log('✅ Tier info loaded:', {
-      userId,
-      tier: tierInfo.tier,
-      isFreeTier: tierInfo.isFreeTier,
-      hasPaidAccess: tierInfo.hasPaidAccess,
-      paidTokens: tierInfo.paidTokens,
-      freeTokens: tierInfo.freeTokens,
-      canAccessPaidModels: tierInfo.canAccessPaidModels,
-      canAccessVideoGeneration: tierInfo.canAccessVideoGeneration
-    });
 
     return tierInfo;
   } catch (error) {
-    console.error('Exception in getUserTierInfo:', error);
+    console.error('❌ Exception in getUserTierInfo:', error);
     return getDefaultFreeTier();
   }
 }
@@ -97,8 +102,8 @@ function getDefaultFreeTier(): TierInfo {
     isFreeTier: true,
     hasPaidAccess: false,
     paidTokens: 0,
-    freeTokens: 5000,
-    totalTokens: 5000,
+    freeTokens: 150000,
+    totalTokens: 150000,
     dailyTokensRemaining: 5000,
     monthlyTokensRemaining: 150000,
     dailyTokenLimit: 5000,
@@ -114,22 +119,19 @@ export function isModelPaid(modelId: string): boolean {
 }
 
 export function canAccessModel(tierInfo: TierInfo | null, modelId: string): boolean {
-  // If no tier info, allow free models only
   if (!tierInfo) {
     return !isModelPaid(modelId);
   }
 
   const isPremium = isModelPaid(modelId);
 
-  // Premium models: Only accessible to paid tier with paid tokens
   if (isPremium) {
     if (tierInfo.isFreeTier) {
       return false;
     }
-    return tierInfo.canAccessPaidModels && tierInfo.paidTokens > 0;
+    return tierInfo.paidTokens > 0;
   }
 
-  // Free models: Accessible to anyone with tokens
   return tierInfo.totalTokens > 0;
 }
 
@@ -139,35 +141,23 @@ export async function checkModelAccess(userId: string, modelId: string): Promise
   reason: string;
 }> {
   const tierInfo = await getUserTierInfo(userId);
-  const isPaid = isModelPaid(modelId);
+  const isPremium = isModelPaid(modelId);
+  const canAccess = canAccessModel(tierInfo, modelId);
 
-  if (tierInfo.isFreeTier && isPaid) {
-    return {
-      canAccess: false,
-      tierInfo,
-      reason: 'Premium model requires paid tokens. Purchase a token pack to access.'
-    };
+  let reason = '';
+  if (!canAccess) {
+    if (isPremium && tierInfo.isFreeTier) {
+      reason = 'Premium models require a paid token pack. Purchase tokens to unlock.';
+    } else if (tierInfo.totalTokens === 0) {
+      reason = 'No tokens available. Purchase a token pack to continue.';
+    } else {
+      reason = 'Access denied';
+    }
+  } else {
+    reason = 'Access granted';
   }
 
-  if (!isPaid) {
-    const canAccess = tierInfo.dailyTokensRemaining > 0 || tierInfo.totalTokens > 0;
-    return {
-      canAccess,
-      tierInfo,
-      reason: canAccess
-        ? 'Free model accessible'
-        : 'No tokens available'
-    };
-  }
-
-  const canAccess = tierInfo.canAccessPaidModels && tierInfo.totalTokens > 0;
-  return {
-    canAccess,
-    tierInfo,
-    reason: canAccess
-      ? 'Paid model accessible'
-      : 'Paid tokens required for this model'
-  };
+  return { canAccess, tierInfo, reason };
 }
 
 export async function checkPaidFeatureAccess(userId: string, featureName: string = 'premium_feature'): Promise<{
@@ -177,49 +167,25 @@ export async function checkPaidFeatureAccess(userId: string, featureName: string
 }> {
   const tierInfo = await getUserTierInfo(userId);
 
-  if (featureName.includes('video')) {
-    const hasAccess = tierInfo.canAccessVideoGeneration && tierInfo.paidTokens > 0;
-
-    console.log(`🎬 Video feature access check:`, {
-      userId,
-      featureName,
-      hasAccess,
-      canAccessVideoGeneration: tierInfo.canAccessVideoGeneration,
-      paidTokens: tierInfo.paidTokens,
-      isFreeTier: tierInfo.isFreeTier
-    });
-
+  if (tierInfo.isFreeTier) {
     return {
-      hasAccess,
+      hasAccess: false,
       tierInfo,
-      reason: hasAccess
-        ? `Access granted: ${tierInfo.paidTokens.toLocaleString()} paid tokens available`
-        : 'Video generation requires paid tokens. Purchase a token pack to access.'
+      reason: `${featureName} requires a paid token pack. Purchase tokens to unlock.`
     };
   }
 
-  const hasAccess = tierInfo.canAccessPaidModels && tierInfo.paidTokens > 0;
-
-  console.log(`🎯 Feature access check for ${featureName}:`, {
-    userId,
-    hasAccess,
-    paidTokens: tierInfo.paidTokens,
-    isFreeTier: tierInfo.isFreeTier
-  });
-
+  const hasAccess = tierInfo.paidTokens > 0;
   return {
     hasAccess,
     tierInfo,
-    reason: hasAccess
-      ? `Access granted: ${tierInfo.paidTokens.toLocaleString()} paid tokens available`
-      : 'Purchase tokens to access this feature'
+    reason: hasAccess ? 'Access granted' : 'Insufficient tokens'
   };
 }
 
 export async function refreshDailyTokens(userId: string): Promise<void> {
   try {
     await supabase.rpc('refresh_daily_tokens_for_free_tier');
-    console.log('✅ Daily tokens refreshed for free tier users');
   } catch (error) {
     console.error('Failed to refresh daily tokens:', error);
   }

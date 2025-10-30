@@ -3,7 +3,7 @@
  * Uses official @fal-ai/client library to access Google's Veo 3 Fast model
  */
 
-import { fal, isFalConfigured } from './falClient';
+import { getFalClient, isFalConfigured } from './falClient';
 
 export interface Veo3Request {
   prompt: string;
@@ -35,7 +35,7 @@ function log(level: 'info' | 'success' | 'error', message: string) {
  * Check if Veo3 is available
  */
 export function isVeo3Available(): boolean {
-  return isFalConfigured();
+  return isFalConfigured('veo');
 }
 
 /**
@@ -46,8 +46,9 @@ export async function generateVeo3Video(
   request: Veo3Request,
   onProgress?: (status: string, percent: number) => void
 ): Promise<string> {
-  if (!isFalConfigured()) {
-    throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
+  const fal = getFalClient('veo');
+  if (!fal) {
+    throw new Error('Veo3 API key is not configured. Please add VITE_FAL_KEY_VEO to your .env file.');
   }
 
   log('info', 'Starting Google Veo 3 Fast video generation...');

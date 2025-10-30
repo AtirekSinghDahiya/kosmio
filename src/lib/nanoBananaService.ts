@@ -3,16 +3,7 @@
  * Uses fal.ai nano-banana model for image generation
  */
 
-import { fal } from '@fal-ai/client';
-
-// Configure fal client
-const FAL_KEY = import.meta.env.VITE_FAL_KEY;
-
-if (FAL_KEY) {
-  fal.config({
-    credentials: FAL_KEY
-  });
-}
+import { getFalClient } from './falClient';
 
 export interface NanoBananaInput {
   prompt: string;
@@ -45,14 +36,14 @@ export async function generateNanoBananaImage(
     outputFormat?: 'jpeg' | 'png' | 'webp';
   }
 ): Promise<{ url: string; description?: string }> {
-  if (!FAL_KEY) {
-    throw new Error('FAL_KEY is not configured. Please check your environment variables.');
+  const fal = getFalClient('image');
+  if (!fal) {
+    throw new Error('Image generation API key is not configured. Please check VITE_FAL_KEY_IMAGE.');
   }
 
   try {
-    console.log('🍌 Generating image with Nano Banana...');
-    console.log('🍌 Prompt:', prompt);
-    console.log('🍌 FAL_KEY configured:', !!FAL_KEY);
+    console.log('🎨 Generating image with Nano Banana...');
+    console.log('🎨 Prompt:', prompt);
 
     const input: NanoBananaInput = {
       prompt,
@@ -62,33 +53,20 @@ export async function generateNanoBananaImage(
       sync_mode: false
     };
 
-    console.log('🍌 Input:', JSON.stringify(input, null, 2));
+    console.log('🎨 Input:', JSON.stringify(input, null, 2));
 
-    // Try nano-banana first, fallback to flux-schnell if needed
-    let result;
-    try {
-      result = await fal.subscribe('fal-ai/flux/schnell', {
-        input: {
-          prompt,
-          num_images: input.num_images,
-          image_size: 'square',
-          output_format: input.output_format,
-          num_inference_steps: 4
-        },
-        logs: true,
-        onQueueUpdate: (update) => {
-          console.log('🎨 Queue status:', update.status);
-          if (update.status === 'IN_PROGRESS' && update.logs) {
-            update.logs.forEach((log) => {
-              console.log('🎨 Log:', log.message);
-            });
-          }
-        },
-      });
-    } catch (error: any) {
-      console.error('Failed with flux-schnell, trying alternative...', error);
-      throw error;
-    }
+    const result = await fal.subscribe('fal-ai/nano-banana', {
+      input,
+      logs: true,
+      onQueueUpdate: (update) => {
+        console.log('🎨 Queue status:', update.status);
+        if (update.status === 'IN_PROGRESS' && update.logs) {
+          update.logs.forEach((log) => {
+            console.log('🎨 Log:', log.message);
+          });
+        }
+      },
+    });
 
     console.log('✅ Nano Banana raw result:', JSON.stringify(result, null, 2));
 
@@ -132,5 +110,6 @@ export async function generateNanoBananaImage(
  * Check if Nano Banana is available
  */
 export function isNanoBananaAvailable(): boolean {
-  return !!FAL_KEY;
+  const fal = getFalClient('image');
+  return !!fal;
 }

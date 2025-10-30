@@ -3,7 +3,7 @@
  * Uses official @fal-ai/client library to access OpenAI Sora 2 text-to-video model
  */
 
-import { fal, isFalConfigured } from './falClient';
+import { getFalClient, isFalConfigured } from './falClient';
 
 export interface FalSoraRequest {
   prompt: string;
@@ -36,7 +36,7 @@ function log(level: 'info' | 'success' | 'error', message: string) {
  * Check if Fal.ai Sora is available
  */
 export function isFalSoraAvailable(): boolean {
-  return isFalConfigured();
+  return isFalConfigured('sora');
 }
 
 /**
@@ -47,8 +47,9 @@ export async function generateFalSoraVideo(
   request: FalSoraRequest,
   onProgress?: (status: string, percent: number) => void
 ): Promise<string> {
-  if (!isFalConfigured()) {
-    throw new Error('Fal.ai API key is not configured. Please add VITE_FAL_KEY to your .env file.');
+  const fal = getFalClient('sora');
+  if (!fal) {
+    throw new Error('Sora 2 API key is not configured. Please add VITE_FAL_KEY_SORA to your .env file.');
   }
 
   log('info', 'Starting Fal.ai Sora 2 video generation...');
