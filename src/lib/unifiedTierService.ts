@@ -131,24 +131,36 @@ export function isModelPaid(modelId: string): boolean {
 }
 
 export function canAccessModel(tierInfo: TierInfo, modelId: string): boolean {
-  if (tierInfo.isFreeTier) {
-    const isPaidModel = isModelPaid(modelId);
-    if (isPaidModel) {
-      console.log(`🚫 Free tier cannot access paid model: ${modelId}`);
-      return false;
-    }
-    return tierInfo.dailyTokensRemaining > 0 || tierInfo.totalTokens > 0;
-  }
-
-  if (tierInfo.hasPaidAccess && tierInfo.canAccessPaidModels) {
-    return tierInfo.totalTokens > 0;
-  }
-
   const isPaidModel = isModelPaid(modelId);
-  if (!isPaidModel) {
-    return tierInfo.totalTokens > 0;
+
+  // STRICT: Free tier users CANNOT access premium models AT ALL
+  if (tierInfo.isFreeTier && isPaidModel) {
+    console.log(`🚫 BLOCKED: Free tier cannot access premium model: ${modelId}`);
+    return false;
   }
 
+  // Free tier with free models - check if they have tokens
+  if (tierInfo.isFreeTier && !isPaidModel) {
+    const hasTokens = tierInfo.dailyTokensRemaining > 0 || tierInfo.freeTokens > 0;
+    console.log(`✓ Free tier accessing free model ${modelId}: ${hasTokens ? 'ALLOWED' : 'NO TOKENS'}`);
+    return hasTokens;
+  }
+
+  // Paid tier - check if they have paid tokens and permission
+  if (!tierInfo.isFreeTier) {
+    if (isPaidModel) {
+      const canAccess = tierInfo.canAccessPaidModels && tierInfo.paidTokens > 0;
+      console.log(`${canAccess ? '✓' : '🚫'} Paid tier accessing premium model ${modelId}: ${canAccess ? 'ALLOWED' : 'BLOCKED'}`);
+      return canAccess;
+    } else {
+      // Paid tier can use free models with any tokens
+      const hasTokens = tierInfo.totalTokens > 0;
+      console.log(`✓ Paid tier accessing free model ${modelId}: ${hasTokens ? 'ALLOWED' : 'NO TOKENS'}`);
+      return hasTokens;
+    }
+  }
+
+  console.log(`🚫 DEFAULT BLOCK for model ${modelId}`);
   return false;
 }
 

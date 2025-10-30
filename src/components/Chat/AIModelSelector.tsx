@@ -183,7 +183,19 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
                 const isPaidModel = isModelPaid(model.id);
-                const isLocked = isPaidModel && tierInfo && !canAccessModel(tierInfo, model.id);
+                // Lock premium models if: no tierInfo OR user cannot access this model
+                const isLocked = !tierInfo || (isPaidModel && !canAccessModel(tierInfo, model.id));
+
+                // Debug log for premium models
+                if (isPaidModel && index < 3) {
+                  console.log(`Model ${model.id}:`, {
+                    isPaidModel,
+                    hasTierInfo: !!tierInfo,
+                    isFreeTier: tierInfo?.isFreeTier,
+                    canAccess: tierInfo ? canAccessModel(tierInfo, model.id) : false,
+                    isLocked
+                  });
+                }
 
                 return (
                   <button

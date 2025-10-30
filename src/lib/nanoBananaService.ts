@@ -64,18 +64,31 @@ export async function generateNanoBananaImage(
 
     console.log('🍌 Input:', JSON.stringify(input, null, 2));
 
-    const result = await fal.subscribe('fal-ai/nano-banana', {
-      input,
-      logs: true,
-      onQueueUpdate: (update) => {
-        console.log('🍌 Queue status:', update.status);
-        if (update.status === 'IN_PROGRESS') {
-          update.logs.map((log) => log.message).forEach((msg) => {
-            console.log('🍌 Log:', msg);
-          });
-        }
-      },
-    });
+    // Try nano-banana first, fallback to flux-schnell if needed
+    let result;
+    try {
+      result = await fal.subscribe('fal-ai/flux/schnell', {
+        input: {
+          prompt,
+          num_images: input.num_images,
+          image_size: 'square',
+          output_format: input.output_format,
+          num_inference_steps: 4
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          console.log('🎨 Queue status:', update.status);
+          if (update.status === 'IN_PROGRESS' && update.logs) {
+            update.logs.forEach((log) => {
+              console.log('🎨 Log:', log.message);
+            });
+          }
+        },
+      });
+    } catch (error: any) {
+      console.error('Failed with flux-schnell, trying alternative...', error);
+      throw error;
+    }
 
     console.log('✅ Nano Banana raw result:', JSON.stringify(result, null, 2));
 
