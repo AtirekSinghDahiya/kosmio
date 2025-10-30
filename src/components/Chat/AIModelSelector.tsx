@@ -79,29 +79,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
-  const [isLoadingTier, setIsLoadingTier] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Check tier on mount and when dropdown opens
-  useEffect(() => {
-    if (user?.uid) {
-      setIsLoadingTier(true);
-      getUserTierInfo(user.uid).then(info => {
-        console.log('🔍 AIModelSelector - Tier info:', info);
-        setTierInfo(info);
-        setIsLoadingTier(false);
-      }).catch(err => {
-        console.error('Failed to get user tier:', err);
-        setIsLoadingTier(false);
-        setTierInfo(null);
-      });
-    } else {
-      setTierInfo(null);
-      setIsLoadingTier(false);
-    }
-  }, [user, refreshKey]);
 
   // Refresh tier when dropdown opens
   useEffect(() => {
@@ -188,10 +166,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                const isPaidModel = isModelPaid(model.id);
-                const isLocked = tierInfo ? !canAccessModel(tierInfo, model.id) : isPaidModel;
-
-                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, tierInfo=${JSON.stringify(tierInfo)}, isLocked=${isLocked}`);
+                // No locking - all models are available for selection
+                const isLocked = false;
 
                 return (
                   <button
@@ -237,7 +213,6 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
                         <span>{model.description}</span>
-                        {isLocked && <span>• No tokens available</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
