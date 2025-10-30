@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserTier, isModelPaid, type UserTier } from '../../lib/tierAccessService';
+import { getUserTier, type UserTier } from '../../lib/tierAccessService';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -90,7 +90,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
       setIsLoadingTier(true);
       getUserTier(user.uid).then(tierInfo => {
         console.log('🔍 AIModelSelector - User tier info:', tierInfo);
-        const isPaid = tierInfo.tier === 'paid';
+        console.log('🔍 AIModelSelector - canAccessPremiumModels:', tierInfo.canAccessPremiumModels);
+        const isPaid = tierInfo.tier === 'paid' && tierInfo.canAccessPremiumModels;
         setUserTier(tierInfo.tier);
         setIsPaidUser(isPaid);
         console.log('🔍 AIModelSelector - isPaidUser set to:', isPaid);
@@ -98,6 +99,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
         setIsLoadingTier(false);
       }).catch(err => {
         console.error('Failed to get user tier:', err);
+        setUserTier('free');
+        setIsPaidUser(false);
         setIsLoadingTier(false);
       });
     } else {

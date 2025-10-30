@@ -40,16 +40,22 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
 
   useEffect(() => {
     if (user?.uid) {
+      console.log('🎬 VideoGenerator - Checking tier for user:', user.uid);
       getUserTier(user.uid).then(tierInfo => {
+        console.log('🎬 VideoGenerator - Full tier info:', JSON.stringify(tierInfo));
         console.log('🎬 VideoGenerator - User tier:', tierInfo.tier);
+        console.log('🎬 VideoGenerator - canAccessPremiumModels:', tierInfo.canAccessPremiumModels);
+        const hasAccess = tierInfo.tier === 'paid' && tierInfo.canAccessPremiumModels;
+        console.log('🎬 VideoGenerator - Calculated hasAccess:', hasAccess);
         setUserTier(tierInfo.tier);
-        setCanAccessVideoGen(tierInfo.tier === 'paid' && tierInfo.canAccessPremiumModels);
+        setCanAccessVideoGen(hasAccess);
       }).catch(err => {
-        console.error('Failed to get user tier:', err);
+        console.error('❌ VideoGenerator - Failed to get user tier:', err);
         setUserTier('free');
         setCanAccessVideoGen(false);
       });
     } else {
+      console.log('🎬 VideoGenerator - No user logged in');
       setUserTier('free');
       setCanAccessVideoGen(false);
     }
