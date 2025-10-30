@@ -79,14 +79,30 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Refresh tier when dropdown opens
+  // Load tier info
   useEffect(() => {
-    if (isOpen && user?.uid) {
-      setRefreshKey(prev => prev + 1);
-    }
-  }, [isOpen, user]);
+    const loadTierInfo = async () => {
+      if (!user?.uid) {
+        setTierInfo(null);
+        return;
+      }
+      try {
+        const info = await getUserTierInfo(user.uid);
+        setTierInfo(info);
+      } catch (error) {
+        console.error('Failed to load tier info:', error);
+        setTierInfo(null);
+      }
+    };
+
+    loadTierInfo();
+    // Refresh tier info every 10 seconds
+    const interval = setInterval(loadTierInfo, 10000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -166,8 +182,8 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                // No locking - all models are available for selection
-                const isLocked = false;
+                const isPaidModel = isModelPaid(model.id);
+                const isLocked = isPaidModel && tierInfo && !canAccessModel(tierInfo, model.id);
 
                 return (
                   <button

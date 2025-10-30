@@ -34,6 +34,9 @@ const PAID_MODELS = new Set([
   'stable-diffusion-xl',
   'firefly',
   'sora',
+  'sora-2',
+  'veo3',
+  'veo-3',
   'eleven-labs'
 ]);
 

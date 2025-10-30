@@ -115,24 +115,34 @@ export async function generateVeo3Video(
   } catch (error: any) {
     const errorMessage = error?.message || error?.toString() || 'Unknown error';
     const errorBody = error?.body ? JSON.stringify(error.body) : '';
+    const statusCode = error?.status || error?.statusCode;
 
     log('error', `Video generation failed: ${errorMessage}`);
     if (errorBody) {
       log('error', `Error details: ${errorBody}`);
     }
+    if (statusCode) {
+      log('error', `HTTP Status: ${statusCode}`);
+    }
 
     console.error('Full Veo3 error:', error);
 
-    if (errorMessage.includes('401') || errorMessage.includes('authentication')) {
-      throw new Error('Invalid Fal.ai API key. Please check your VITE_FAL_KEY configuration.');
-    } else if (errorMessage.includes('429')) {
+    if (statusCode === 401 || errorMessage.includes('401') || errorMessage.includes('authentication') || errorMessage.includes('unauthorized')) {
+      throw new Error('Invalid Fal.ai API key. Please verify your API key is correct and active.');
+    } else if (statusCode === 402 || errorMessage.includes('402') || errorMessage.includes('payment') || errorMessage.includes('credits')) {
+      throw new Error('Insufficient Fal.ai credits. Please add credits to your Fal.ai account.');
+    } else if (statusCode === 403 || errorMessage.includes('403') || errorMessage.includes('forbidden')) {
+      throw new Error('Access denied. Your Fal.ai account may not have access to Veo3 model.');
+    } else if (statusCode === 404 || errorMessage.includes('404') || errorMessage.includes('not found')) {
+      throw new Error('Veo3 model not found. The model may not be available yet or the endpoint has changed.');
+    } else if (statusCode === 429 || errorMessage.includes('429') || errorMessage.includes('rate limit')) {
       throw new Error('Rate limit exceeded. Please try again in a few minutes.');
     } else if (errorMessage.includes('timeout')) {
       throw new Error('Video generation timed out. Please try with a shorter duration or simpler prompt.');
-    } else if (errorMessage.includes('content policy')) {
+    } else if (errorMessage.includes('content policy') || errorMessage.includes('safety')) {
       throw new Error('Prompt violates content policy. Please try a different prompt.');
-    } else if (errorMessage.includes('not found') || errorMessage.includes('404')) {
-      throw new Error('Veo3 model endpoint not found. The model may not be available on Fal.ai yet.');
+    } else if (errorMessage.includes('ApiError')) {
+      throw new Error(`Fal.ai API Error: ${errorMessage}. Please check your Fal.ai account status and API key.`);
     }
 
     throw new Error(`Veo3 generation failed: ${errorMessage}`);

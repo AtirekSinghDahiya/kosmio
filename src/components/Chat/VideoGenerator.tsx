@@ -176,15 +176,14 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       return;
     }
 
-    if (provider === 'sora') {
-      if (isCheckingAccess) {
-        showToast('info', 'Checking Access', 'Please wait while we verify your access...');
-        return;
-      }
-      if (!tierInfo || !tierInfo.canAccessPaidModels) {
-        showToast('error', 'Paid Tokens Required', `Sora 2 requires paid tokens. You currently have ${tierInfo?.paidTokens || 0} paid tokens. Please purchase tokens to use this feature.`);
-        return;
-      }
+    if (isCheckingAccess) {
+      showToast('info', 'Checking Access', 'Please wait while we verify your access...');
+      return;
+    }
+
+    if (!tierInfo || !tierInfo.canAccessPaidModels) {
+      showToast('error', 'Paid Tokens Required', `Video generation requires paid tokens. You currently have ${tierInfo?.paidTokens || 0} paid tokens. Please purchase tokens to use this feature.`);
+      return;
     }
 
     if (provider === 'sora' && !soraAvailable) {
@@ -245,7 +244,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
     if (provider === 'sora') {
       return 'Powered by OpenAI Sora 2 via Fal.ai (Premium)';
     }
-    return 'Powered by Google Veo 3 Fast via Fal.ai';
+    return 'Powered by Google Veo 3 Fast via Fal.ai (Premium)';
   };
 
   return (
@@ -295,14 +294,24 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                     <button
                       onClick={() => setProvider('veo3')}
                       disabled={isGenerating || !veo3Available}
-                      className={`px-4 py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                      className={`px-4 py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed relative ${
                         provider === 'veo3'
                           ? 'bg-orange-500/20 border-2 border-orange-400/60 text-orange-300'
                           : 'bg-slate-700/50 border-2 border-white/20 text-white/60 hover:border-orange-400/30'
                       }`}
                     >
                       <div className="text-sm font-bold">Veo 3 Fast</div>
-                      <div className="text-xs opacity-75">Google • Free</div>
+                      <div className="text-xs opacity-75">Google • Premium</div>
+                      {!isCheckingAccess && tierInfo && !tierInfo.canAccessPaidModels && (
+                        <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">
+                          {tierInfo.paidTokens}T
+                        </div>
+                      )}
+                      {!isCheckingAccess && tierInfo && tierInfo.canAccessPaidModels && (
+                        <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-0-5 rounded-full font-bold">
+                          ✓
+                        </div>
+                      )}
                     </button>
                     <button
                       onClick={() => setProvider('sora')}
@@ -329,7 +338,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </div>
                 </div>
 
-                {isCheckingAccess && provider === 'sora' && (
+                {isCheckingAccess && (
                   <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
                     <Loader className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5 animate-spin" />
                     <div className="text-sm text-blue-200">
@@ -339,22 +348,22 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </div>
                 )}
 
-                {!isCheckingAccess && tierInfo && !tierInfo.canAccessPaidModels && provider === 'sora' && (
+                {!isCheckingAccess && tierInfo && !tierInfo.canAccessPaidModels && (
                   <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
                     <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-yellow-200">
                       <p className="font-semibold mb-1">Paid Tokens Required</p>
-                      <p className="text-yellow-300/80">Sora 2 requires paid tokens. You have {tierInfo.paidTokens.toLocaleString()} paid tokens and {tierInfo.freeTokens.toLocaleString()} free tokens. Please purchase a token pack to access premium features.</p>
+                      <p className="text-yellow-300/80">All video generation requires paid tokens. You have {tierInfo.paidTokens.toLocaleString()} paid tokens and {tierInfo.freeTokens.toLocaleString()} free tokens. Please purchase a token pack to access premium video generation.</p>
                     </div>
                   </div>
                 )}
 
-                {!isCheckingAccess && tierInfo && tierInfo.canAccessPaidModels && provider === 'sora' && (
+                {!isCheckingAccess && tierInfo && tierInfo.canAccessPaidModels && (
                   <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
                     <Sparkles className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-green-200">
                       <p className="font-semibold mb-1">Premium Access Verified</p>
-                      <p className="text-green-300/80">You have {tierInfo.paidTokens.toLocaleString()} paid tokens. Full access to Sora 2 video generation!</p>
+                      <p className="text-green-300/80">You have {tierInfo.paidTokens.toLocaleString()} paid tokens. Full access to AI video generation!</p>
                     </div>
                   </div>
                 )}
@@ -451,7 +460,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
 
                 <button
                   onClick={() => handleGenerate()}
-                  disabled={isGenerating || !prompt.trim() || (provider === 'sora' && (!tierInfo || !tierInfo.canAccessPaidModels))}
+                  disabled={isGenerating || !prompt.trim() || (!tierInfo || !tierInfo.canAccessPaidModels)}
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 hover:from-orange-600 hover:via-red-600 hover:to-orange-700 disabled:from-gray-700 disabled:to-gray-800 text-white font-semibold rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/50 active:scale-[0.98] text-lg relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
@@ -537,11 +546,15 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-orange-400 mt-0.5">•</span>
-                      <span>Sora 2 offers premium quality for complex scenes (paid users only)</span>
+                      <span>Sora 2 offers premium quality for complex scenes</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-orange-400 mt-0.5">•</span>
-                      <span>Veo 3 Fast is great for quick, high-quality videos (free for all)</span>
+                      <span>Veo 3 Fast is great for quick, high-quality videos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-orange-400 mt-0.5">•</span>
+                      <span>All video generation requires paid tokens</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-orange-400 mt-0.5">•</span>
