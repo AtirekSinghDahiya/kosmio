@@ -37,23 +37,15 @@ export async function saveImageToProject(
       metadata?.model || 'flux-schnell'
     );
 
-    await createMessage(project.id, {
-      role: 'user',
-      content: prompt,
-      metadata: { type: 'image_request' }
-    });
+    await createMessage(project.id, 'user', prompt, { type: 'image_request' });
 
     const imageMessage = `I've generated your image!\n\n![Generated Image](${imageUrl})\n\n**Model:** ${metadata?.model || 'Unknown'}\n**Provider:** ${metadata?.provider || 'Unknown'}`;
-    await createMessage(project.id, {
-      role: 'assistant',
-      content: imageMessage,
-      metadata: {
-        type: 'image',
-        url: imageUrl,
-        model: metadata?.model,
-        dimensions: metadata?.dimensions,
-        provider: metadata?.provider
-      }
+    await createMessage(project.id, 'assistant', imageMessage, {
+      type: 'image',
+      url: imageUrl,
+      model: metadata?.model,
+      dimensions: metadata?.dimensions,
+      provider: metadata?.provider
     });
 
     console.log('✅ Image saved to project:', project.id);
@@ -87,23 +79,15 @@ export async function saveVideoToProject(
       metadata?.model || 'unknown'
     );
 
-    await createMessage(project.id, {
-      role: 'user',
-      content: prompt,
-      metadata: { type: 'video_request' }
-    });
+    await createMessage(project.id, 'user', prompt, { type: 'video_request' });
 
     const videoMessage = `I've generated your video!\n\n🎬 **Video Ready**\n\n[View Video](${videoUrl})\n\n**Model:** ${metadata?.model || 'Unknown'}\n**Duration:** ${metadata?.duration || '?'}s\n**Provider:** ${metadata?.provider || 'Unknown'}`;
-    await createMessage(project.id, {
-      role: 'assistant',
-      content: videoMessage,
-      metadata: {
-        type: 'video',
-        url: videoUrl,
-        model: metadata?.model,
-        duration: metadata?.duration,
-        provider: metadata?.provider
-      }
+    await createMessage(project.id, 'assistant', videoMessage, {
+      type: 'video',
+      url: videoUrl,
+      model: metadata?.model,
+      duration: metadata?.duration,
+      provider: metadata?.provider
     });
 
     console.log('✅ Video saved to project:', project.id);
@@ -137,23 +121,15 @@ export async function saveMusicToProject(
       metadata?.model || 'suno'
     );
 
-    await createMessage(project.id, {
-      role: 'user',
-      content: prompt,
-      metadata: { type: 'music_request' }
-    });
+    await createMessage(project.id, 'user', prompt, { type: 'music_request' });
 
     const musicMessage = `I've generated your music!\n\n🎵 **${metadata?.title || 'Music Track'}**\n\n[Listen Now](${audioUrl})\n\n**Model:** ${metadata?.model || 'Suno'}`;
-    await createMessage(project.id, {
-      role: 'assistant',
-      content: musicMessage,
-      metadata: {
-        type: 'music',
-        url: audioUrl,
-        model: metadata?.model,
-        duration: metadata?.duration,
-        title: metadata?.title
-      }
+    await createMessage(project.id, 'assistant', musicMessage, {
+      type: 'music',
+      url: audioUrl,
+      model: metadata?.model,
+      duration: metadata?.duration,
+      title: metadata?.title
     });
 
     console.log('✅ Music saved to project:', project.id);
@@ -186,22 +162,14 @@ export async function saveVoiceoverToProject(
       'elevenlabs'
     );
 
-    await createMessage(project.id, {
-      role: 'user',
-      content: `Generate voiceover: ${text}`,
-      metadata: { type: 'voiceover_request' }
-    });
+    await createMessage(project.id, 'user', `Generate voiceover: ${text}`, { type: 'voiceover_request' });
 
     const voiceMessage = `I've generated your voiceover!\n\n🎙️ **Voiceover Ready**\n\n[Listen Now](${audioUrl})\n\n**Voice:** ${metadata?.voice || 'Default'}`;
-    await createMessage(project.id, {
-      role: 'assistant',
-      content: voiceMessage,
-      metadata: {
-        type: 'voiceover',
-        url: audioUrl,
-        voice: metadata?.voice,
-        duration: metadata?.duration
-      }
+    await createMessage(project.id, 'assistant', voiceMessage, {
+      type: 'voiceover',
+      url: audioUrl,
+      voice: metadata?.voice,
+      duration: metadata?.duration
     });
 
     console.log('✅ Voiceover saved to project:', project.id);
@@ -234,22 +202,14 @@ export async function savePPTToProject(
       'presentation'
     );
 
-    await createMessage(project.id, {
-      role: 'user',
-      content: prompt,
-      metadata: { type: 'ppt_request' }
-    });
+    await createMessage(project.id, 'user', prompt, { type: 'ppt_request' });
 
     const pptMessage = `I've generated your presentation!\n\n📊 **Presentation Ready**\n\n**Slides:** ${metadata?.slideCount || 0}\n**Theme:** ${metadata?.theme || 'Default'}`;
-    await createMessage(project.id, {
-      role: 'assistant',
-      content: pptMessage,
-      metadata: {
-        type: 'ppt',
-        data: pptData,
-        slideCount: metadata?.slideCount,
-        theme: metadata?.theme
-      }
+    await createMessage(project.id, 'assistant', pptMessage, {
+      type: 'ppt',
+      data: pptData,
+      slideCount: metadata?.slideCount,
+      theme: metadata?.theme
     });
 
     console.log('✅ PPT saved to project:', project.id);
@@ -282,22 +242,14 @@ export async function saveCodeToProject(
       'gpt-4'
     );
 
-    await createMessage(project.id, {
-      role: 'user',
-      content: prompt,
-      metadata: { type: 'code_request' }
-    });
+    await createMessage(project.id, 'user', prompt, { type: 'code_request' });
 
     const codeMessage = `I've generated your code!\n\n\`\`\`${metadata?.language || 'javascript'}\n${code}\n\`\`\`\n\n**Language:** ${metadata?.language || 'JavaScript'}\n**Framework:** ${metadata?.framework || 'None'}`;
-    await createMessage(project.id, {
-      role: 'assistant',
-      content: codeMessage,
-      metadata: {
-        type: 'code',
-        code,
-        language: metadata?.language,
-        framework: metadata?.framework
-      }
+    await createMessage(project.id, 'assistant', codeMessage, {
+      type: 'code',
+      code,
+      language: metadata?.language,
+      framework: metadata?.framework
     });
 
     console.log('✅ Code saved to project:', project.id);
