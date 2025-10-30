@@ -60,14 +60,20 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     setImageLoading(true);
 
     try {
-      const result = await generateNanoBananaImage(prompt, {
-        aspectRatio: '1:1',
-        numImages: 1,
-        outputFormat: 'jpeg'
-      });
+      const imageUrls = await generateNanoBananaImage(
+        {
+          prompt: prompt,
+          aspect_ratio: '1:1',
+          num_images: 1,
+          output_format: 'jpeg'
+        },
+        (status, progress) => {
+          console.log(`Image generation: ${status} - ${progress}%`);
+        }
+      );
 
       const image: GeneratedImage = {
-        url: result.url,
+        url: imageUrls[0],
         model: 'nano-banana'
       };
 

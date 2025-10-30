@@ -29,7 +29,9 @@ export const generateNanoBananaImage = async (
   onProgress?: (status: string, progress: number) => void
 ): Promise<string[]> => {
   try {
-    onProgress?.('Initializing Nano Banana generation...', 0);
+    if (onProgress && typeof onProgress === 'function') {
+      onProgress('Initializing Nano Banana generation...', 0);
+    }
 
     const result = await fal.subscribe<NanoBananaResponse>('fal-ai/nano-banana', {
       input: {
@@ -43,9 +45,13 @@ export const generateNanoBananaImage = async (
       onQueueUpdate: (update) => {
         if (update.status === 'IN_PROGRESS') {
           const logs = update.logs?.map((log: any) => log.message).join('\n') || '';
-          onProgress?.(`Generating image: ${logs}`, 50);
+          if (onProgress && typeof onProgress === 'function') {
+            onProgress(`Generating image: ${logs}`, 50);
+          }
         } else if (update.status === 'COMPLETED') {
-          onProgress?.('Image generation complete!', 100);
+          if (onProgress && typeof onProgress === 'function') {
+            onProgress('Image generation complete!', 100);
+          }
         }
       }
     });

@@ -315,10 +315,10 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   };
 
   const getProviderDescription = () => {
-    if (provider === 'sora') {
+    if (provider === 'sora' || provider === 'sora2-new') {
       return 'Powered by OpenAI Sora 2 via Fal.ai (Premium)';
     }
-    return 'Powered by Google Veo 3 Fast via Fal.ai';
+    return 'Powered by Google Veo 3 Fast via Fal.ai (Premium)';
   };
 
   return (
@@ -366,29 +366,34 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </label>
                   <div className="grid grid-cols-2 gap-2 md:gap-3">
                     <button
-                      onClick={() => setProvider('veo3')}
-                      disabled={isGenerating || !veo3Available}
-                      className={`px-4 py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                        provider === 'veo3'
+                      onClick={() => setProvider('veo3-new')}
+                      disabled={isGenerating || (!veo3NewAvailable && userTier === 'free')}
+                      className={`px-4 py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed relative ${
+                        provider === 'veo3-new'
                           ? 'bg-orange-500/20 border-2 border-orange-400/60 text-orange-300'
                           : 'bg-slate-700/50 border-2 border-white/20 text-white/60 hover:border-orange-400/30'
                       }`}
                     >
                       <div className="text-sm font-bold">Veo 3 Fast</div>
-                      <div className="text-xs opacity-75">Google • Free</div>
+                      <div className="text-xs opacity-75">Google • Premium</div>
+                      {!canAccessVideoGen && (
+                        <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">
+                          PAID
+                        </div>
+                      )}
                     </button>
                     <button
-                      onClick={() => setProvider('sora')}
-                      disabled={isGenerating || !soraAvailable}
+                      onClick={() => setProvider('sora2-new')}
+                      disabled={isGenerating || (!sora2NewAvailable && userTier === 'free')}
                       className={`px-4 py-3 rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed relative ${
-                        provider === 'sora'
+                        provider === 'sora2-new'
                           ? 'bg-orange-500/20 border-2 border-orange-400/60 text-orange-300'
                           : 'bg-slate-700/50 border-2 border-white/20 text-white/60 hover:border-orange-400/30'
                       }`}
                     >
                       <div className="text-sm font-bold">Sora 2</div>
                       <div className="text-xs opacity-75">OpenAI • Premium</div>
-                      {userTier === 'free' && (
+                      {!canAccessVideoGen && (
                         <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs px-2 py-0.5 rounded-full font-bold">
                           PAID
                         </div>
@@ -397,7 +402,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </div>
                 </div>
 
-                {userTier === 'loading' && provider === 'sora' && (
+                {userTier === 'loading' && (
                   <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
                     <Loader className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5 animate-spin" />
                     <div className="text-sm text-blue-200">
@@ -407,12 +412,12 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </div>
                 )}
 
-                {userTier === 'free' && provider === 'sora' && (
+                {!canAccessVideoGen && userTier !== 'loading' && (
                   <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
                     <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-yellow-200">
                       <p className="font-semibold mb-1">Premium Feature</p>
-                      <p className="text-yellow-300/80">Sora 2 is only available for users who have purchased tokens. Please purchase a token pack to access this premium feature.</p>
+                      <p className="text-yellow-300/80">Video generation is only available for users who have purchased tokens. Please purchase a token pack to access this premium feature.</p>
                     </div>
                   </div>
                 )}
