@@ -179,7 +179,7 @@ export async function submitVeo3Request(
  * Check the status of a queued video generation request
  */
 export async function checkVeo3Status(requestId: string): Promise<any> {
-  if (!isFalConfigured()) {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
     throw new Error('Fal.ai API key is not configured');
   }
 
@@ -200,7 +200,7 @@ export async function checkVeo3Status(requestId: string): Promise<any> {
  * Get the result of a completed video generation
  */
 export async function getVeo3Result(requestId: string): Promise<Veo3Video> {
-  if (!isFalConfigured()) {
+  if (!FAL_KEY || FAL_KEY.includes('your-')) {
     throw new Error('Fal.ai API key is not configured');
   }
 

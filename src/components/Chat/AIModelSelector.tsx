@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserTierInfo, isModelPaid, canAccessModel, type TierInfo } from '../../lib/unifiedTierService';
+import { getUserTier, isModelPaid, type UserTier } from '../../lib/tierAccessService';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -79,7 +79,33 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [userTier, setUserTier] = useState<UserTier>('free');
+  const [isPaidUser, setIsPaidUser] = useState(false);
+  const [isLoadingTier, setIsLoadingTier] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Check tier on mount and when dropdown opens
+  useEffect(() => {
+    if (user?.uid) {
+      setIsLoadingTier(true);
+      getUserTier(user.uid).then(tierInfo => {
+        console.log('🔍 AIModelSelector - User tier info:', tierInfo);
+        const isPaid = tierInfo.tier === 'paid';
+        setUserTier(tierInfo.tier);
+        setIsPaidUser(isPaid);
+        console.log('🔍 AIModelSelector - isPaidUser set to:', isPaid);
+        console.log('🔍 AIModelSelector - Will unlock models:', isPaid);
+        setIsLoadingTier(false);
+      }).catch(err => {
+        console.error('Failed to get user tier:', err);
+        setIsLoadingTier(false);
+      });
+    } else {
+      setUserTier('free');
+      setIsPaidUser(false);
+      setIsLoadingTier(false);
+    }
+  }, [user, refreshKey]);
 
   // Refresh tier when dropdown opens
   useEffect(() => {
@@ -88,27 +114,11 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
     }
   }, [isOpen, user]);
 
-  // Handle click outside to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isOpen]);
-
   const availableModels = AI_MODELS.filter(m => m.category === category);
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
 
   return (
-    <div ref={dropdownRef} className="relative group w-full max-w-full">
+    <div className="relative group w-full max-w-full">
       {/* Gradient Border Effect */}
       <div className={`relative rounded-xl p-[2px] shadow-lg ${
         theme === 'light'
@@ -166,8 +176,11 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                // No locking - all models are available for selection
-                const isLocked = false;
+                const isPaidModel = !isModelFree(model.id);
+                // Show as unlocked if: loading, user is paid, or model is free
+                const isLocked = isPaidModel && !isPaidUser && !isLoadingTier;
+
+                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, isPaidUser=${isPaidUser}, isLoading=${isLoadingTier}, isLocked=${isLocked}`);
 
                 return (
                   <button
@@ -183,7 +196,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                     style={{ animationDelay: `${index * 30}ms` }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
                       isLocked
-                        ? 'opacity-40 cursor-not-allowed'
+                        ? 'opacity-50 cursor-not-allowed'
                         : selectedModel === model.id
                           ? theme === 'light'
                             ? 'bg-blue-50 border border-blue-200'
@@ -205,7 +218,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           <span className="text-lg">{modelCost.icon}</span>
                         )}
                         {model.name}
-                        {isLocked && <Lock className="w-3 h-3 text-yellow-500 ml-1" />}
+                        {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
                       </div>
                       <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
                         theme === 'light'
@@ -213,6 +226,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
                         <span>{model.description}</span>
+                        {isLocked && <span>• Purchase tokens to unlock</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
