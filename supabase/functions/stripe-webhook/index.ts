@@ -142,15 +142,30 @@ async function handleEvent(event: Stripe.Event) {
             } else {
               console.info(`Successfully added ${messagesCount} messages to user ${metadata.user_id}`);
 
-              // Upgrade user to paid tier
-              const { error: tierError } = await supabase.rpc('upgrade_user_to_paid_tier', {
-                user_id: metadata.user_id,
-              });
+              // Upgrade user to paid tier via edge function
+              try {
+                const tierResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/manage-user-tier`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+                  },
+                  body: JSON.stringify({
+                    action: 'upgrade',
+                    userId: metadata.user_id,
+                    tokensPurchased: messagesCount,
+                    stripeCustomerId: customerId
+                  })
+                });
 
-              if (tierError) {
-                console.error('Error upgrading user to paid tier:', tierError);
-              } else {
-                console.info(`Successfully upgraded user ${metadata.user_id} to paid tier`);
+                if (!tierResponse.ok) {
+                  console.error('Error upgrading user to paid tier:', await tierResponse.text());
+                } else {
+                  const tierResult = await tierResponse.json();
+                  console.info(`Successfully upgraded user ${metadata.user_id} to paid tier:`, tierResult);
+                }
+              } catch (tierError) {
+                console.error('Exception upgrading user to paid tier:', tierError);
               }
             }
           }
