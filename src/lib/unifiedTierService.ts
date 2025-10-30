@@ -85,7 +85,7 @@ export async function getUserTierInfo(userId: string): Promise<TierInfo> {
       monthlyTokenLimit: 150000,
       messagesRemaining: 0,
       canAccessPaidModels: isPaidTier,
-      canAccessVideoGeneration: isPaidTier
+      canAccessVideoGeneration: totalTokens > 0
     };
 
     return tierInfo;
@@ -110,7 +110,7 @@ function getDefaultFreeTier(): TierInfo {
     monthlyTokenLimit: 150000,
     messagesRemaining: 0,
     canAccessPaidModels: false,
-    canAccessVideoGeneration: false
+    canAccessVideoGeneration: true
   };
 }
 
@@ -167,6 +167,17 @@ export async function checkPaidFeatureAccess(userId: string, featureName: string
 }> {
   const tierInfo = await getUserTierInfo(userId);
 
+  // Video/image/music generation are available to everyone with tokens
+  if (featureName.includes('video') || featureName.includes('image') || featureName.includes('music')) {
+    const hasAccess = tierInfo.totalTokens > 0;
+    return {
+      hasAccess,
+      tierInfo,
+      reason: hasAccess ? 'Access granted' : 'No tokens available'
+    };
+  }
+
+  // Other premium features require paid tier
   if (tierInfo.isFreeTier) {
     return {
       hasAccess: false,

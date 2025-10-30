@@ -181,8 +181,9 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       return;
     }
 
-    if (!tierInfo || !tierInfo.canAccessPaidModels) {
-      showToast('error', 'Paid Tokens Required', `Video generation requires paid tokens. You currently have ${tierInfo?.paidTokens || 0} paid tokens. Please purchase tokens to use this feature.`);
+    // Video generation is available to everyone with tokens
+    if (!tierInfo || tierInfo.totalTokens === 0) {
+      showToast('error', 'No Tokens Available', 'You need tokens to generate videos. Please purchase a token pack to continue.');
       return;
     }
 

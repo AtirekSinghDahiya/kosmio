@@ -9,8 +9,8 @@ import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getOpenRouterResponse, getOpenRouterResponseWithUsage } from '../../lib/openRouterService';
-import { checkModelAccess as legacyCheckModelAccess, deductTokensWithTier, isModelFree } from '../../lib/tierService';
-import { checkModelAccess as unifiedCheckModelAccess, isModelPaid } from '../../lib/unifiedTierService';
+import { deductTokensWithTier, isModelFree } from '../../lib/tierService';
+import { checkModelAccess, isModelPaid } from '../../lib/unifiedTierService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
@@ -369,13 +369,13 @@ export const MainChat: React.FC = () => {
       console.log('🔐 Access check:', accessCheck);
 
       if (!accessCheck.canAccess) {
-        const isFree = isModelFree(selectedModel);
-        const errorMsg = isFree
-          ? `⚠️ **Access Denied**\n\nYou don't have enough tokens to use this model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.paidBalance}\n- Free Tokens: ${accessCheck.freeBalance}\n\nPlease purchase more tokens to continue.`
-          : `⚠️ **Paid Model Access Required**\n\n**${selectedModel}** is a paid model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.paidBalance} (need > 0 for paid models)\n- Free Tokens: ${accessCheck.freeBalance}\n\n**To use paid models:**\n1. Purchase token packs in Settings\n2. Once you have paid tokens, you can use all AI models\n3. When paid tokens run out, you'll auto-switch back to free models\n\n**Free models available:** Grok 4 Fast, GPT-5 Nano, DeepSeek Free, and more!`;
+        const isPremium = isModelPaid(selectedModel);
+        const errorMsg = isPremium
+          ? `⚠️ **Paid Model Access Required**\n\n**${selectedModel}** is a premium model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.tierInfo.paidTokens} (need > 0 for premium models)\n- Free Tokens: ${accessCheck.tierInfo.freeTokens}\n\n**To use premium models:**\n1. Purchase token packs in Settings\n2. Once you have paid tokens, you can use all AI models\n3. When paid tokens run out, you'll auto-switch back to free models\n\n**Free models available:** Grok 4 Fast, DeepSeek Free, Nemotron, and more!`
+          : `⚠️ **Access Denied**\n\nYou don't have enough tokens to use this model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.tierInfo.paidTokens}\n- Free Tokens: ${accessCheck.tierInfo.freeTokens}\n\nPlease purchase more tokens to continue.`;
 
         await addMessage(projectId, 'assistant', errorMsg);
-        showToast('warning', 'Access Denied', 'This model requires purchased tokens');
+        showToast('warning', 'Access Denied', accessCheck.reason);
         return;
       }
 
