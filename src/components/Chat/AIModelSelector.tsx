@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Check, ChevronDown, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { checkPaidAccess } from '../../lib/paidAccessService';
+import { getUserTier, isModelPaid, type UserTier } from '../../lib/tierAccessService';
+import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
   id: string;
@@ -13,7 +14,7 @@ export interface AIModel {
 }
 
 export const AI_MODELS: AIModel[] = [
-  // Chat Models
+  // Free Chat Models
   { id: 'grok-4-fast', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
   { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
   { id: 'nemotron-nano-free', name: 'Nemotron Nano 9B V2', provider: 'NVIDIA', description: 'Fast nano model', category: 'chat' },
@@ -27,6 +28,8 @@ export const AI_MODELS: AIModel[] = [
   { id: 'granite-4.0', name: 'Granite 4.0 Micro', provider: 'IBM', description: 'Micro model', category: 'chat' },
   { id: 'ernie-4.5', name: 'ERNIE 4.5 21B Thinking', provider: 'Baidu', description: 'Thinking model', category: 'chat' },
   { id: 'perplexity-sonar', name: 'Perplexity Sonar', provider: 'Perplexity', description: 'Web search enabled AI', category: 'chat' },
+
+  // Paid Chat Models
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
   { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Most advanced DeepSeek', category: 'chat' },
   { id: 'nemotron-super', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning', category: 'chat' },
@@ -42,99 +45,122 @@ export const AI_MODELS: AIModel[] = [
   { id: 'glm-4.6', name: 'GLM 4.6', provider: 'Z.AI', description: 'Advanced model', category: 'chat' },
   { id: 'claude-opus-4', name: 'Claude Opus 4', provider: 'Anthropic', description: 'Powerful Opus model', category: 'chat' },
   { id: 'claude-opus-4.1', name: 'Claude Opus 4.1', provider: 'Anthropic', description: 'Ultimate AI model', category: 'chat' },
+
+  // Code Models
+  { id: 'gpt-5-codex', name: 'GPT-5 Codex', provider: 'OpenAI', description: 'Best for coding (Paid)', category: 'code' },
+  { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding (Free)', category: 'code' },
+  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Excellent for code (Paid)', category: 'code' },
+  { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code (Paid)', category: 'code' },
+  { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Code model (Free)', category: 'code' },
+
+  // Image Models
+  { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', description: 'High quality images', category: 'image' },
+  { id: 'stable-diffusion-xl', name: 'Stable Diffusion XL', provider: 'Stability AI', description: 'Open source image gen', category: 'image' },
+  { id: 'firefly', name: 'Firefly', provider: 'Adobe', description: 'Commercial safe images', category: 'image' },
+
+  // Video Models
+  { id: 'sora', name: 'Sora', provider: 'OpenAI', description: 'Text to video', category: 'video' },
+
+  // Audio Models
+  { id: 'eleven-labs', name: 'ElevenLabs', provider: 'ElevenLabs', description: 'Natural voice synthesis', category: 'audio' },
 ];
 
 interface AIModelSelectorProps {
-  selectedModel: AIModel;
-  onModelChange: (model: AIModel) => void;
-  availableModels: AIModel[];
+  selectedModel: string;
+  onModelChange: (modelId: string) => void;
+  category?: 'chat' | 'code' | 'image' | 'video' | 'audio';
 }
 
 export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   selectedModel,
   onModelChange,
-  availableModels,
+  category = 'chat'
 }) => {
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [hasAccess, setHasAccess] = useState(true); // Default to true for better UX
-  const [isLoading, setIsLoading] = useState(true);
+  const [userTier, setUserTier] = useState<UserTier>('free');
+  const [isPaidUser, setIsPaidUser] = useState(false);
+  const [isLoadingTier, setIsLoadingTier] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Simple access check - if user has ANY tokens, they get everything
+  // Check tier on mount and when dropdown opens
   useEffect(() => {
-    const checkAccess = async () => {
-      if (!user?.uid) {
-        setHasAccess(false);
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      const accessStatus = await checkPaidAccess(user.uid);
-      console.log('🎯 ModelSelector - Access check:', {
-        userId: user.uid,
-        hasAccess: accessStatus.hasAccess,
-        totalTokens: accessStatus.totalTokens,
-        reason: accessStatus.reason
+    if (user?.uid) {
+      setIsLoadingTier(true);
+      getUserTier(user.uid).then(tierInfo => {
+        console.log('🔍 AIModelSelector - User tier info:', tierInfo);
+        const isPaid = tierInfo.tier === 'paid';
+        setUserTier(tierInfo.tier);
+        setIsPaidUser(isPaid);
+        console.log('🔍 AIModelSelector - isPaidUser set to:', isPaid);
+        console.log('🔍 AIModelSelector - Will unlock models:', isPaid);
+        setIsLoadingTier(false);
+      }).catch(err => {
+        console.error('Failed to get user tier:', err);
+        setIsLoadingTier(false);
       });
+    } else {
+      setUserTier('free');
+      setIsPaidUser(false);
+      setIsLoadingTier(false);
+    }
+  }, [user, refreshKey]);
 
-      setHasAccess(accessStatus.hasAccess);
-      setIsLoading(false);
-    };
+  // Refresh tier when dropdown opens
+  useEffect(() => {
+    if (isOpen && user?.uid) {
+      setRefreshKey(prev => prev + 1);
+    }
+  }, [isOpen, user]);
 
-    checkAccess();
-
-    // Refresh access every 5 seconds
-    const interval = setInterval(checkAccess, 5000);
-    return () => clearInterval(interval);
-  }, [user]);
-
-  const handleModelSelect = (model: AIModel) => {
-    console.log('🎯 Model selected:', model.id);
-    onModelChange(model);
-    setIsOpen(false);
-  };
+  const availableModels = AI_MODELS.filter(m => m.category === category);
+  const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all min-w-[280px] ${
-          theme === 'light'
-            ? 'bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-200'
-            : 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 hover:from-purple-900/30 hover:to-pink-900/30 border border-purple-500/30'
-        }`}
-      >
-        <Sparkles className={`w-4 h-4 ${theme === 'light' ? 'text-purple-600' : 'text-purple-400'}`} />
-        <div className="flex-1 text-left">
-          <div className={`text-sm font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-            {selectedModel.name}
-          </div>
-          <div className={`text-xs ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
-            {selectedModel.provider}
+    <div className="relative group w-full max-w-full">
+      {/* Gradient Border Effect */}
+      <div className={`relative rounded-xl p-[2px] shadow-lg ${
+        theme === 'light'
+          ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
+          : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600'
+      }`}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          className={`relative w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl transition-all duration-300 ${
+            theme === 'light'
+              ? 'bg-white/95 hover:bg-white text-gray-900 backdrop-blur-xl'
+              : 'bg-slate-900/95 hover:bg-slate-800/95 text-white backdrop-blur-xl'
+          }`}
+        >
+        {getModelCost(selected.id).logoUrl ? (
+          <img src={getModelCost(selected.id).logoUrl} alt={selected.provider} className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0" />
+        ) : (
+          <span className="text-lg sm:text-xl flex-shrink-0">{getModelCost(selected.id).icon}</span>
+        )}
+        <div className="flex-1 text-left min-w-0">
+          <div className={`text-xs sm:text-sm font-semibold truncate ${
+            theme === 'light' ? 'text-gray-900' : 'text-white/90'
+          }`}>{selected.name}</div>
+          <div className={`text-[10px] sm:text-xs mt-0.5 flex items-center gap-1 sm:gap-2 ${
+            theme === 'light' ? 'text-gray-500' : 'text-white/50'
+          }`}>
+            <span className="truncate">{selected.provider}</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              {formatTokenDisplay(getModelCost(selected.id).tokensPerMessage)}
+            </span>
           </div>
         </div>
-        {isLoading && (
-          <div className={`text-xs px-2 py-0.5 rounded-full ${
-            theme === 'light' ? 'bg-blue-100 text-blue-700' : 'bg-blue-900/40 text-blue-300'
-          }`}>
-            Checking...
-          </div>
-        )}
-        {!isLoading && hasAccess && (
-          <div className={`text-xs px-2 py-0.5 rounded-full ${
-            theme === 'light' ? 'bg-green-100 text-green-700' : 'bg-green-900/40 text-green-300'
-          }`}>
-            Full Access
-          </div>
-        )}
-        <ChevronDown
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''} ${
-            theme === 'light' ? 'text-gray-600' : 'text-gray-400'
-          }`}
-        />
+        <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 flex-shrink-0 ${
+          theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
+        } ${isOpen ? 'rotate-180' : ''}`} />
       </button>
+      </div>
 
       {isOpen && (
         <>
@@ -142,63 +168,81 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div
-            className={`absolute top-full left-0 mt-2 w-[400px] rounded-xl shadow-2xl z-50 max-h-[500px] overflow-y-auto ${
-              theme === 'light'
-                ? 'bg-white border border-gray-200'
-                : 'bg-slate-900 border border-white/20'
-            }`}
-          >
-            <div className={`sticky top-0 p-3 border-b ${
-              theme === 'light'
-                ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-gray-200'
-                : 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-white/10'
-            }`}>
-              <div className={`text-xs font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                {isLoading ? (
-                  '🔄 Checking access...'
-                ) : hasAccess ? (
-                  '✅ All models unlocked'
-                ) : (
-                  '⚠️ Purchase tokens to unlock all models'
-                )}
-              </div>
-            </div>
-
-            <div className="p-2">
+          <div className={`absolute bottom-full left-0 right-0 mb-3 w-full backdrop-blur-3xl border rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in ${
+            theme === 'light'
+              ? 'bg-white/95 border-gray-200'
+              : 'glass-panel border-white/20'
+          }`}>
+            <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
-                const isSelected = selectedModel.id === model.id;
+                const modelCost = getModelCost(model.id);
+                const isPaidModel = !isModelFree(model.id);
+                // Show as unlocked if: loading, user is paid, or model is free
+                const isLocked = isPaidModel && !isPaidUser && !isLoadingTier;
+
+                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, isPaidUser=${isPaidUser}, isLoading=${isLoadingTier}, isLocked=${isLocked}`);
 
                 return (
                   <button
                     key={model.id}
-                    onClick={() => handleModelSelect(model)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all text-left ${
-                      isSelected
-                        ? theme === 'light'
-                          ? 'bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200'
-                          : 'bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-purple-500/40'
-                        : theme === 'light'
-                        ? 'hover:bg-gray-50 border border-transparent'
-                        : 'hover:bg-white/5 border border-transparent'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isLocked) {
+                        onModelChange(model.id);
+                        setIsOpen(false);
+                      }
+                    }}
+                    disabled={isLocked}
+                    style={{ animationDelay: `${index * 30}ms` }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
+                      isLocked
+                        ? 'opacity-50 cursor-not-allowed'
+                        : selectedModel === model.id
+                          ? theme === 'light'
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
+                          : theme === 'light'
+                            ? 'hover:bg-gray-100 border border-transparent'
+                            : 'hover:bg-white/10 border border-transparent hover:border-white/10'
                     }`}
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-sm font-medium mb-0.5 ${
-                        theme === 'light' ? 'text-gray-900' : 'text-white'
+                    <div className="flex-1 text-left">
+                      <div className={`text-sm font-semibold transition-colors flex items-center gap-2 ${
+                        selectedModel === model.id
+                          ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                          : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
                       }`}>
+                        {modelCost.logoUrl ? (
+                          <img src={modelCost.logoUrl} alt={model.provider} className="w-5 h-5 rounded" />
+                        ) : (
+                          <span className="text-lg">{modelCost.icon}</span>
+                        )}
                         {model.name}
+                        {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
                       </div>
-                      <div className={`text-xs ${
-                        theme === 'light' ? 'text-gray-600' : 'text-gray-400'
+                      <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
+                        theme === 'light'
+                          ? 'text-gray-600 group-hover/item:text-gray-800'
+                          : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
-                        {model.provider} • {model.description}
+                        <span>{model.description}</span>
+                        {isLocked && <span>• Purchase tokens to unlock</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                          getTierBadgeColor(modelCost.tier)
+                        }`}>
+                          {modelCost.tier === 'free' ? 'FREE' : modelCost.tier.toUpperCase()}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-white/60">
+                          <Zap className="w-3 h-3" />
+                          {formatTokenDisplay(modelCost.tokensPerMessage)}/msg
+                        </span>
                       </div>
                     </div>
-
-                    {isSelected && (
-                      <Check className={`w-4 h-4 flex-shrink-0 ${
-                        theme === 'light' ? 'text-purple-600' : 'text-purple-400'
+                    {selectedModel === model.id && !isLocked && (
+                      <Check className={`w-4 h-4 animate-fade-in ${
+                        theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
                       }`} />
                     )}
                   </button>

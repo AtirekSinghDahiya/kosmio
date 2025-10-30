@@ -58,48 +58,32 @@ export async function generateFalSoraVideo(
   try {
     onProgress?.('Submitting video generation request...', 5);
 
-    // Create timeout promise
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Video generation timed out after 5 minutes')), 300000);
-    });
+    const result = await fal.subscribe('fal-ai/sora-2/text-to-video', {
+      input: {
+        prompt: request.prompt,
+        resolution: request.resolution || '720p',
+        aspect_ratio: request.aspect_ratio || '16:9',
+        duration: request.duration || 4,
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        // Handle queue status updates
+        if (update.status === 'IN_QUEUE') {
+          log('info', 'Request queued, waiting for processing...');
+          onProgress?.('Waiting in queue...', 10);
+        } else if (update.status === 'IN_PROGRESS') {
+          log('info', 'Video generation in progress...');
+          onProgress?.('Generating video...', 50);
 
-    // Race between generation and timeout
-    const result = await Promise.race([
-      fal.subscribe('fal-ai/sora-2/text-to-video', {
-        input: {
-          prompt: request.prompt,
-          resolution: request.resolution || '720p',
-          aspect_ratio: request.aspect_ratio || '16:9',
-          duration: request.duration || 4,
-        },
-        logs: true,
-        onQueueUpdate: (update) => {
-          // Handle queue status updates
-          console.log('🎬 Sora Queue Status:', update.status);
-
-          if (update.status === 'IN_QUEUE') {
-            log('info', 'Request queued, waiting for processing...');
-            onProgress?.('Waiting in queue...', 10);
-          } else if (update.status === 'IN_PROGRESS') {
-            log('info', 'Video generation in progress...');
-            onProgress?.('Generating video...', 50);
-
-            // Log any progress messages
-            if (update.logs && update.logs.length > 0) {
-              update.logs.forEach((logEntry) => {
-                console.log(`[Fal.ai] ${logEntry.message}`);
-              });
-            }
-          } else if (update.status === 'COMPLETED') {
-            log('success', 'Generation completed!');
-            onProgress?.('Finalizing...', 90);
-          } else {
-            console.log('🎬 Unknown status:', update.status);
+          // Log any progress messages
+          if (update.logs && update.logs.length > 0) {
+            update.logs.forEach((logEntry) => {
+              console.log(`[Fal.ai] ${logEntry.message}`);
+            });
           }
-        },
-      }),
-      timeoutPromise
-    ]) as any;
+        }
+      },
+    });
 
     if (!result || !result.data) {
       throw new Error('Invalid response from Fal.ai: no data returned');
