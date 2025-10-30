@@ -45,9 +45,14 @@ export async function generateNanoBananaImage(
     outputFormat?: 'jpeg' | 'png' | 'webp';
   }
 ): Promise<{ url: string; description?: string }> {
+  if (!FAL_KEY) {
+    throw new Error('FAL_KEY is not configured. Please check your environment variables.');
+  }
+
   try {
     console.log('🍌 Generating image with Nano Banana...');
     console.log('🍌 Prompt:', prompt);
+    console.log('🍌 FAL_KEY configured:', !!FAL_KEY);
 
     const input: NanoBananaInput = {
       prompt,
@@ -57,28 +62,40 @@ export async function generateNanoBananaImage(
       sync_mode: false
     };
 
+    console.log('🍌 Input:', JSON.stringify(input, null, 2));
+
     const result = await fal.subscribe('fal-ai/nano-banana', {
       input,
       logs: true,
       onQueueUpdate: (update) => {
+        console.log('🍌 Queue status:', update.status);
         if (update.status === 'IN_PROGRESS') {
           update.logs.map((log) => log.message).forEach((msg) => {
-            console.log('🍌', msg);
+            console.log('🍌 Log:', msg);
           });
         }
       },
     });
 
-    console.log('✅ Nano Banana result:', result.data);
+    console.log('✅ Nano Banana raw result:', JSON.stringify(result, null, 2));
 
-    if (!result.data || !result.data.images || result.data.images.length === 0) {
-      throw new Error('No images generated');
+    if (!result) {
+      throw new Error('No result returned from fal.ai');
+    }
+
+    if (!result.data) {
+      throw new Error('No data in result from fal.ai');
+    }
+
+    if (!result.data.images || result.data.images.length === 0) {
+      throw new Error('No images in result data');
     }
 
     const imageUrl = result.data.images[0].url;
     const description = result.data.description;
 
-    console.log('✅ Image generated successfully:', imageUrl);
+    console.log('✅ Image URL:', imageUrl);
+    console.log('✅ Description:', description);
 
     return {
       url: imageUrl,
@@ -86,7 +103,15 @@ export async function generateNanoBananaImage(
     };
   } catch (error: any) {
     console.error('❌ Nano Banana generation error:', error);
-    throw new Error(`Image generation failed: ${error.message || 'Unknown error'}`);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      body: error.body,
+      status: error.status
+    });
+
+    const errorMessage = error.body?.message || error.message || 'Unknown error occurred';
+    throw new Error(`Image generation failed: ${errorMessage}`);
   }
 }
 

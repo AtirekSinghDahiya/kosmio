@@ -82,7 +82,9 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const [userTier, setUserTier] = useState<UserTier>('free');
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [isLoadingTier, setIsLoadingTier] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
+  // Check tier on mount and when dropdown opens
   useEffect(() => {
     if (user?.uid) {
       setIsLoadingTier(true);
@@ -92,6 +94,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
         setUserTier(tierInfo.tier);
         setIsPaidUser(isPaid);
         console.log('🔍 AIModelSelector - isPaidUser set to:', isPaid);
+        console.log('🔍 AIModelSelector - Will unlock models:', isPaid);
         setIsLoadingTier(false);
       }).catch(err => {
         console.error('Failed to get user tier:', err);
@@ -102,7 +105,14 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
       setIsPaidUser(false);
       setIsLoadingTier(false);
     }
-  }, [user]);
+  }, [user, refreshKey]);
+
+  // Refresh tier when dropdown opens
+  useEffect(() => {
+    if (isOpen && user?.uid) {
+      setRefreshKey(prev => prev + 1);
+    }
+  }, [isOpen, user]);
 
   const availableModels = AI_MODELS.filter(m => m.category === category);
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
@@ -167,8 +177,10 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
                 const isPaidModel = !isModelFree(model.id);
-                // Don't show as locked if still loading tier info
+                // Show as unlocked if: loading, user is paid, or model is free
                 const isLocked = isPaidModel && !isPaidUser && !isLoadingTier;
+
+                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, isPaidUser=${isPaidUser}, isLoading=${isLoadingTier}, isLocked=${isLocked}`);
 
                 return (
                   <button
