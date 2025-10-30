@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserTier, isModelPaid, type UserTier } from '../../lib/tierAccessService';
+import { getUserTierInfo, isModelPaid, canAccessModel, type TierInfo } from '../../lib/unifiedTierService';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -79,8 +79,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [userTier, setUserTier] = useState<UserTier>('free');
-  const [isPaidUser, setIsPaidUser] = useState(false);
+  const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
   const [isLoadingTier, setIsLoadingTier] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -89,21 +88,17 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   useEffect(() => {
     if (user?.uid) {
       setIsLoadingTier(true);
-      getUserTier(user.uid).then(tierInfo => {
-        console.log('🔍 AIModelSelector - User tier info:', tierInfo);
-        const isPaid = tierInfo.tier === 'paid';
-        setUserTier(tierInfo.tier);
-        setIsPaidUser(isPaid);
-        console.log('🔍 AIModelSelector - isPaidUser set to:', isPaid);
-        console.log('🔍 AIModelSelector - Will unlock models:', isPaid);
+      getUserTierInfo(user.uid).then(info => {
+        console.log('🔍 AIModelSelector - Tier info:', info);
+        setTierInfo(info);
         setIsLoadingTier(false);
       }).catch(err => {
         console.error('Failed to get user tier:', err);
         setIsLoadingTier(false);
+        setTierInfo(null);
       });
     } else {
-      setUserTier('free');
-      setIsPaidUser(false);
+      setTierInfo(null);
       setIsLoadingTier(false);
     }
   }, [user, refreshKey]);
@@ -193,11 +188,10 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                const isPaidModel = !isModelFree(model.id);
-                // Show as unlocked if: loading, user is paid, or model is free
-                const isLocked = isPaidModel && !isPaidUser && !isLoadingTier;
+                const isPaidModel = isModelPaid(model.id);
+                const isLocked = tierInfo ? !canAccessModel(tierInfo, model.id) : isPaidModel;
 
-                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, isPaidUser=${isPaidUser}, isLoading=${isLoadingTier}, isLocked=${isLocked}`);
+                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, tierInfo=${JSON.stringify(tierInfo)}, isLocked=${isLocked}`);
 
                 return (
                   <button
@@ -235,7 +229,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           <span className="text-lg">{modelCost.icon}</span>
                         )}
                         {model.name}
-                        {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
+                        {isLocked && <Lock className="w-3 h-3 text-yellow-500 ml-1" />}
                       </div>
                       <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
                         theme === 'light'
@@ -243,7 +237,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                           : 'text-white/50 group-hover/item:text-white/70'
                       }`}>
                         <span>{model.description}</span>
-                        {isLocked && <span>• Purchase tokens to unlock</span>}
+                        {isLocked && isPaidModel && <span>• Requires paid tokens</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
