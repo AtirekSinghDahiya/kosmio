@@ -1,20 +1,12 @@
-/**
- * Nano Banana Image Generation Service
- * Uses fal.ai nano-banana model for image generation
- */
-
 import { fal } from '@fal-ai/client';
 
-// Configure fal client
-const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+const FAL_API_KEY = import.meta.env.VITE_NANO_BANANA_API_KEY || '288cd86d-c5ff-40dc-a54e-3a0800cafc43:44049e7a693bb817738342bfd37b26e0';
 
-if (FAL_KEY) {
-  fal.config({
-    credentials: FAL_KEY
-  });
-}
+fal.config({
+  credentials: FAL_API_KEY
+});
 
-export interface NanoBananaInput {
+export interface NanoBananaRequest {
   prompt: string;
   num_images?: number;
   output_format?: 'jpeg' | 'png' | 'webp';
@@ -22,102 +14,53 @@ export interface NanoBananaInput {
   sync_mode?: boolean;
 }
 
-export interface NanoBananaImage {
-  url: string;
-  content_type?: string;
-  file_name?: string;
-  file_size?: number;
-}
-
-export interface NanoBananaOutput {
-  images: NanoBananaImage[];
+export interface NanoBananaResponse {
+  images: Array<{
+    url: string;
+    content_type?: string;
+    file_name?: string;
+    file_size?: number;
+  }>;
   description?: string;
 }
 
-/**
- * Generate an image using Nano Banana
- */
-export async function generateNanoBananaImage(
-  prompt: string,
-  options?: {
-    aspectRatio?: string;
-    numImages?: number;
-    outputFormat?: 'jpeg' | 'png' | 'webp';
-  }
-): Promise<{ url: string; description?: string }> {
-  if (!FAL_KEY) {
-    throw new Error('FAL_KEY is not configured. Please check your environment variables.');
-  }
-
+export const generateNanoBananaImage = async (
+  request: NanoBananaRequest,
+  onProgress?: (status: string, progress: number) => void
+): Promise<string[]> => {
   try {
-    console.log('🍌 Generating image with Nano Banana...');
-    console.log('🍌 Prompt:', prompt);
-    console.log('🍌 FAL_KEY configured:', !!FAL_KEY);
+    onProgress?.('Initializing Nano Banana generation...', 0);
 
-    const input: NanoBananaInput = {
-      prompt,
-      num_images: options?.numImages || 1,
-      output_format: options?.outputFormat || 'jpeg',
-      aspect_ratio: (options?.aspectRatio as any) || '1:1',
-      sync_mode: false
-    };
-
-    console.log('🍌 Input:', JSON.stringify(input, null, 2));
-
-    const result = await fal.subscribe('fal-ai/nano-banana', {
-      input,
+    const result = await fal.subscribe<NanoBananaResponse>('fal-ai/nano-banana', {
+      input: {
+        prompt: request.prompt,
+        num_images: request.num_images || 1,
+        output_format: request.output_format || 'jpeg',
+        aspect_ratio: request.aspect_ratio || '1:1',
+        sync_mode: request.sync_mode
+      },
       logs: true,
       onQueueUpdate: (update) => {
-        console.log('🍌 Queue status:', update.status);
         if (update.status === 'IN_PROGRESS') {
-          update.logs.map((log) => log.message).forEach((msg) => {
-            console.log('🍌 Log:', msg);
-          });
+          const logs = update.logs?.map((log: any) => log.message).join('\n') || '';
+          onProgress?.(`Generating image: ${logs}`, 50);
+        } else if (update.status === 'COMPLETED') {
+          onProgress?.('Image generation complete!', 100);
         }
-      },
+      }
     });
 
-    console.log('✅ Nano Banana raw result:', JSON.stringify(result, null, 2));
-
-    if (!result) {
-      throw new Error('No result returned from fal.ai');
+    if (!result.data?.images || result.data.images.length === 0) {
+      throw new Error('No images in response');
     }
 
-    if (!result.data) {
-      throw new Error('No data in result from fal.ai');
-    }
-
-    if (!result.data.images || result.data.images.length === 0) {
-      throw new Error('No images in result data');
-    }
-
-    const imageUrl = result.data.images[0].url;
-    const description = result.data.description;
-
-    console.log('✅ Image URL:', imageUrl);
-    console.log('✅ Description:', description);
-
-    return {
-      url: imageUrl,
-      description
-    };
+    return result.data.images.map(img => img.url);
   } catch (error: any) {
-    console.error('❌ Nano Banana generation error:', error);
-    console.error('❌ Error details:', {
-      message: error.message,
-      stack: error.stack,
-      body: error.body,
-      status: error.status
-    });
-
-    const errorMessage = error.body?.message || error.message || 'Unknown error occurred';
-    throw new Error(`Image generation failed: ${errorMessage}`);
+    console.error('Nano Banana generation error:', error);
+    throw new Error(`Nano Banana Error: ${error.message || 'Failed to generate image'}`);
   }
-}
+};
 
-/**
- * Check if Nano Banana is available
- */
-export function isNanoBananaAvailable(): boolean {
-  return !!FAL_KEY;
-}
+export const isNanoBananaAvailable = (): boolean => {
+  return !!FAL_API_KEY && FAL_API_KEY.length > 20;
+};

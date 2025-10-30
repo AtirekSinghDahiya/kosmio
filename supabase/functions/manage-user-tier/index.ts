@@ -85,102 +85,44 @@ async function upgradeUserToPaidTier(
 ) {
   console.log('🔄 Upgrading user to paid tier:', { userId, tokensPurchased });
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('id', userId)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase.rpc('upgrade_user_to_paid_tier', {
+      p_user_id: userId,
+      p_tokens_added: tokensPurchased
+    });
 
-  const email = profile?.email || '';
+    if (error) {
+      console.error('Error calling upgrade function:', error);
+      throw error;
+    }
 
-  const { data: existingPaid } = await supabase
-    .from('paid_tier_users')
-    .select('id, tokens_remaining')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (existingPaid) {
-    const newBalance = (existingPaid.tokens_remaining || 0) + tokensPurchased;
-
-    await supabase
-      .from('paid_tier_users')
-      .update({
-        tokens_remaining: newBalance,
-        total_tokens_purchased: (existingPaid.tokens_remaining || 0) + tokensPurchased,
-        last_payment_date: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
-
-    await supabase
+    const { data: profile } = await supabase
       .from('profiles')
-      .update({
-        is_paid: true,
-        paid_tokens_balance: newBalance,
-        in_grace_period: false,
-        grace_period_ends_at: null,
-        last_purchase_date: new Date().toISOString()
-      })
-      .eq('id', userId);
+      .select('paid_tokens_balance')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const newBalance = profile?.paid_tokens_balance || tokensPurchased;
 
     await queueNotification(
       userId,
       'upgraded_to_paid',
-      'Tokens Added!',
-      `${tokensPurchased.toLocaleString()} tokens added to your account. New balance: ${newBalance.toLocaleString()}`
+      'Welcome to Premium!',
+      `You now have full access to all premium AI models. Token balance: ${newBalance.toLocaleString()}`
     );
+
+    console.log('✅ User successfully upgraded to paid tier');
 
     return {
       success: true,
-      message: 'Tokens added to account',
+      message: 'Upgraded to paid tier',
       newTier: 'paid',
       tokensBalance: newBalance
     };
+  } catch (error: any) {
+    console.error('Failed to upgrade user:', error);
+    throw error;
   }
-
-  await supabase.from('paid_tier_users').insert({
-    id: userId,
-    email,
-    tier_level: 'premium',
-    tokens_remaining: tokensPurchased,
-    total_tokens_purchased: tokensPurchased,
-    stripe_customer_id: stripeCustomerId,
-    last_payment_date: new Date().toISOString(),
-    upgraded_date: new Date().toISOString()
-  });
-
-  await supabase.from('profiles').update({
-    is_paid: true,
-    paid_tokens_balance: tokensPurchased,
-    current_tier: 'premium',
-    in_grace_period: false,
-    grace_period_ends_at: null,
-    last_purchase_date: new Date().toISOString()
-  }).eq('id', userId);
-
-  await supabase.from('free_tier_users').delete().eq('id', userId);
-
-  await supabase.from('tier_transitions').insert({
-    user_id: userId,
-    from_tier: 'free',
-    to_tier: 'paid',
-    reason: 'payment_received',
-    tokens_at_transition: tokensPurchased
-  });
-
-  await queueNotification(
-    userId,
-    'upgraded_to_paid',
-    'Welcome to Premium!',
-    `You now have full access to all premium AI models. Token balance: ${tokensPurchased.toLocaleString()}`
-  );
-
-  return {
-    success: true,
-    message: 'Upgraded to paid tier',
-    newTier: 'paid',
-    tokensBalance: tokensPurchased
-  };
 }
 
 async function downgradeUserToFreeTier(
@@ -188,41 +130,17 @@ async function downgradeUserToFreeTier(
   reason: string,
   gracePeriodHours: number
 ) {
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email, in_grace_period')
-    .eq('id', userId)
-    .maybeSingle();
+  console.log('🔽 Downgrading user to free tier:', { userId, reason, gracePeriodHours });
 
-  if (!profile) {
-    throw new Error('User not found');
-  }
-
-  if (profile.in_grace_period) {
-    await supabase.from('free_tier_users').upsert({
-      id: userId,
-      email: profile.email,
-      daily_tokens_remaining: 25000,
-      monthly_tokens_remaining: 750000
+  try {
+    const { data, error } = await supabase.rpc('downgrade_user_to_free_tier', {
+      p_user_id: userId
     });
 
-    await supabase.from('profiles').update({
-      is_paid: false,
-      paid_tokens_balance: 0,
-      current_tier: 'free',
-      in_grace_period: false,
-      grace_period_ends_at: null
-    }).eq('id', userId);
-
-    await supabase.from('paid_tier_users').delete().eq('id', userId);
-
-    await supabase.from('tier_transitions').insert({
-      user_id: userId,
-      from_tier: 'paid',
-      to_tier: 'free',
-      reason,
-      tokens_at_transition: 0
-    });
+    if (error) {
+      console.error('Error calling downgrade function:', error);
+      throw error;
+    }
 
     await queueNotification(
       userId,
@@ -231,25 +149,13 @@ async function downgradeUserToFreeTier(
       'Your token balance has been depleted. Purchase tokens to regain premium access.'
     );
 
+    console.log('✅ User successfully downgraded to free tier');
+
     return { success: true, message: 'Downgraded to free tier', newTier: 'free' };
+  } catch (error: any) {
+    console.error('Failed to downgrade user:', error);
+    throw error;
   }
-
-  const gracePeriodEnd = new Date();
-  gracePeriodEnd.setHours(gracePeriodEnd.getHours() + gracePeriodHours);
-
-  await supabase.from('profiles').update({
-    in_grace_period: true,
-    grace_period_ends_at: gracePeriodEnd.toISOString()
-  }).eq('id', userId);
-
-  await queueNotification(
-    userId,
-    'grace_period_started',
-    'Token Balance Depleted',
-    `You have ${gracePeriodHours} hours to purchase tokens before downgrade.`
-  );
-
-  return { success: true, message: 'Grace period started', newTier: 'paid' };
 }
 
 async function checkExpiredGracePeriods() {

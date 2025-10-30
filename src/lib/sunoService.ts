@@ -38,7 +38,7 @@ interface SunoStatusResponse {
   };
 }
 
-const SUNO_API_BASE = 'https://api.kie.ai/api/v1';
+const SUNO_API_BASE = 'https://api.sunoapi.org/api/v1';
 
 /**
  * Generate music using Suno AI
