@@ -23,6 +23,7 @@ import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
+import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { Project } from './types';
 
 const MainApp: React.FC = () => {
@@ -145,17 +146,19 @@ const MainApp: React.FC = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <ToastProvider>
-          <NavigationProvider>
-            <MainApp />
-            <CookieConsent />
-            <BugReportButton />
-          </NavigationProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <NavigationProvider>
+              <MainApp />
+              <CookieConsent />
+              <BugReportButton />
+            </NavigationProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

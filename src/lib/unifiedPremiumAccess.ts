@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export interface UnifiedPremiumStatus {
   isPremium: boolean;
@@ -11,30 +12,52 @@ export interface UnifiedPremiumStatus {
   timestamp: number;
 }
 
-const CACHE_DURATION = 10000;
+const CACHE_DURATION = 5000;
 const cache = new Map<string, UnifiedPremiumStatus>();
+let authInitialized = false;
+let authInitPromise: Promise<void> | null = null;
 
-export async function getUnifiedPremiumStatus(): Promise<UnifiedPremiumStatus> {
-  const userId = auth.currentUser?.uid;
+function waitForAuth(): Promise<string | null> {
+  if (authInitialized && auth.currentUser) {
+    return Promise.resolve(auth.currentUser.uid);
+  }
 
-  console.log('🔐 [UNIFIED PREMIUM] Starting premium check');
-  console.log('   User ID:', userId);
-  console.log('   Timestamp:', new Date().toISOString());
+  if (!authInitPromise) {
+    authInitPromise = new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        authInitialized = true;
+        unsubscribe();
+        resolve();
+      });
+
+      setTimeout(() => {
+        authInitialized = true;
+        unsubscribe();
+        resolve();
+      }, 3000);
+    });
+  }
+
+  return authInitPromise.then(() => auth.currentUser?.uid || null);
+}
+
+export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<UnifiedPremiumStatus> {
+  let userId = userIdOverride;
 
   if (!userId) {
-    console.warn('❌ [UNIFIED PREMIUM] No authenticated user');
+    userId = await waitForAuth();
+  }
+
+  if (!userId) {
     return createFreeStatus('no_user');
   }
 
   const cached = cache.get(userId);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    console.log('✅ [UNIFIED PREMIUM] Using cached result:', cached.isPremium ? 'PREMIUM' : 'FREE');
     return cached;
   }
 
   try {
-    console.log('🔍 [UNIFIED PREMIUM] Fetching from database...');
-
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('id, paid_tokens_balance, tokens_balance, free_tokens_balance, is_premium, is_paid, current_tier')
@@ -42,22 +65,13 @@ export async function getUnifiedPremiumStatus(): Promise<UnifiedPremiumStatus> {
       .maybeSingle();
 
     if (error) {
-      console.error('❌ [UNIFIED PREMIUM] Database error:', error);
       return createFreeStatus('database_error');
     }
 
     if (!profile) {
-      console.warn('⚠️ [UNIFIED PREMIUM] Profile not found');
+      await retryCreateProfile(userId);
       return createFreeStatus('no_profile');
     }
-
-    console.log('📊 [UNIFIED PREMIUM] Profile data:');
-    console.log('   Paid Tokens:', profile.paid_tokens_balance);
-    console.log('   Total Tokens:', profile.tokens_balance);
-    console.log('   Free Tokens:', profile.free_tokens_balance);
-    console.log('   is_premium:', profile.is_premium);
-    console.log('   is_paid:', profile.is_paid);
-    console.log('   current_tier:', profile.current_tier);
 
     const paidTokens = profile.paid_tokens_balance || 0;
     const totalTokens = profile.tokens_balance || 0;
@@ -67,13 +81,6 @@ export async function getUnifiedPremiumStatus(): Promise<UnifiedPremiumStatus> {
                      profile.is_paid === true ||
                      profile.current_tier === 'premium' ||
                      profile.current_tier === 'ultra-premium';
-
-    console.log('🎯 [UNIFIED PREMIUM] Calculated status:');
-    console.log('   Has Paid Tokens:', paidTokens > 0);
-    console.log('   is_premium flag:', profile.is_premium);
-    console.log('   is_paid flag:', profile.is_paid);
-    console.log('   Premium tier:', profile.current_tier === 'premium' || profile.current_tier === 'ultra-premium');
-    console.log('   FINAL RESULT:', isPremium ? '✅ PREMIUM' : '❌ FREE');
 
     if (isPremium && paidTokens > 0) {
       await ensurePremiumFlagsSet(userId, paidTokens, profile.current_tier);
@@ -90,24 +97,31 @@ export async function getUnifiedPremiumStatus(): Promise<UnifiedPremiumStatus> {
     };
 
     cache.set(userId, status);
-
-    if (isPremium) {
-      console.log('✅✅✅ [UNIFIED PREMIUM] USER HAS PREMIUM ACCESS ✅✅✅');
-    } else {
-      console.log('🔒🔒🔒 [UNIFIED PREMIUM] FREE TIER USER 🔒🔒🔒');
-    }
-
     return status;
 
   } catch (error) {
-    console.error('❌ [UNIFIED PREMIUM] Exception:', error);
     return createFreeStatus('exception');
   }
 }
 
-async function ensurePremiumFlagsSet(userId: string, paidTokens: number, currentTier: string | null): Promise<void> {
-  console.log('🔄 [UNIFIED PREMIUM] Ensuring premium flags are set...');
+async function retryCreateProfile(userId: string, retries = 3): Promise<void> {
+  for (let i = 0; i < retries; i++) {
+    await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
 
+    const { data } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (data) {
+      clearUnifiedCache(userId);
+      return;
+    }
+  }
+}
+
+async function ensurePremiumFlagsSet(userId: string, paidTokens: number, currentTier: string | null): Promise<void> {
   try {
     const updates: any = {};
     let needsUpdate = false;
@@ -133,34 +147,20 @@ async function ensurePremiumFlagsSet(userId: string, paidTokens: number, current
       }
 
       if (needsUpdate) {
-        console.log('📝 [UNIFIED PREMIUM] Updating premium flags:', updates);
         updates.updated_at = new Date().toISOString();
-
-        const { error } = await supabase
+        await supabase
           .from('profiles')
           .update(updates)
           .eq('id', userId);
-
-        if (error) {
-          console.error('❌ [UNIFIED PREMIUM] Failed to update flags:', error);
-        } else {
-          console.log('✅ [UNIFIED PREMIUM] Premium flags updated successfully');
-        }
-      } else {
-        console.log('✅ [UNIFIED PREMIUM] All premium flags already set correctly');
       }
     }
 
     await ensurePaidTierUserRecord(userId, paidTokens);
-
   } catch (error) {
-    console.error('❌ [UNIFIED PREMIUM] Error ensuring flags:', error);
   }
 }
 
 async function ensurePaidTierUserRecord(userId: string, paidTokens: number): Promise<void> {
-  console.log('🔄 [UNIFIED PREMIUM] Ensuring paid_tier_users record...');
-
   try {
     const { data: profile } = await supabase
       .from('profiles')
@@ -168,12 +168,9 @@ async function ensurePaidTierUserRecord(userId: string, paidTokens: number): Pro
       .eq('id', userId)
       .maybeSingle();
 
-    if (!profile) {
-      console.warn('⚠️ [UNIFIED PREMIUM] Profile not found for paid tier sync');
-      return;
-    }
+    if (!profile) return;
 
-    const { error } = await supabase
+    await supabase
       .from('paid_tier_users')
       .upsert({
         id: userId,
@@ -187,28 +184,15 @@ async function ensurePaidTierUserRecord(userId: string, paidTokens: number): Pro
         onConflict: 'id'
       });
 
-    if (error) {
-      console.error('❌ [UNIFIED PREMIUM] Failed to upsert paid_tier_users:', error);
-    } else {
-      console.log('✅ [UNIFIED PREMIUM] paid_tier_users record synced');
-    }
-
-    const { error: deleteError } = await supabase
+    await supabase
       .from('free_tier_users')
       .delete()
       .eq('id', userId);
-
-    if (deleteError && deleteError.code !== 'PGRST116') {
-      console.error('⚠️ [UNIFIED PREMIUM] Failed to remove from free_tier_users:', deleteError);
-    }
-
   } catch (error) {
-    console.error('❌ [UNIFIED PREMIUM] Error syncing paid tier:', error);
   }
 }
 
 function createFreeStatus(reason: string): UnifiedPremiumStatus {
-  console.log('🆓 [UNIFIED PREMIUM] Returning FREE status, reason:', reason);
   return {
     isPremium: false,
     userId: auth.currentUser?.uid || '',
@@ -223,17 +207,17 @@ function createFreeStatus(reason: string): UnifiedPremiumStatus {
 export function clearUnifiedCache(userId?: string): void {
   if (userId) {
     cache.delete(userId);
-    console.log('🗑️ [UNIFIED PREMIUM] Cache cleared for user:', userId);
   } else {
     cache.clear();
-    console.log('🗑️ [UNIFIED PREMIUM] All cache cleared');
   }
 }
 
-export async function forceRefreshPremiumStatus(): Promise<UnifiedPremiumStatus> {
-  const userId = auth.currentUser?.uid;
+export async function forceRefreshPremiumStatus(userId?: string): Promise<UnifiedPremiumStatus> {
+  if (!userId) {
+    userId = await waitForAuth();
+  }
   if (userId) {
     clearUnifiedCache(userId);
   }
-  return getUnifiedPremiumStatus();
+  return getUnifiedPremiumStatus(userId || undefined);
 }

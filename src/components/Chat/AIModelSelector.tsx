@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Check, ChevronDown, Lock, Zap, RefreshCw } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { getUnifiedPremiumStatus, clearUnifiedCache, forceRefreshPremiumStatus, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
@@ -65,41 +66,44 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   category = 'chat'
 }) => {
   const { theme } = useTheme();
+  const { currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [premiumAccess, setPremiumAccess] = useState<UnifiedPremiumStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const checkAccess = async () => {
+    if (!currentUser) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
-    console.log('🔐 [AI MODEL SELECTOR] Checking premium access...');
-
-    const access = await getUnifiedPremiumStatus();
-
-    console.log('📊 [AI MODEL SELECTOR] Premium access result:', access);
-    console.log(`   Status: ${access.isPremium ? '✅ PREMIUM' : '🔒 FREE'}`);
-    console.log(`   Source: ${access.source}`);
-    console.log(`   Tokens: ${access.paidTokens.toLocaleString()}`);
-
-    setPremiumAccess(access);
-    setIsLoading(false);
+    try {
+      const access = await getUnifiedPremiumStatus(currentUser.uid);
+      setPremiumAccess(access);
+    } catch (error) {
+      setPremiumAccess(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    checkAccess();
-  }, [refreshKey]);
+    if (currentUser) {
+      checkAccess();
+    }
+  }, [currentUser]);
 
   useEffect(() => {
-    if (isOpen) {
-      console.log('🔄 [AI MODEL SELECTOR] Dropdown opened, rechecking access...');
+    if (isOpen && currentUser) {
       checkAccess();
     }
   }, [isOpen]);
 
   const handleRefresh = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('🔄 [AI MODEL SELECTOR] Manual refresh triggered');
-    const status = await forceRefreshPremiumStatus();
+    if (!currentUser) return;
+    const status = await forceRefreshPremiumStatus(currentUser.uid);
     setPremiumAccess(status);
   };
 
@@ -120,8 +124,6 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
       } else {
         const isLocked = !premiumAccess?.isPremium;
         status.set(model.id, isLocked);
-
-        console.log(`🔑 [${model.name}] Tier: ${modelCost.tier}, Free: ${isFree}, Premium User: ${premiumAccess?.isPremium}, Locked: ${isLocked}`);
       }
     });
 

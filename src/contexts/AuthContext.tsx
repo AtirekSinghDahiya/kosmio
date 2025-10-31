@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { supabase } from '../lib/supabaseClient';
+import { clearUnifiedCache } from '../lib/unifiedPremiumAccess';
 
 interface UserData {
   id: string;
@@ -75,8 +76,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const ensureTokenBalance = async (userId: string) => {
-    console.log('💰 Checking token balance for user:', userId);
-
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -87,12 +86,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profile) {
         const isFreeUser = !profile.is_paid && profile.current_tier === 'free';
         const relevantBalance = isFreeUser ? profile.daily_tokens_remaining : profile.tokens_balance;
-        console.log(`💰 Current balance: ${relevantBalance} tokens (Free user: ${isFreeUser})`);
 
-        // If user has 0 tokens, give them the daily free allocation
         if (relevantBalance === 0 && isFreeUser) {
-          console.log('⚠️ Free user has 0 daily tokens, initializing with free daily allocation...');
-          const { error } = await supabase
+          await supabase
             .from('profiles')
             .update({
               tokens_balance: 5000,
@@ -101,22 +97,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               updated_at: new Date().toISOString()
             })
             .eq('id', userId);
-
-          if (error) {
-            console.error('❌ Error updating token balance:', error);
-          } else {
-            console.log('✅ Token balance initialized to 5,000 tokens');
-          }
         }
       }
     } catch (error) {
-      console.error('❌ Error ensuring token balance:', error);
     }
   };
 
   const createSupabaseProfile = async (userId: string, email: string, displayName?: string) => {
-    console.log('📝 Creating/updating Supabase profile for user:', userId);
-
     try {
       const { data: existingProfile } = await supabase
         .from('profiles')
@@ -125,40 +112,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (existingProfile) {
-        console.log('✅ Supabase profile already exists');
-        // Ensure the user has tokens
         await ensureTokenBalance(userId);
         return;
       }
 
-      const { error } = await supabase
+      await supabase
         .from('profiles')
         .insert({
           id: userId,
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          free_tokens_balance: 6667, // Daily free allocation (~10 messages)
+          free_tokens_balance: 6667,
           paid_tokens_balance: 0,
           current_tier: 'free',
           last_token_refresh: new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
-
-      if (error) {
-        console.error('❌ Error creating Supabase profile:', error);
-      } else {
-        console.log('✅ Supabase profile created successfully');
-      }
     } catch (error) {
-      console.error('❌ Error in createSupabaseProfile:', error);
     }
   };
 
   const createDefaultProfile = async (userId: string, email: string, displayName?: string) => {
-    console.log('📝 Creating default profile for user:', userId);
-
     const profileData: UserData = {
       id: userId,
       email,
@@ -179,17 +155,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       await createSupabaseProfile(userId, email, displayName);
-      console.log('✅ Supabase profile created successfully');
       setUserData(profileData);
     } catch (error) {
-      console.error('❌ Error creating profile:', error);
       throw error;
     }
   };
 
   const fetchUserData = async (userId: string, email: string) => {
-    console.log('👤 Fetching user data for:', userId);
-
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -200,7 +172,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (profile) {
-        console.log('✅ Profile loaded from Supabase');
         setUserData({
           id: profile.id,
           email: profile.email,
@@ -213,22 +184,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           plan: profile.current_tier,
         });
       } else {
-        console.log('⚠️ Profile not found, creating new one...');
         await createDefaultProfile(userId, email);
       }
     } catch (error) {
-      console.error('❌ Error fetching user data:', error);
       setUserData(null);
     }
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
-      console.log('🔐 Creating new user account...');
-      console.log('   Email:', email);
-      console.log('   Password length:', password?.length || 0);
-      console.log('   Display name:', displayName);
-
       if (!email || !password) {
         throw new Error('Email and password are required');
       }
@@ -237,19 +201,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Password should be at least 6 characters');
       }
 
-      console.log('   Firebase auth instance:', auth ? 'OK' : 'NULL');
-      console.log('   Firebase project:', auth?.app?.options?.projectId);
-
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('✅ User account created:', userCredential.user.uid);
-      console.log('   Email verified:', userCredential.user.emailVerified);
-
+      clearUnifiedCache(userCredential.user.uid);
       await createDefaultProfile(userCredential.user.uid, email, displayName);
-      console.log('✅ Sign up complete!');
     } catch (error: any) {
-      console.error('❌ Error during sign up:', error);
-      console.error('   Error code:', error.code);
-      console.error('   Error message:', error.message);
 
       // Translate Firebase error codes to user-friendly messages
       if (error.code === 'auth/email-already-in-use') {
@@ -270,26 +225,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔐 Signing in...');
-      console.log('   Email:', email);
-      console.log('   Password length:', password?.length || 0);
-
       if (!email || !password) {
         throw new Error('Email and password are required');
       }
 
-      console.log('   Firebase auth instance:', auth ? 'OK' : 'NULL');
-      console.log('   Firebase project:', auth?.app?.options?.projectId);
-
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       updateSessionTimestamp();
-      console.log('✅ Sign in successful - session created');
-      console.log('   User ID:', userCredential.user.uid);
-      console.log('   Email:', userCredential.user.email);
+      clearUnifiedCache(userCredential.user.uid);
     } catch (error: any) {
-      console.error('❌ Error during sign in:', error);
-      console.error('   Error code:', error.code);
-      console.error('   Error message:', error.message);
 
       // Translate Firebase error codes to user-friendly messages
       if (error.code === 'auth/user-not-found') {
@@ -312,31 +255,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      console.log('🚪 Signing out...');
       await firebaseSignOut(auth);
       clearSession();
       setUserData(null);
-      console.log('✅ Sign out successful - session cleared');
+      clearUnifiedCache();
     } catch (error) {
-      console.error('❌ Error during sign out:', error);
       throw error;
     }
   };
 
   const updateUserProfile = async (data: Partial<UserData>) => {
     if (!currentUser) {
-      const error = new Error('No user logged in. Please sign in first.');
-      console.error('❌ Update failed:', error.message);
-      throw error;
+      throw new Error('No user logged in. Please sign in first.');
     }
 
-    console.log('💾 Updating user profile...');
-    console.log('   User ID:', currentUser.uid);
-    console.log('   Data to update:', Object.keys(data));
-
     try {
-      console.log('📤 Sending update to Supabase...');
-
       const supabaseData: any = {};
       if (data.displayName) supabaseData.display_name = data.displayName;
       if (data.photoURL) supabaseData.photo_url = data.photoURL;
@@ -354,13 +287,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      console.log('✅ Profile updated successfully in Supabase');
-
       setUserData(prev => prev ? { ...prev, ...data } : null);
-      console.log('✅ Local user data updated');
     } catch (error: any) {
-      console.error('❌ Error updating profile:', error);
-      console.error('   Error message:', error.message);
 
       if (error.code === 'PGRST116') {
         throw new Error('Profile not found. Please contact support.');
@@ -381,24 +309,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    console.log('👂 Setting up auth state listener...');
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('🔄 Auth state changed:', user ? user.uid : 'No user');
-
       if (user) {
-        // Always create/update session on auth state change
         updateSessionTimestamp();
-        console.log('   Creating/updating session...');
-
         setCurrentUser(user);
+        clearUnifiedCache(user.uid);
         await fetchUserData(user.uid, user.email || '');
-        console.log('✅ User authenticated');
       } else {
-        console.log('   No user, clearing state');
         setCurrentUser(null);
         setUserData(null);
         clearSession();
+        clearUnifiedCache();
       }
 
       setLoading(false);
@@ -416,13 +337,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const sessionCheck = setInterval(() => {
       if (currentUser && !checkSessionValidity()) {
-        console.log('⏰ Session timeout detected, signing out...');
         firebaseSignOut(auth);
       }
     }, 60000);
 
     return () => {
-      console.log('🧹 Cleaning up auth listener');
       unsubscribe();
       window.removeEventListener('click', activityHandler);
       window.removeEventListener('keydown', activityHandler);
