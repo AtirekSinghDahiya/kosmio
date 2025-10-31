@@ -73,15 +73,19 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
 
   const checkAccess = async () => {
     if (!currentUser) {
+      console.log('❌ AIModelSelector: No current user');
       setIsLoading(false);
       return;
     }
 
+    console.log('🔍 AIModelSelector: Checking access for user:', currentUser.uid);
     setIsLoading(true);
     try {
       const access = await getUnifiedPremiumStatus(currentUser.uid);
+      console.log('✅ AIModelSelector: Got premium access:', access);
       setPremiumAccess(access);
     } catch (error) {
+      console.error('❌ AIModelSelector: Error getting premium access:', error);
       setPremiumAccess(null);
     } finally {
       setIsLoading(false);
@@ -114,6 +118,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
 
   const modelLockStatus = useMemo(() => {
     const status = new Map<string, boolean>();
+    console.log('🔒 Calculating model lock status. premiumAccess:', premiumAccess);
 
     availableModels.forEach(model => {
       const modelCost = getModelCost(model.id);
@@ -123,6 +128,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
         status.set(model.id, false);
       } else {
         const isLocked = !premiumAccess?.isPremium;
+        console.log(`🔐 Model ${model.id}: tier=${modelCost.tier}, isPremium=${premiumAccess?.isPremium}, isLocked=${isLocked}`);
         status.set(model.id, isLocked);
       }
     });
