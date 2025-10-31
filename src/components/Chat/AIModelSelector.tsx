@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserTier, type UserTier } from '../../lib/tierAccessService';
-import { getModelCost, getTierBadgeColor, formatTokenDisplay, isModelFree } from '../../lib/modelTokenPricing';
+import { modelAccessController, AccountType } from '../../lib/modelAccessController';
+import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
   id: string;
@@ -79,35 +79,33 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isPaidUser, setIsPaidUser] = useState(false);
+  const [userAccountType, setUserAccountType] = useState<AccountType>(AccountType.FREE);
   const [checkingAccess, setCheckingAccess] = useState(true);
 
   useEffect(() => {
-    const checkPaidStatus = async () => {
+    const checkAccountType = async () => {
       if (user?.uid) {
         setCheckingAccess(true);
-        const tierInfo = await getUserTier(user.uid);
-        const isPaid = tierInfo.tier === 'paid';
-        setIsPaidUser(isPaid);
+        const accountType = await modelAccessController.getUserAccountType(user.uid);
+        setUserAccountType(accountType);
         setCheckingAccess(false);
-        console.log('🎯 AIModelSelector - User is paid:', isPaid);
+        console.log('✅ [MODEL SELECTOR] User account type:', accountType);
       } else {
-        setIsPaidUser(false);
+        setUserAccountType(AccountType.FREE);
         setCheckingAccess(false);
       }
     };
-    checkPaidStatus();
+    checkAccountType();
   }, [user]);
 
   useEffect(() => {
     if (isOpen && user?.uid) {
-      const recheckPaidStatus = async () => {
-        const tierInfo = await getUserTier(user.uid);
-        const isPaid = tierInfo.tier === 'paid';
-        setIsPaidUser(isPaid);
-        console.log('🔄 AIModelSelector - Rechecked, user is paid:', isPaid);
+      const recheckAccountType = async () => {
+        const accountType = await modelAccessController.getUserAccountType(user.uid);
+        setUserAccountType(accountType);
+        console.log('🔄 [MODEL SELECTOR] Rechecked account type:', accountType);
       };
-      recheckPaidStatus();
+      recheckAccountType();
     }
   }, [isOpen, user]);
 
@@ -173,12 +171,13 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                const isFreeModel = isModelFree(model.id);
+                const isFreeModel = modelAccessController.isModelFree(model.id);
+                const isPremiumModel = modelAccessController.isModelPremium(model.id);
 
-                const isLocked = !isFreeModel && !isPaidUser;
+                const isLocked = isPremiumModel && userAccountType === AccountType.FREE;
 
-                if (!isFreeModel) {
-                  console.log(`🔒 PAID Model ${model.name}: isPaidUser=${isPaidUser}, isLocked=${isLocked}`);
+                if (isPremiumModel) {
+                  console.log(`🔒 [PREMIUM MODEL] ${model.name}: userType=${userAccountType}, isLocked=${isLocked}`);
                 }
 
                 return (
