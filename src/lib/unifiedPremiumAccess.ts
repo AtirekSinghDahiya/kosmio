@@ -102,6 +102,8 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
     const paidTokens = profile.paid_tokens_balance || 0;
     const totalTokens = profile.tokens_balance || 0;
 
+    // Premium status: Check paid_tokens_balance first (source of truth after migration)
+    // Then fallback to other flags for backward compatibility
     const isPremium = paidTokens > 0 ||
                      profile.is_premium === true ||
                      profile.is_paid === true ||
@@ -110,10 +112,12 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
 
     console.log('💎 Premium calculation:', {
       paidTokens,
+      totalTokens,
       is_premium: profile.is_premium,
       is_paid: profile.is_paid,
       current_tier: profile.current_tier,
-      result: isPremium
+      result: isPremium,
+      logic: paidTokens > 0 ? 'HAS_PAID_TOKENS' : (profile.is_premium ? 'IS_PREMIUM_FLAG' : 'FREE')
     });
 
     if (isPremium && paidTokens > 0) {
