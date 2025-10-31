@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { modelAccessController, AccountType } from '../../lib/modelAccessController';
+import { isPremiumUser } from '../../lib/simpleAccessCheck';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -79,33 +79,33 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [userAccountType, setUserAccountType] = useState<AccountType>(AccountType.FREE);
+  const [isPremium, setIsPremium] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
 
   useEffect(() => {
-    const checkAccountType = async () => {
+    const checkPremium = async () => {
       if (user?.uid) {
         setCheckingAccess(true);
-        const accountType = await modelAccessController.getUserAccountType(user.uid);
-        setUserAccountType(accountType);
+        const premium = await isPremiumUser(user.uid);
+        setIsPremium(premium);
         setCheckingAccess(false);
-        console.log('✅ [MODEL SELECTOR] User account type:', accountType);
+        console.log('✅ [SIMPLE CHECK] User is premium:', premium);
       } else {
-        setUserAccountType(AccountType.FREE);
+        setIsPremium(false);
         setCheckingAccess(false);
       }
     };
-    checkAccountType();
+    checkPremium();
   }, [user]);
 
   useEffect(() => {
     if (isOpen && user?.uid) {
-      const recheckAccountType = async () => {
-        const accountType = await modelAccessController.getUserAccountType(user.uid);
-        setUserAccountType(accountType);
-        console.log('🔄 [MODEL SELECTOR] Rechecked account type:', accountType);
+      const recheckPremium = async () => {
+        const premium = await isPremiumUser(user.uid);
+        setIsPremium(premium);
+        console.log('🔄 [SIMPLE CHECK] Rechecked, user is premium:', premium);
       };
-      recheckAccountType();
+      recheckPremium();
     }
   }, [isOpen, user]);
 
@@ -171,13 +171,14 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                const isFreeModel = modelAccessController.isModelFree(model.id);
-                const isPremiumModel = modelAccessController.isModelPremium(model.id);
 
-                const isLocked = isPremiumModel && userAccountType === AccountType.FREE;
+                const freeModels = ['grok-4-fast', 'deepseek-v3.1-free', 'nemotron-nano-free', 'qwen-vl-30b-free', 'claude-3-haiku', 'gemini-flash-lite-free', 'kimi-k2-free', 'llama-4-maverick-free', 'codex-mini', 'lfm2-8b', 'granite-4.0', 'ernie-4.5', 'perplexity-sonar'];
+                const isFreeModel = freeModels.includes(model.id);
 
-                if (isPremiumModel) {
-                  console.log(`🔒 [PREMIUM MODEL] ${model.name}: userType=${userAccountType}, isLocked=${isLocked}`);
+                const isLocked = !isFreeModel && !isPremium;
+
+                if (!isFreeModel) {
+                  console.log(`🔒 [MODEL] ${model.name}: isPremium=${isPremium}, isLocked=${isLocked}`);
                 }
 
                 return (

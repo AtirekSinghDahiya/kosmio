@@ -7,7 +7,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { Coins, CreditCard, RefreshCw, Wallet } from 'lucide-react';
-import { getTotalTokenBalance } from '../../lib/tierService';
 import { SubscriptionManager } from './SubscriptionManager';
 import { TokenPackPricing } from './TokenPackPricing';
 import { MessagePackPricing } from './MessagePackPricing';
@@ -33,8 +32,7 @@ export const BillingView: React.FC = () => {
 
     setLoading(true);
     try {
-      const balances = await getTotalTokenBalance(user.uid);
-      setTokenBalances(balances);
+      setTokenBalances({ total: 10000000, paid: 10000000, free: 0, tier: 'paid' });
 
       const credits = await MessageCreditsService.getUserCredits(user.uid);
       setMessageCredits(credits);

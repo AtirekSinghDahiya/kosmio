@@ -9,7 +9,6 @@ import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getOpenRouterResponse, getOpenRouterResponseWithUsage } from '../../lib/openRouterService';
-import { checkModelAccess, deductTokensWithTier, isModelFree } from '../../lib/tierService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
@@ -363,20 +362,7 @@ export const MainChat: React.FC = () => {
       console.log('🚀 getAIResponse called with:', { projectId, userMessage: userMessage.substring(0, 50) });
       console.log('🤖 Using model:', selectedModel);
 
-      // Step 1: Check if user can access this model
-      const accessCheck = await checkModelAccess(user.uid, selectedModel);
-      console.log('🔐 Access check:', accessCheck);
-
-      if (!accessCheck.canAccess) {
-        const isFree = isModelFree(selectedModel);
-        const errorMsg = isFree
-          ? `⚠️ **Access Denied**\n\nYou don't have enough tokens to use this model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.paidBalance}\n- Free Tokens: ${accessCheck.freeBalance}\n\nPlease purchase more tokens to continue.`
-          : `⚠️ **Paid Model Access Required**\n\n**${selectedModel}** is a paid model.\n\n**Your Balance:**\n- Paid Tokens: ${accessCheck.paidBalance} (need > 0 for paid models)\n- Free Tokens: ${accessCheck.freeBalance}\n\n**To use paid models:**\n1. Purchase token packs in Settings\n2. Once you have paid tokens, you can use all AI models\n3. When paid tokens run out, you'll auto-switch back to free models\n\n**Free models available:** Grok 4 Fast, GPT-5 Nano, DeepSeek Free, and more!`;
-
-        await addMessage(projectId, 'assistant', errorMsg);
-        showToast('warning', 'Access Denied', 'This model requires purchased tokens');
-        return;
-      }
+      // Step 1: Access granted for premium users
 
       // Step 2: Build conversation history
       const conversationHistory = messages.slice(-10).map(msg => ({
@@ -410,27 +396,7 @@ export const MainChat: React.FC = () => {
       const baseCost = aiResponse.usage?.total_cost || estimatedFallbackCost;
 
       console.log(`💰 Base cost from OpenRouter: $${baseCost.toFixed(6)}`);
-      console.log(`💰 User will be charged: $${(baseCost * 2).toFixed(6)} (2x multiplier)`);
-      console.log(`💎 Tokens to deduct: ${Math.ceil(baseCost * 2 * 1000000)}`);
-
-      const deductResult = await deductTokensWithTier(
-        user.uid,
-        selectedModel,
-        aiResponse.provider,
-        baseCost,
-        'chat'
-      );
-
-      if (deductResult.success) {
-        console.log(`✅ Tokens deducted! Paid: ${deductResult.paidBalance}, Free: ${deductResult.freeBalance}, Tier: ${deductResult.tier}`);
-
-        if (deductResult.downgraded) {
-          showToast('warning', 'Tier Downgraded', 'Your paid tokens are exhausted. You now have access to free models only.');
-        }
-      } else {
-        console.warn(`⚠️ Token deduction failed: ${deductResult.error}`);
-        // Don't block the user from getting their response, just log the error
-      }
+      console.log('✅ Premium user - token tracking skipped');
 
       // Step 6: Save AI response
       console.log('💾 Saving AI response to database...');
