@@ -3,7 +3,7 @@ import { X, Upload, Wand2, Download, Loader, Film, AlertCircle, Sparkles } from 
 import { editVideoWithWanVace, isWanVaceAvailable } from '../../lib/wanVaceService';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
-import { isPremiumUser } from '../../lib/simpleAccessCheck';
+import { getUserTierAccess } from '../../lib/tierAccessService';
 
 interface VideoEditorProps {
   onClose: () => void;
@@ -34,9 +34,10 @@ export const VideoEditor: React.FC<VideoEditorProps> = ({ onClose, initialPrompt
   useEffect(() => {
     if (user?.uid) {
       setIsCheckingAccess(true);
-      isPremiumUser(user.uid).then(isPremium => {
-        setCanAccessVideoEdit(isPremium);
+      getUserTierAccess(user.uid).then(access => {
+        setCanAccessVideoEdit(access.canAccessVideoGeneration);
         setIsCheckingAccess(false);
+        console.log('✅ [VIDEO EDITOR] Video editing access:', access.canAccessVideoGeneration);
       }).catch(() => {
         setCanAccessVideoEdit(false);
         setIsCheckingAccess(false);

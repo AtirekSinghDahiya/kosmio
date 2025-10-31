@@ -22,7 +22,7 @@ import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
 import { getModelCost, isModelFree } from '../../lib/modelTokenPricing';
-import { isPremiumUser } from '../../lib/simpleAccessCheck';
+import { getUserTierAccess } from '../../lib/tierAccessService';
 import {
   createProject,
   addMessage,
@@ -369,9 +369,15 @@ export const MainChat: React.FC = () => {
       const isFree = isModelFree(selectedModel);
 
       if (!isFree) {
-        const userIsPremium = await isPremiumUser(user.uid);
+        const access = await getUserTierAccess(user.uid);
+        console.log('🔑 [MAIN CHAT] Checking premium model access:', {
+          model: selectedModel,
+          tier: modelInfo.tier,
+          userCanAccessPremium: access.canAccessPremiumModels,
+          access
+        });
 
-        if (!userIsPremium) {
+        if (!access.canAccessPremiumModels) {
           console.error(`🚫 Access denied: User ${user.uid} tried to use premium model ${selectedModel}`);
           showToast('error', 'Premium Model Locked', `${modelInfo.name} is a premium model. Purchase tokens to unlock access to premium models.`);
 

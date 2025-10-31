@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabaseClient';
-import { isPremiumUser } from '../../lib/simpleAccessCheck';
+import { getUserTierAccess } from '../../lib/tierAccessService';
 
 interface DiagnosticResult {
   user_id: string;
@@ -40,8 +40,8 @@ export const PremiumAccessDebugger: React.FC = () => {
         setDiagnostics(data[0]);
       }
 
-      const clientPremium = await isPremiumUser(user.uid);
-      setClientCheck(clientPremium);
+      const access = await getUserTierAccess(user.uid);
+      setClientCheck(access.canAccessPremiumModels);
     } catch (error) {
       console.error('Diagnostic error:', error);
     } finally {

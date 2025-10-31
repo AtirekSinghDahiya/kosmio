@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { isPremiumUser } from '../../lib/simpleAccessCheck';
+import { getUserTierAccess, clearTierCache } from '../../lib/tierAccessService';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -81,18 +81,23 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const checkPremium = async () => {
       if (user?.uid) {
         setCheckingAccess(true);
-        const premium = await isPremiumUser(user.uid);
-        setIsPremium(premium);
+        console.log('🔍 [AI MODEL SELECTOR] Checking tier access for user:', user.uid);
+        const access = await getUserTierAccess(user.uid);
+        setIsPremium(access.canAccessPremiumModels);
+        setDebugInfo(access);
         setCheckingAccess(false);
-        console.log('✅ [SIMPLE CHECK] User is premium:', premium);
+        console.log('✅ [AI MODEL SELECTOR] Premium access:', access.canAccessPremiumModels);
+        console.log('📊 [AI MODEL SELECTOR] Full access info:', access);
       } else {
         setIsPremium(false);
         setCheckingAccess(false);
+        console.log('⚠️ [AI MODEL SELECTOR] No user logged in');
       }
     };
     checkPremium();
@@ -101,9 +106,13 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   useEffect(() => {
     if (isOpen && user?.uid) {
       const recheckPremium = async () => {
-        const premium = await isPremiumUser(user.uid);
-        setIsPremium(premium);
-        console.log('🔄 [SIMPLE CHECK] Rechecked, user is premium:', premium);
+        console.log('🔄 [AI MODEL SELECTOR] Dropdown opened, clearing cache and rechecking...');
+        clearTierCache(user.uid);
+        const access = await getUserTierAccess(user.uid);
+        setIsPremium(access.canAccessPremiumModels);
+        setDebugInfo(access);
+        console.log('🔄 [AI MODEL SELECTOR] Rechecked premium access:', access.canAccessPremiumModels);
+        console.log('📊 [AI MODEL SELECTOR] Recheck access info:', access);
       };
       recheckPremium();
     }
@@ -175,9 +184,14 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                 const isFreeModel = modelCost.tier === 'free';
                 const isLocked = !isFreeModel && !isPremium;
 
-                if (!isFreeModel) {
-                  console.log(`🔒 [MODEL] ${model.name}: tier=${modelCost.tier}, isPremium=${isPremium}, isLocked=${isLocked}`);
-                }
+                console.log(`🎯 [MODEL CHECK] ${model.name}:`, {
+                  tier: modelCost.tier,
+                  isFreeModel,
+                  userIsPremium: isPremium,
+                  isLocked,
+                  userId: user?.uid,
+                  debugInfo
+                });
 
                 return (
                   <button

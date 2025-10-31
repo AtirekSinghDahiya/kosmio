@@ -8,7 +8,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveVideoToProject } from '../../lib/contentSaveService';
 import { DynamicTokenEstimator } from '../../lib/dynamicTokenEstimator';
-import { isPremiumUser } from '../../lib/simpleAccessCheck';
+import { getUserTierAccess } from '../../lib/tierAccessService';
 
 interface VideoGeneratorProps {
   onClose: () => void;
@@ -41,10 +41,11 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   useEffect(() => {
     const checkAccess = async () => {
       if (user?.uid) {
-        const premium = await isPremiumUser(user.uid);
-        setIsPremium(premium);
-        setCanAccessVideoGen(premium);
-        console.log('✅ [VIDEO GEN] User is premium:', premium, '| Has access:', premium);
+        const access = await getUserTierAccess(user.uid);
+        setIsPremium(access.canAccessPremiumModels);
+        setCanAccessVideoGen(access.canAccessVideoGeneration);
+        console.log('✅ [VIDEO GEN] User tier access:', access);
+        console.log('✅ [VIDEO GEN] Can access video generation:', access.canAccessVideoGeneration);
       } else {
         setIsPremium(false);
         setCanAccessVideoGen(false);
