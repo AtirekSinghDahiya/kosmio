@@ -142,6 +142,19 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
 
   return (
     <div className="relative group w-full max-w-full">
+      {/* Debug Panel */}
+      {premiumAccess && (
+        <div className={`mb-2 p-2 rounded-lg text-xs ${
+          theme === 'light' ? 'bg-gray-100 text-gray-800' : 'bg-slate-800 text-white'
+        }`}>
+          <div className="font-bold mb-1">🔍 Debug Info:</div>
+          <div>Premium: {premiumAccess.isPremium ? '✅ YES' : '❌ NO'}</div>
+          <div>Paid Tokens: {premiumAccess.paidTokens?.toLocaleString() || 0}</div>
+          <div>Total Tokens: {premiumAccess.totalTokens?.toLocaleString() || 0}</div>
+          <div>Tier: {premiumAccess.tier}</div>
+          <div>User ID: {premiumAccess.userId?.substring(0, 8)}...</div>
+        </div>
+      )}
       <div className={`relative rounded-xl p-[2px] shadow-lg ${
         theme === 'light'
           ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
