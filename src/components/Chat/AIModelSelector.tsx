@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Check, ChevronDown, Lock, Zap, RefreshCw } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { checkUserTierDirect } from '../../lib/directTierCheck';
+import { checkPremiumAccess, clearPremiumCache, PremiumAccessResult } from '../../lib/premiumAccessService';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -14,7 +14,6 @@ export interface AIModel {
 }
 
 export const AI_MODELS: AIModel[] = [
-  // Free Chat Models
   { id: 'grok-4-fast', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
   { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
   { id: 'nemotron-nano-free', name: 'Nemotron Nano 9B V2', provider: 'NVIDIA', description: 'Fast nano model', category: 'chat' },
@@ -28,8 +27,6 @@ export const AI_MODELS: AIModel[] = [
   { id: 'granite-4.0', name: 'Granite 4.0 Micro', provider: 'IBM', description: 'Micro model', category: 'chat' },
   { id: 'ernie-4.5', name: 'ERNIE 4.5 21B Thinking', provider: 'Baidu', description: 'Thinking model', category: 'chat' },
   { id: 'perplexity-sonar', name: 'Perplexity Sonar', provider: 'Perplexity', description: 'Web search enabled AI', category: 'chat' },
-
-  // Paid Chat Models
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
   { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Most advanced DeepSeek', category: 'chat' },
   { id: 'nemotron-super', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning', category: 'chat' },
@@ -45,23 +42,15 @@ export const AI_MODELS: AIModel[] = [
   { id: 'glm-4.6', name: 'GLM 4.6', provider: 'Z.AI', description: 'Advanced model', category: 'chat' },
   { id: 'claude-opus-4', name: 'Claude Opus 4', provider: 'Anthropic', description: 'Powerful Opus model', category: 'chat' },
   { id: 'claude-opus-4.1', name: 'Claude Opus 4.1', provider: 'Anthropic', description: 'Ultimate AI model', category: 'chat' },
-
-  // Code Models
   { id: 'gpt-5-codex', name: 'GPT-5 Codex', provider: 'OpenAI', description: 'Best for coding (Paid)', category: 'code' },
   { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding (Free)', category: 'code' },
   { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Excellent for code (Paid)', category: 'code' },
   { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code (Paid)', category: 'code' },
   { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Code model (Free)', category: 'code' },
-
-  // Image Models
   { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', description: 'High quality images', category: 'image' },
   { id: 'stable-diffusion-xl', name: 'Stable Diffusion XL', provider: 'Stability AI', description: 'Open source image gen', category: 'image' },
   { id: 'firefly', name: 'Firefly', provider: 'Adobe', description: 'Commercial safe images', category: 'image' },
-
-  // Video Models
   { id: 'sora', name: 'Sora', provider: 'OpenAI', description: 'Text to video', category: 'video' },
-
-  // Audio Models
   { id: 'eleven-labs', name: 'ElevenLabs', provider: 'ElevenLabs', description: 'Natural voice synthesis', category: 'audio' },
 ];
 
@@ -79,77 +68,82 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(true);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [premiumAccess, setPremiumAccess] = useState<PremiumAccessResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const checkAccess = async () => {
+    if (!user?.uid) {
+      setIsLoading(false);
+      setPremiumAccess(null);
+      return;
+    }
+
+    setIsLoading(true);
+    console.log('🔐 [AI MODEL SELECTOR] Checking premium access...');
+
+    const access = await checkPremiumAccess(user.uid);
+
+    console.log('📊 [AI MODEL SELECTOR] Premium access result:', access);
+    console.log(`   Status: ${access.isPremium ? '✅ PREMIUM' : '🔒 FREE'}`);
+    console.log(`   Source: ${access.tierSource}`);
+    console.log(`   Tokens: ${access.paidTokens.toLocaleString()}`);
+
+    setPremiumAccess(access);
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    const checkPremium = async () => {
-      if (user?.uid) {
-        setCheckingAccess(true);
-        console.log('🔍 [AI MODEL SELECTOR] Starting DIRECT tier check...');
-
-        const tierResult = await checkUserTierDirect(user.uid);
-
-        console.log('🏁 [AI MODEL SELECTOR] DIRECT CHECK COMPLETE!');
-        console.log('   Tier Source:', tierResult.tierSource);
-        console.log('   Is Premium:', tierResult.isPremium);
-
-        if (tierResult.tierSource === 'paid_tier_users') {
-          console.log('   ✅✅✅ USER IN PAID TIER - UNLOCKING ALL MODELS');
-          setIsPremium(true);
-        } else if (tierResult.tierSource === 'free_tier_users') {
-          console.log('   🔒🔒🔒 USER IN FREE TIER - PREMIUM MODELS LOCKED');
-          setIsPremium(false);
-        } else {
-          console.log('   Result from profiles/unknown:', tierResult.isPremium ? 'PREMIUM' : 'FREE');
-          setIsPremium(tierResult.isPremium);
-        }
-
-        setDebugInfo(tierResult);
-        setCheckingAccess(false);
-      } else {
-        setIsPremium(false);
-        setCheckingAccess(false);
-        console.log('⚠️ [AI MODEL SELECTOR] No user logged in');
-      }
-    };
-    checkPremium();
-  }, [user]);
+    checkAccess();
+  }, [user?.uid, refreshKey]);
 
   useEffect(() => {
     if (isOpen && user?.uid) {
-      const recheckPremium = async () => {
-        console.log('🔄 [AI MODEL SELECTOR] Dropdown opened, rechecking tier directly...');
-
-        const tierResult = await checkUserTierDirect(user.uid);
-
-        console.log('🔄 [AI MODEL SELECTOR] RECHECK COMPLETE!');
-        console.log('   Tier Source:', tierResult.tierSource);
-        console.log('   Is Premium:', tierResult.isPremium);
-
-        if (tierResult.tierSource === 'paid_tier_users') {
-          console.log('   ✅ CONFIRMED: USER IN PAID TIER');
-          setIsPremium(true);
-        } else if (tierResult.tierSource === 'free_tier_users') {
-          console.log('   🔒 CONFIRMED: USER IN FREE TIER');
-          setIsPremium(false);
-        } else {
-          setIsPremium(tierResult.isPremium);
-        }
-
-        setDebugInfo(tierResult);
-      };
-      recheckPremium();
+      console.log('🔄 [AI MODEL SELECTOR] Dropdown opened, rechecking access...');
+      checkAccess();
     }
-  }, [isOpen, user]);
+  }, [isOpen]);
 
-  const availableModels = AI_MODELS.filter(m => m.category === category);
+  const handleRefresh = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (user?.uid) {
+      console.log('🔄 [AI MODEL SELECTOR] Manual refresh triggered');
+      clearPremiumCache(user.uid);
+      setRefreshKey(prev => prev + 1);
+    }
+  };
+
+  const availableModels = useMemo(() =>
+    AI_MODELS.filter(m => m.category === category),
+    [category]
+  );
+
+  const modelLockStatus = useMemo(() => {
+    const status = new Map<string, boolean>();
+
+    availableModels.forEach(model => {
+      const modelCost = getModelCost(model.id);
+      const isFree = modelCost.tier === 'free';
+
+      if (isFree) {
+        status.set(model.id, false);
+      } else {
+        const isLocked = !premiumAccess?.isPremium;
+        status.set(model.id, isLocked);
+
+        console.log(`🔑 [${model.name}] Tier: ${modelCost.tier}, Free: ${isFree}, Premium User: ${premiumAccess?.isPremium}, Locked: ${isLocked}`);
+      }
+    });
+
+    return status;
+  }, [availableModels, premiumAccess?.isPremium]);
+
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
+
+  const isPremiumUser = premiumAccess?.isPremium === true;
 
   return (
     <div className="relative group w-full max-w-full">
-      {/* Gradient Border Effect */}
       <div className={`relative rounded-xl p-[2px] shadow-lg ${
         theme === 'light'
           ? 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500'
@@ -166,30 +160,50 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               : 'bg-slate-900/95 hover:bg-slate-800/95 text-white backdrop-blur-xl'
           }`}
         >
-        {getModelCost(selected.id).logoUrl ? (
-          <img src={getModelCost(selected.id).logoUrl} alt={selected.provider} className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0" />
-        ) : (
-          <span className="text-lg sm:text-xl flex-shrink-0">{getModelCost(selected.id).icon}</span>
-        )}
-        <div className="flex-1 text-left min-w-0">
-          <div className={`text-xs sm:text-sm font-semibold truncate ${
-            theme === 'light' ? 'text-gray-900' : 'text-white/90'
-          }`}>{selected.name}</div>
-          <div className={`text-[10px] sm:text-xs mt-0.5 flex items-center gap-1 sm:gap-2 ${
-            theme === 'light' ? 'text-gray-500' : 'text-white/50'
-          }`}>
-            <span className="truncate">{selected.provider}</span>
-            <span className="hidden sm:inline">•</span>
-            <span className="hidden sm:flex items-center gap-1">
-              <Zap className="w-3 h-3" />
-              {formatTokenDisplay(getModelCost(selected.id).tokensPerMessage)}
-            </span>
+          {getModelCost(selected.id).logoUrl ? (
+            <img src={getModelCost(selected.id).logoUrl} alt={selected.provider} className="w-5 h-5 sm:w-6 sm:h-6 rounded flex-shrink-0" />
+          ) : (
+            <span className="text-lg sm:text-xl flex-shrink-0">{getModelCost(selected.id).icon}</span>
+          )}
+          <div className="flex-1 text-left min-w-0">
+            <div className={`text-xs sm:text-sm font-semibold truncate ${
+              theme === 'light' ? 'text-gray-900' : 'text-white/90'
+            }`}>{selected.name}</div>
+            <div className={`text-[10px] sm:text-xs mt-0.5 flex items-center gap-1 sm:gap-2 ${
+              theme === 'light' ? 'text-gray-500' : 'text-white/50'
+            }`}>
+              <span className="truncate">{selected.provider}</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                {formatTokenDisplay(getModelCost(selected.id).tokensPerMessage)}
+              </span>
+            </div>
           </div>
-        </div>
-        <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 flex-shrink-0 ${
-          theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
-        } ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
+
+          {isLoading && (
+            <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />
+          )}
+
+          {!isLoading && isPremiumUser && (
+            <div className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white border border-yellow-300 flex items-center gap-1">
+              <span>✓</span>
+              <span>PREMIUM</span>
+            </div>
+          )}
+
+          <button
+            onClick={handleRefresh}
+            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
+            title="Refresh access status"
+          >
+            <RefreshCw className="w-3 h-3" />
+          </button>
+
+          <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300 flex-shrink-0 ${
+            theme === 'light' ? 'text-gray-600' : 'text-cyan-400'
+          } ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
       </div>
 
       {isOpen && (
@@ -203,102 +217,113 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               ? 'bg-white/95 border-gray-200'
               : 'glass-panel border-white/20'
           }`}>
-            <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
-              {availableModels.map((model, index) => {
-                const modelCost = getModelCost(model.id);
-
-                const isFreeModel = modelCost.tier === 'free';
-
-                let isLocked = false;
-                if (isFreeModel) {
-                  isLocked = false;
-                  console.log(`\ud83d\udd13 [${model.name}] FREE MODEL - Always unlocked`);
-                } else {
-                  if (isPremium === true) {
-                    isLocked = false;
-                    console.log(`\u2705 [${model.name}] PREMIUM MODEL - User is premium = UNLOCKED`);
-                  } else {
-                    isLocked = true;
-                    console.log(`\ud83d\udd12 [${model.name}] PREMIUM MODEL - User is free = LOCKED`);
-                  }
-                }
-
-                console.log(`\ud83c\udfaf [MODEL CHECK] ${model.name}:`, {
-                  tier: modelCost.tier,
-                  isFreeModel,
-                  isPremium: isPremium,
-                  isPremiumType: typeof isPremium,
-                  FINAL_isLocked: isLocked,
-                  userId: user?.uid
-                });
-
-                return (
-                  <button
-                    key={model.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isLocked) {
-                        onModelChange(model.id);
-                        setIsOpen(false);
-                      }
-                    }}
-                    disabled={isLocked}
-                    style={{ animationDelay: `${index * 30}ms` }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
-                      isLocked
-                        ? 'opacity-50 cursor-not-allowed'
-                        : selectedModel === model.id
-                          ? theme === 'light'
-                            ? 'bg-blue-50 border border-blue-200'
-                            : 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
-                          : theme === 'light'
-                            ? 'hover:bg-gray-100 border border-transparent'
-                            : 'hover:bg-white/10 border border-transparent hover:border-white/10'
-                    }`}
-                  >
-                    <div className="flex-1 text-left">
-                      <div className={`text-sm font-semibold transition-colors flex items-center gap-2 ${
-                        selectedModel === model.id
-                          ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
-                          : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
-                      }`}>
-                        {modelCost.logoUrl ? (
-                          <img src={modelCost.logoUrl} alt={model.provider} className="w-5 h-5 rounded" />
-                        ) : (
-                          <span className="text-lg">{modelCost.icon}</span>
+            {isLoading ? (
+              <div className="p-8 flex flex-col items-center justify-center">
+                <RefreshCw className="w-8 h-8 animate-spin text-blue-500 mb-2" />
+                <p className={theme === 'light' ? 'text-gray-600' : 'text-white/60'}>
+                  Checking access...
+                </p>
+              </div>
+            ) : (
+              <>
+                {premiumAccess && (
+                  <div className={`px-4 py-2 border-b ${
+                    theme === 'light' ? 'bg-blue-50 border-blue-200' : 'bg-blue-900/20 border-blue-500/30'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">
+                          {isPremiumUser ? '✅ Premium Access' : '🆓 Free Tier'}
+                        </span>
+                        {isPremiumUser && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded ${
+                            theme === 'light' ? 'bg-blue-100 text-blue-700' : 'bg-blue-500/20 text-blue-300'
+                          }`}>
+                            {premiumAccess.paidTokens.toLocaleString()} tokens
+                          </span>
                         )}
-                        {model.name}
-                        {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
                       </div>
-                      <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
-                        theme === 'light'
-                          ? 'text-gray-600 group-hover/item:text-gray-800'
-                          : 'text-white/50 group-hover/item:text-white/70'
-                      }`}>
-                        <span>{model.description}</span>
-                        {isLocked && <span>• Purchase tokens to unlock</span>}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
-                          getTierBadgeColor(modelCost.tier)
-                        }`}>
-                          {modelCost.tier === 'free' ? 'FREE' : modelCost.tier.toUpperCase()}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-white/60">
-                          <Zap className="w-3 h-3" />
-                          {formatTokenDisplay(modelCost.tokensPerMessage)}/msg
-                        </span>
-                      </div>
+                      <span className={`text-[10px] ${theme === 'light' ? 'text-gray-500' : 'text-white/40'}`}>
+                        {premiumAccess.tierSource}
+                      </span>
                     </div>
-                    {selectedModel === model.id && !isLocked && (
-                      <Check className={`w-4 h-4 animate-fade-in ${
-                        theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
-                      }`} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+                )}
+
+                <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
+                  {availableModels.map((model, index) => {
+                    const modelCost = getModelCost(model.id);
+                    const isLocked = modelLockStatus.get(model.id) || false;
+
+                    return (
+                      <button
+                        key={model.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isLocked) {
+                            onModelChange(model.id);
+                            setIsOpen(false);
+                          }
+                        }}
+                        disabled={isLocked}
+                        style={{ animationDelay: `${index * 30}ms` }}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
+                          isLocked
+                            ? 'opacity-50 cursor-not-allowed'
+                            : selectedModel === model.id
+                              ? theme === 'light'
+                                ? 'bg-blue-50 border border-blue-200'
+                                : 'bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-cyan-400/30'
+                              : theme === 'light'
+                                ? 'hover:bg-gray-100 border border-transparent'
+                                : 'hover:bg-white/10 border border-transparent hover:border-white/10'
+                        }`}
+                      >
+                        <div className="flex-1 text-left">
+                          <div className={`text-sm font-semibold transition-colors flex items-center gap-2 ${
+                            selectedModel === model.id
+                              ? theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                              : theme === 'light' ? 'text-gray-900 group-hover/item:text-blue-600' : 'text-white group-hover/item:text-cyan-300'
+                          }`}>
+                            {modelCost.logoUrl ? (
+                              <img src={modelCost.logoUrl} alt={model.provider} className="w-5 h-5 rounded" />
+                            ) : (
+                              <span className="text-lg">{modelCost.icon}</span>
+                            )}
+                            {model.name}
+                            {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
+                          </div>
+                          <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
+                            theme === 'light'
+                              ? 'text-gray-600 group-hover/item:text-gray-800'
+                              : 'text-white/50 group-hover/item:text-white/70'
+                          }`}>
+                            <span>{model.description}</span>
+                            {isLocked && <span>• Purchase tokens to unlock</span>}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                              getTierBadgeColor(modelCost.tier)
+                            }`}>
+                              {modelCost.tier === 'free' ? 'FREE' : modelCost.tier.toUpperCase()}
+                            </span>
+                            <span className="flex items-center gap-1 text-xs text-white/60">
+                              <Zap className="w-3 h-3" />
+                              {formatTokenDisplay(modelCost.tokensPerMessage)}/msg
+                            </span>
+                          </div>
+                        </div>
+                        {selectedModel === model.id && !isLocked && (
+                          <Check className={`w-4 h-4 animate-fade-in ${
+                            theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
+                          }`} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </>
       )}
