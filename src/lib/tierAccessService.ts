@@ -31,62 +31,54 @@ export interface TierStatus {
 }
 
 /**
+ * SIMPLIFIED: Check if user is in paid_tier_users table
+ * This is the ONLY check that matters for premium access
+ */
+export const isUserPaid = async (userId: string): Promise<boolean> => {
+  try {
+    console.log('🔍 isUserPaid - Checking if user is in paid_tier_users:', userId);
+
+    const { data, error } = await supabase
+      .from('paid_tier_users')
+      .select('id, tier_level, tokens_remaining')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('❌ Error checking paid_tier_users:', error);
+      return false;
+    }
+
+    const isPaid = data !== null && data.tier_level === 'premium';
+    console.log('✅ isUserPaid result:', isPaid, data);
+
+    return isPaid;
+  } catch (error) {
+    console.error('❌ Exception in isUserPaid:', error);
+    return false;
+  }
+};
+
+/**
  * Get user's current tier information
- * CRITICAL: Directly queries profiles table for accurate tier status
  */
 export const getUserTier = async (userId: string): Promise<TierInfo> => {
   try {
-    console.log('🔍 getUserTier - Checking tier for user:', userId);
+    const isPaid = await isUserPaid(userId);
 
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('id, is_premium, is_paid, paid_tokens_balance, current_tier')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('❌ Error fetching user profile:', error);
-      return {
-        tier: 'free',
-        hasPurchased: false,
-        firstPurchaseAt: null,
-        canAccessPremiumModels: false,
-        totalAccessibleModels: 0
-      };
-    }
-
-    if (!profile) {
-      console.error('❌ No profile found for user:', userId);
-      return {
-        tier: 'free',
-        hasPurchased: false,
-        firstPurchaseAt: null,
-        canAccessPremiumModels: false,
-        totalAccessibleModels: 0
-      };
-    }
-
-    const isPremium = profile.is_premium === true && profile.is_paid === true;
-    const hasPaidTokens = (profile.paid_tokens_balance || 0) > 0;
-    const canAccess = isPremium && hasPaidTokens;
-    const tier: UserTier = canAccess ? 'paid' : 'free';
-
-    console.log('🔍 getUserTier - Profile data:', {
+    console.log('🔍 getUserTier - Final result:', {
       userId,
-      isPremium: profile.is_premium,
-      isPaid: profile.is_paid,
-      paidTokensBalance: profile.paid_tokens_balance,
-      currentTier: profile.current_tier,
-      calculatedTier: tier,
-      canAccessPremiumModels: canAccess
+      isPaid,
+      tier: isPaid ? 'paid' : 'free',
+      canAccessPremiumModels: isPaid
     });
 
     return {
-      tier,
-      hasPurchased: isPremium,
+      tier: isPaid ? 'paid' : 'free',
+      hasPurchased: isPaid,
       firstPurchaseAt: null,
-      canAccessPremiumModels: canAccess,
-      totalAccessibleModels: canAccess ? 100 : 10
+      canAccessPremiumModels: isPaid,
+      totalAccessibleModels: isPaid ? 100 : 10
     };
   } catch (error) {
     console.error('❌ Exception in getUserTier:', error);

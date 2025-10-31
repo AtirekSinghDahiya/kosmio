@@ -79,41 +79,35 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const { theme } = useTheme();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [userTier, setUserTier] = useState<UserTier>('free');
   const [isPaidUser, setIsPaidUser] = useState(false);
-  const [isLoadingTier, setIsLoadingTier] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
-  // Check tier on mount and when dropdown opens
   useEffect(() => {
-    if (user?.uid) {
-      setIsLoadingTier(true);
-      getUserTier(user.uid).then(tierInfo => {
-        console.log('🔍 AIModelSelector - User tier info:', tierInfo);
-        console.log('🔍 AIModelSelector - canAccessPremiumModels:', tierInfo.canAccessPremiumModels);
-        const isPaid = tierInfo.tier === 'paid' && tierInfo.canAccessPremiumModels;
-        setUserTier(tierInfo.tier);
+    const checkPaidStatus = async () => {
+      if (user?.uid) {
+        setCheckingAccess(true);
+        const tierInfo = await getUserTier(user.uid);
+        const isPaid = tierInfo.tier === 'paid';
         setIsPaidUser(isPaid);
-        console.log('🔍 AIModelSelector - isPaidUser set to:', isPaid);
-        console.log('🔍 AIModelSelector - Will unlock models:', isPaid);
-        setIsLoadingTier(false);
-      }).catch(err => {
-        console.error('Failed to get user tier:', err);
-        setUserTier('free');
+        setCheckingAccess(false);
+        console.log('🎯 AIModelSelector - User is paid:', isPaid);
+      } else {
         setIsPaidUser(false);
-        setIsLoadingTier(false);
-      });
-    } else {
-      setUserTier('free');
-      setIsPaidUser(false);
-      setIsLoadingTier(false);
-    }
-  }, [user, refreshKey]);
+        setCheckingAccess(false);
+      }
+    };
+    checkPaidStatus();
+  }, [user]);
 
-  // Refresh tier when dropdown opens
   useEffect(() => {
     if (isOpen && user?.uid) {
-      setRefreshKey(prev => prev + 1);
+      const recheckPaidStatus = async () => {
+        const tierInfo = await getUserTier(user.uid);
+        const isPaid = tierInfo.tier === 'paid';
+        setIsPaidUser(isPaid);
+        console.log('🔄 AIModelSelector - Rechecked, user is paid:', isPaid);
+      };
+      recheckPaidStatus();
     }
   }, [isOpen, user]);
 
@@ -180,12 +174,12 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
                 const isFreeModel = isModelFree(model.id);
-                const isPaidModel = !isFreeModel;
 
-                // Logic: Free models = always unlocked, Paid models = locked unless user is paid
-                const isLocked = isPaidModel && !isPaidUser;
+                const isLocked = !isFreeModel && !isPaidUser;
 
-                console.log(`🔍 Model ${model.name}: tier=${modelCost.tier}, isFree=${isFreeModel}, isPaidUser=${isPaidUser}, isLocked=${isLocked}`);
+                if (!isFreeModel) {
+                  console.log(`🔒 PAID Model ${model.name}: isPaidUser=${isPaidUser}, isLocked=${isLocked}`);
+                }
 
                 return (
                   <button

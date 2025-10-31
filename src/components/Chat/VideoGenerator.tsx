@@ -39,26 +39,19 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   const veo3NewAvailable = isVeo3NewAvailable();
 
   useEffect(() => {
-    if (user?.uid) {
-      console.log('🎬 VideoGenerator - Checking tier for user:', user.uid);
-      getUserTier(user.uid).then(tierInfo => {
-        console.log('🎬 VideoGenerator - Full tier info:', JSON.stringify(tierInfo));
-        console.log('🎬 VideoGenerator - User tier:', tierInfo.tier);
-        console.log('🎬 VideoGenerator - canAccessPremiumModels:', tierInfo.canAccessPremiumModels);
-        const hasAccess = tierInfo.tier === 'paid' && tierInfo.canAccessPremiumModels;
-        console.log('🎬 VideoGenerator - Calculated hasAccess:', hasAccess);
+    const checkAccess = async () => {
+      if (user?.uid) {
+        const tierInfo = await getUserTier(user.uid);
+        const hasAccess = tierInfo.tier === 'paid';
         setUserTier(tierInfo.tier);
         setCanAccessVideoGen(hasAccess);
-      }).catch(err => {
-        console.error('❌ VideoGenerator - Failed to get user tier:', err);
+        console.log('🎬 VideoGenerator - User is paid:', hasAccess);
+      } else {
         setUserTier('free');
         setCanAccessVideoGen(false);
-      });
-    } else {
-      console.log('🎬 VideoGenerator - No user logged in');
-      setUserTier('free');
-      setCanAccessVideoGen(false);
-    }
+      }
+    };
+    checkAccess();
   }, [user]);
 
   useEffect(() => {
