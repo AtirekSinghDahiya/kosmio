@@ -12,10 +12,30 @@ export interface UnifiedPremiumStatus {
   timestamp: number;
 }
 
-const CACHE_DURATION = 5000;
+const CACHE_DURATION = 2000;
 const cache = new Map<string, UnifiedPremiumStatus>();
 let authInitialized = false;
 let authInitPromise: Promise<void> | null = null;
+
+// Expose debug functions to window
+if (typeof window !== 'undefined') {
+  (window as any).debugPremium = {
+    checkStatus: async (userId?: string) => {
+      const status = await getUnifiedPremiumStatus(userId);
+      console.log('🔍 Premium Status:', status);
+      return status;
+    },
+    clearCache: (userId?: string) => {
+      clearUnifiedCache(userId);
+      console.log('🗑️ Cache cleared');
+    },
+    forceRefresh: async (userId?: string) => {
+      const status = await forceRefreshPremiumStatus(userId);
+      console.log('🔄 Force refreshed:', status);
+      return status;
+    }
+  };
+}
 
 function waitForAuth(): Promise<string | null> {
   if (authInitialized && auth.currentUser) {
@@ -54,10 +74,12 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
 
   const cached = cache.get(userId);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    console.log('🔁 Returning cached premium status:', cached);
     return cached;
   }
 
   try {
+    console.log('📊 Fetching fresh premium status for:', userId);
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('id, paid_tokens_balance, tokens_balance, free_tokens_balance, is_premium, is_paid, current_tier')
@@ -65,13 +87,17 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
       .maybeSingle();
 
     if (error) {
+      console.error('❌ Database error fetching profile:', error);
       return createFreeStatus('database_error');
     }
 
     if (!profile) {
+      console.warn('⚠️ No profile found for user:', userId);
       await retryCreateProfile(userId);
       return createFreeStatus('no_profile');
     }
+
+    console.log('📦 Profile data:', profile);
 
     const paidTokens = profile.paid_tokens_balance || 0;
     const totalTokens = profile.tokens_balance || 0;
@@ -81,6 +107,14 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
                      profile.is_paid === true ||
                      profile.current_tier === 'premium' ||
                      profile.current_tier === 'ultra-premium';
+
+    console.log('💎 Premium calculation:', {
+      paidTokens,
+      is_premium: profile.is_premium,
+      is_paid: profile.is_paid,
+      current_tier: profile.current_tier,
+      result: isPremium
+    });
 
     if (isPremium && paidTokens > 0) {
       await ensurePremiumFlagsSet(userId, paidTokens, profile.current_tier);
@@ -96,6 +130,7 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
       timestamp: Date.now()
     };
 
+    console.log('✅ Final premium status:', status);
     cache.set(userId, status);
     return status;
 
