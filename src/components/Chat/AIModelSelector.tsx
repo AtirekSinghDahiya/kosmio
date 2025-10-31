@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getUserTierAccess, clearTierCache } from '../../lib/tierAccessService';
+import { checkUserTierDirect } from '../../lib/directTierCheck';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -87,13 +87,27 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
     const checkPremium = async () => {
       if (user?.uid) {
         setCheckingAccess(true);
-        console.log('🔍 [AI MODEL SELECTOR] Checking tier access for user:', user.uid);
-        const access = await getUserTierAccess(user.uid);
-        setIsPremium(access.canAccessPremiumModels);
-        setDebugInfo(access);
+        console.log('🔍 [AI MODEL SELECTOR] Starting DIRECT tier check...');
+
+        const tierResult = await checkUserTierDirect(user.uid);
+
+        console.log('🏁 [AI MODEL SELECTOR] DIRECT CHECK COMPLETE!');
+        console.log('   Tier Source:', tierResult.tierSource);
+        console.log('   Is Premium:', tierResult.isPremium);
+
+        if (tierResult.tierSource === 'paid_tier_users') {
+          console.log('   ✅✅✅ USER IN PAID TIER - UNLOCKING ALL MODELS');
+          setIsPremium(true);
+        } else if (tierResult.tierSource === 'free_tier_users') {
+          console.log('   🔒🔒🔒 USER IN FREE TIER - PREMIUM MODELS LOCKED');
+          setIsPremium(false);
+        } else {
+          console.log('   Result from profiles/unknown:', tierResult.isPremium ? 'PREMIUM' : 'FREE');
+          setIsPremium(tierResult.isPremium);
+        }
+
+        setDebugInfo(tierResult);
         setCheckingAccess(false);
-        console.log('✅ [AI MODEL SELECTOR] Premium access:', access.canAccessPremiumModels);
-        console.log('📊 [AI MODEL SELECTOR] Full access info:', access);
       } else {
         setIsPremium(false);
         setCheckingAccess(false);
@@ -106,13 +120,25 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   useEffect(() => {
     if (isOpen && user?.uid) {
       const recheckPremium = async () => {
-        console.log('🔄 [AI MODEL SELECTOR] Dropdown opened, clearing cache and rechecking...');
-        clearTierCache(user.uid);
-        const access = await getUserTierAccess(user.uid);
-        setIsPremium(access.canAccessPremiumModels);
-        setDebugInfo(access);
-        console.log('🔄 [AI MODEL SELECTOR] Rechecked premium access:', access.canAccessPremiumModels);
-        console.log('📊 [AI MODEL SELECTOR] Recheck access info:', access);
+        console.log('🔄 [AI MODEL SELECTOR] Dropdown opened, rechecking tier directly...');
+
+        const tierResult = await checkUserTierDirect(user.uid);
+
+        console.log('🔄 [AI MODEL SELECTOR] RECHECK COMPLETE!');
+        console.log('   Tier Source:', tierResult.tierSource);
+        console.log('   Is Premium:', tierResult.isPremium);
+
+        if (tierResult.tierSource === 'paid_tier_users') {
+          console.log('   ✅ CONFIRMED: USER IN PAID TIER');
+          setIsPremium(true);
+        } else if (tierResult.tierSource === 'free_tier_users') {
+          console.log('   🔒 CONFIRMED: USER IN FREE TIER');
+          setIsPremium(false);
+        } else {
+          setIsPremium(tierResult.isPremium);
+        }
+
+        setDebugInfo(tierResult);
       };
       recheckPremium();
     }
@@ -182,15 +208,28 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                 const modelCost = getModelCost(model.id);
 
                 const isFreeModel = modelCost.tier === 'free';
-                const isLocked = !isFreeModel && !isPremium;
 
-                console.log(`🎯 [MODEL CHECK] ${model.name}:`, {
+                let isLocked = false;
+                if (isFreeModel) {
+                  isLocked = false;
+                  console.log(`\ud83d\udd13 [${model.name}] FREE MODEL - Always unlocked`);
+                } else {
+                  if (isPremium === true) {
+                    isLocked = false;
+                    console.log(`\u2705 [${model.name}] PREMIUM MODEL - User is premium = UNLOCKED`);
+                  } else {
+                    isLocked = true;
+                    console.log(`\ud83d\udd12 [${model.name}] PREMIUM MODEL - User is free = LOCKED`);
+                  }
+                }
+
+                console.log(`\ud83c\udfaf [MODEL CHECK] ${model.name}:`, {
                   tier: modelCost.tier,
                   isFreeModel,
-                  userIsPremium: isPremium,
-                  isLocked,
-                  userId: user?.uid,
-                  debugInfo
+                  isPremium: isPremium,
+                  isPremiumType: typeof isPremium,
+                  FINAL_isLocked: isLocked,
+                  userId: user?.uid
                 });
 
                 return (
