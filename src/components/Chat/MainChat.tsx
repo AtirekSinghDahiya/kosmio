@@ -21,6 +21,8 @@ import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
+import { getModelCost, isModelFree } from '../../lib/modelTokenPricing';
+import { isPremiumUser } from '../../lib/simpleAccessCheck';
 import {
   createProject,
   addMessage,
@@ -362,7 +364,27 @@ export const MainChat: React.FC = () => {
       console.log('🚀 getAIResponse called with:', { projectId, userMessage: userMessage.substring(0, 50) });
       console.log('🤖 Using model:', selectedModel);
 
-      // Step 1: Access granted for premium users
+      // Step 1: Validate model access based on user tier
+      const modelInfo = getModelCost(selectedModel);
+      const isFree = isModelFree(selectedModel);
+
+      if (!isFree) {
+        const userIsPremium = await isPremiumUser(user.uid);
+
+        if (!userIsPremium) {
+          console.error(`🚫 Access denied: User ${user.uid} tried to use premium model ${selectedModel}`);
+          showToast('error', 'Premium Model Locked', `${modelInfo.name} is a premium model. Purchase tokens to unlock access to premium models.`);
+
+          const fallbackMessage = `⚠️ **Access Denied**\n\nThe model "${modelInfo.name}" (${modelInfo.provider}) requires a paid tier.\n\n**Why is this locked?**\n- This is a ${modelInfo.tier} tier model\n- Cost: ${modelInfo.tokensPerMessage.toLocaleString()} tokens per message\n- Free tier users can only access free models\n\n**To unlock this model:**\n1. Go to Settings → Billing\n2. Purchase a token pack\n3. All premium models will unlock immediately\n\n**Free alternatives you can use:**\n- Grok 4 Fast (Recommended)\n- DeepSeek V3.1 Free\n- Claude 3 Haiku\n- Gemini Flash Lite Free\n\nPlease select a free model from the dropdown to continue.`;
+
+          await addMessage(projectId, 'assistant', fallbackMessage);
+          return;
+        }
+
+        console.log(`✅ Access granted: User ${user.uid} has premium access for ${selectedModel}`);
+      } else {
+        console.log(`✅ Free model ${selectedModel} - access granted to all users`);
+      }
 
       // Step 2: Build conversation history
       const conversationHistory = messages.slice(-10).map(msg => ({

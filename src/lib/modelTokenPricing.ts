@@ -84,7 +84,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     provider: 'Anthropic',
     tokensPerMessage: 1200,
     costPerMessage: 0.00068,
-    tier: 'budget',
+    tier: 'free',
     description: 'Fast Claude 3 model',
     icon: '📝',
     logoUrl: 'https://github.com/anthropics.png'
@@ -95,7 +95,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     provider: 'Perplexity',
     tokensPerMessage: 2000,
     costPerMessage: 0.006,
-    tier: 'premium',
+    tier: 'free',
     description: 'Web search enabled AI',
     icon: '🔍',
     logoUrl: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/perplexity-ai-icon.png'

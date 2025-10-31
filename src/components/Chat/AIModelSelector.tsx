@@ -172,13 +172,11 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
 
-                const freeModels = ['grok-4-fast', 'deepseek-v3.1-free', 'nemotron-nano-free', 'qwen-vl-30b-free', 'claude-3-haiku', 'gemini-flash-lite-free', 'kimi-k2-free', 'llama-4-maverick-free', 'codex-mini', 'lfm2-8b', 'granite-4.0', 'ernie-4.5', 'perplexity-sonar'];
-                const isFreeModel = freeModels.includes(model.id);
-
+                const isFreeModel = modelCost.tier === 'free';
                 const isLocked = !isFreeModel && !isPremium;
 
                 if (!isFreeModel) {
-                  console.log(`🔒 [MODEL] ${model.name}: isPremium=${isPremium}, isLocked=${isLocked}`);
+                  console.log(`🔒 [MODEL] ${model.name}: tier=${modelCost.tier}, isPremium=${isPremium}, isLocked=${isLocked}`);
                 }
 
                 return (
