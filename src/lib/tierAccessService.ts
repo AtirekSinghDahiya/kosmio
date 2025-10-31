@@ -36,25 +36,47 @@ export interface TierStatus {
  */
 export const isUserPaid = async (userId: string): Promise<boolean> => {
   try {
-    console.log('🔍 isUserPaid - Checking if user is in paid_tier_users:', userId);
+    console.log('🔍 [TIER CHECK STARTING] User ID:', userId);
 
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('paid_tier_users')
-      .select('id, tier_level, tokens_remaining')
-      .eq('id', userId)
-      .maybeSingle();
+      .select('*', { count: 'exact' })
+      .eq('id', userId);
+
+    console.log('📊 [TIER CHECK RAW RESULT]:', {
+      hasError: !!error,
+      error: error,
+      hasData: !!data,
+      dataIsNull: data === null,
+      dataLength: data?.length,
+      count: count,
+      fullData: data
+    });
 
     if (error) {
-      console.error('❌ Error checking paid_tier_users:', error);
+      console.error('❌ [TIER CHECK ERROR]:', error);
       return false;
     }
 
-    const isPaid = data !== null && data.tier_level === 'premium';
-    console.log('✅ isUserPaid result:', isPaid, data);
+    if (!data || data.length === 0) {
+      console.warn('⚠️ [TIER CHECK] NO RECORDS FOUND - User is FREE tier');
+      return false;
+    }
 
-    return isPaid;
+    const userRecord = data[0];
+    const isPremium = userRecord.tier_level === 'premium';
+
+    console.log('✅ [TIER CHECK SUCCESS]:', {
+      email: userRecord.email,
+      tier_level: userRecord.tier_level,
+      tokens_remaining: userRecord.tokens_remaining,
+      isPremium: isPremium,
+      RESULT: isPremium ? 'PAID USER ✅' : 'FREE USER ❌'
+    });
+
+    return isPremium;
   } catch (error) {
-    console.error('❌ Exception in isUserPaid:', error);
+    console.error('❌ [TIER CHECK EXCEPTION]:', error);
     return false;
   }
 };
