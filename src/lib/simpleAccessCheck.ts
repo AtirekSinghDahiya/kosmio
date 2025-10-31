@@ -6,7 +6,7 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
   try {
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('paid_tokens_balance, is_premium, current_tier')
+      .select('paid_tokens_balance, tokens_balance, free_tokens_balance, is_premium, current_tier')
       .eq('id', userId)
       .maybeSingle();
 
@@ -16,7 +16,10 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
     }
 
     if (profileData) {
-      const hasPaidTokens = (profileData.paid_tokens_balance || 0) > 0;
+      const totalTokens = (profileData.paid_tokens_balance || 0) +
+                         (profileData.tokens_balance || 0);
+
+      const hasPaidTokens = totalTokens > 0;
       const isPremiumFlag = profileData.is_premium === true;
       const isPremiumTier = profileData.current_tier === 'premium';
 
@@ -24,6 +27,8 @@ export async function isPremiumUser(userId: string): Promise<boolean> {
 
       console.log(`✅ User ${userId} premium check:`, {
         paid_tokens: profileData.paid_tokens_balance,
+        tokens_balance: profileData.tokens_balance,
+        total_tokens: totalTokens,
         is_premium: profileData.is_premium,
         tier: profileData.current_tier,
         result: isPremium ? 'PREMIUM' : 'FREE'
