@@ -179,11 +179,13 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
             <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
               {availableModels.map((model, index) => {
                 const modelCost = getModelCost(model.id);
-                const isPaidModel = !isModelFree(model.id);
-                // Show as unlocked if: loading, user is paid, or model is free
-                const isLocked = isPaidModel && !isPaidUser && !isLoadingTier;
+                const isFreeModel = isModelFree(model.id);
+                const isPaidModel = !isFreeModel;
 
-                console.log(`Model ${model.name}: isPaidModel=${isPaidModel}, isPaidUser=${isPaidUser}, isLoading=${isLoadingTier}, isLocked=${isLocked}`);
+                // Logic: Free models = always unlocked, Paid models = locked unless user is paid
+                const isLocked = isPaidModel && !isPaidUser;
+
+                console.log(`🔍 Model ${model.name}: tier=${modelCost.tier}, isFree=${isFreeModel}, isPaidUser=${isPaidUser}, isLocked=${isLocked}`);
 
                 return (
                   <button
