@@ -11,6 +11,8 @@ import { SubscriptionManager } from './SubscriptionManager';
 import { TokenPackPricing } from './TokenPackPricing';
 import { MessagePackPricing } from './MessagePackPricing';
 import { MessageCreditsService, UserCreditsInfo } from '../../lib/messageCreditsService';
+import { supabase } from '../../lib/supabase';
+import { clearUnifiedCache } from '../../lib/unifiedPremiumAccess';
 
 export const BillingView: React.FC = () => {
   const { user } = useAuth();
@@ -32,13 +34,78 @@ export const BillingView: React.FC = () => {
 
     setLoading(true);
     try {
-      setTokenBalances({ total: 10000000, paid: 10000000, free: 0, tier: 'paid' });
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('paid_tokens_balance, tokens_balance, free_tokens_balance, current_tier, is_paid')
+        .eq('id', user.uid)
+        .maybeSingle();
+
+      if (profile) {
+        const paidTokens = profile.paid_tokens_balance || 0;
+        const freeTokens = profile.free_tokens_balance || 0;
+        const totalTokens = profile.tokens_balance || (paidTokens + freeTokens);
+        const tier = (paidTokens > 0 || profile.is_paid) ? 'paid' : 'free';
+
+        setTokenBalances({
+          total: totalTokens,
+          paid: paidTokens,
+          free: freeTokens,
+          tier
+        });
+      }
 
       const credits = await MessageCreditsService.getUserCredits(user.uid);
       setMessageCredits(credits);
     } catch (error) {
-      console.error('Error loading data:', error);
       showToast('error', 'Load Failed', 'Could not load billing data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const grantTestPremium = async () => {
+    if (!user?.uid) return;
+
+    setLoading(true);
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          paid_tokens_balance: 10000000,
+          tokens_balance: 10000000,
+          is_premium: true,
+          is_paid: true,
+          current_tier: 'premium',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.uid);
+
+      clearUnifiedCache(user.uid);
+
+      await supabase
+        .from('paid_tier_users')
+        .upsert({
+          id: user.uid,
+          email: user.email || '',
+          tier_level: 'premium',
+          tokens_remaining: 10000000,
+          upgraded_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'id'
+        });
+
+      await supabase
+        .from('free_tier_users')
+        .delete()
+        .eq('id', user.uid);
+
+      showToast('success', 'Premium Granted!', 'You now have 10M premium tokens. Refresh the page to see changes.');
+      await loadData();
+
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      showToast('error', 'Failed', 'Could not grant premium access');
     } finally {
       setLoading(false);
     }
@@ -145,25 +212,33 @@ export const BillingView: React.FC = () => {
               {/* Current Tier */}
               <div className="glass-panel rounded-2xl p-6 border border-white/10">
                 <h3 className="text-xl font-bold text-white mb-4">Current Plan</h3>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <div>
                     <div className="text-2xl font-bold text-white capitalize">
-                      {messageCredits?.is_paid_user ? 'Paid' : 'Free'} Plan
+                      {tokenBalances.tier === 'paid' ? 'Paid' : 'Free'} Plan
                     </div>
                     <div className="text-white/60">
-                      {messageCredits?.is_paid_user
+                      {tokenBalances.tier === 'paid'
                         ? 'No daily limits • Tokens never expire'
                         : '1K tokens per day • Resets daily'}
                     </div>
                   </div>
                   <div className={`px-4 py-2 rounded-full ${
-                    messageCredits?.is_paid_user
+                    tokenBalances.tier === 'paid'
                       ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white'
                       : 'bg-green-500/20 text-green-300 border border-green-500/30'
                   } font-semibold`}>
-                    {messageCredits?.is_paid_user ? '💎 Premium' : '🆓 Free'}
+                    {tokenBalances.tier === 'paid' ? '💎 Premium' : '🆓 Free'}
                   </div>
                 </div>
+                {tokenBalances.tier === 'free' && (
+                  <button
+                    onClick={grantTestPremium}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all font-semibold"
+                  >
+                    🧪 Grant Test Premium (10M Tokens)
+                  </button>
+                )}
               </div>
 
               {/* Quick Actions */}
