@@ -32,6 +32,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   const [estimatedCost, setEstimatedCost] = useState<number>(0);
   const [isPremium, setIsPremium] = useState(false);
   const [canAccessVideoGen, setCanAccessVideoGen] = useState(false);
+  const [userTier, setUserTier] = useState<'free' | 'premium' | 'loading'>('loading');
 
   const soraAvailable = isFalSoraAvailable();
   const veo3Available = isVeo3Available();
@@ -44,11 +45,13 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
         const access = await getUserTierAccess(user.uid);
         setIsPremium(access.canAccessPremiumModels);
         setCanAccessVideoGen(access.canAccessVideoGeneration);
+        setUserTier(access.canAccessPremiumModels ? 'premium' : 'free');
         console.log('✅ [VIDEO GEN] User tier access:', access);
         console.log('✅ [VIDEO GEN] Can access video generation:', access.canAccessVideoGeneration);
       } else {
         setIsPremium(false);
         setCanAccessVideoGen(false);
+        setUserTier('free');
       }
     };
     checkAccess();
