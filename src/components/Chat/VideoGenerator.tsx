@@ -277,18 +277,8 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       return;
     }
 
-    // Check premium access using the SAME logic as chat AI models
-    if (!premiumStatus?.isPremium) {
-      console.error('[VIDEO GEN] ❌ ACCESS DENIED - Not premium:', {
-        isPremium: premiumStatus?.isPremium,
-        paidTokens: premiumStatus?.paidTokens,
-        tier: premiumStatus?.tier
-      });
-      showToast('error', 'Premium Feature', 'Video generation is only available for paid users. Please purchase tokens to access this feature.', 5000);
-      return;
-    }
-
-    console.log('[VIDEO GEN] ✅ ACCESS GRANTED - Premium user confirmed, starting generation');
+    // Access control is now handled by individual video services (Sora2/Veo3)
+    console.log('[VIDEO GEN] 🎬 Starting video generation...');
 
     if ((provider === 'sora' || provider === 'sora2-new') && !soraAvailable && !sora2NewAvailable) {
       showToast('error', 'API Key Missing', 'Sora API key is not configured');
@@ -446,15 +436,6 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
                   </div>
                 )}
 
-                {!isLoadingAccess && !premiumStatus?.isPremium && (
-                  <div className="flex items-start gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-                    <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-yellow-200">
-                      <p className="font-semibold mb-1">Premium Feature</p>
-                      <p className="text-yellow-300/80">Video generation is only available for users who have purchased tokens. Please purchase a token pack to access this premium feature.</p>
-                    </div>
-                  </div>
-                )}
 
                 {!veo3Available && (
                   <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">

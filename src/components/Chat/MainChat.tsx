@@ -415,17 +415,48 @@ export const MainChat: React.FC = () => {
       console.log('✅ AI Response received! Length:', aiContent.length);
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
 
-      // Step 5: Deduct tokens with 2x multiplier (handled by database function)
+      // Step 5: Deduct tokens with 2x multiplier based on OpenRouter cost
       console.log('💰 Processing token deduction...');
       console.log('💰 aiResponse.usage:', aiResponse.usage);
 
-      // Always deduct tokens, even if usage data is missing (use fallback)
-      // Fallback: estimate based on message length (rough: 1000 chars ≈ 250 tokens ≈ $0.0005)
+      // Get the actual cost from OpenRouter (or use fallback)
       const estimatedFallbackCost = Math.max(0.0005, (aiContent.length / 1000) * 0.0005);
-      const baseCost = aiResponse.usage?.total_cost || estimatedFallbackCost;
+      const openRouterCost = aiResponse.usage?.total_cost || estimatedFallbackCost;
 
-      console.log(`💰 Base cost from OpenRouter: $${baseCost.toFixed(6)}`);
-      console.log('✅ Premium user - token tracking skipped');
+      console.log(`💰 OpenRouter cost: $${openRouterCost.toFixed(6)}`);
+
+      // Apply 2x multiplier to OpenRouter cost
+      const finalCostUSD = openRouterCost * 2;
+
+      // Convert USD to tokens (1 token = $0.000001, so $1 = 1,000,000 tokens)
+      const tokensToDeduct = Math.ceil(finalCostUSD * 1000000);
+
+      console.log(`💰 Final cost (2x): $${finalCostUSD.toFixed(6)}`);
+      console.log(`💎 Tokens to deduct: ${tokensToDeduct.toLocaleString()}`);
+
+      // Deduct tokens from user's balance
+      try {
+        const { data: deductResult, error: deductError } = await supabase.rpc('deduct_tokens_simple', {
+          p_user_id: user.uid,
+          p_tokens: tokensToDeduct
+        });
+
+        if (deductError) {
+          console.error('❌ Token deduction error:', deductError);
+          showToast('warning', 'Token Deduction Failed', 'Response received but tokens were not deducted. Please contact support.');
+        } else if (deductResult && deductResult.success) {
+          console.log(`✅ Deducted ${tokensToDeduct.toLocaleString()} tokens. New balance: ${deductResult.new_balance?.toLocaleString()}`);
+          showToast('success', 'Tokens Deducted', `Used ${tokensToDeduct.toLocaleString()} tokens (2x OpenRouter cost)`);
+        } else {
+          console.warn('⚠️ Token deduction returned success=false:', deductResult);
+          if (deductResult?.error?.includes('insufficient')) {
+            showToast('error', 'Insufficient Balance', 'You don\'t have enough tokens. Please purchase more tokens to continue.');
+          }
+        }
+      } catch (deductErr: any) {
+        console.error('❌ Exception during token deduction:', deductErr);
+        showToast('error', 'Token Error', 'Failed to process token deduction. Please check your balance.');
+      }
 
       // Step 6: Save AI response
       console.log('💾 Saving AI response to database...');
