@@ -188,6 +188,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
         resolution: '720p',
         aspect_ratio: aspectRatio === '1:1' ? '16:9' : aspectRatio,
         duration: duration === 6 ? 8 : duration as 4 | 8 | 12,
+        userId: user?.uid,
       },
       (status, percent) => {
         setProgress(percent);
@@ -230,6 +231,7 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
         enhance_prompt: true,
         auto_fix: true,
         generate_audio: true,
+        userId: user?.uid,
       },
       (status, percent) => {
         setProgress(percent);

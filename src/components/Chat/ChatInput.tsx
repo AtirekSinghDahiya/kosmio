@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { ArrowUp, Paperclip, Mic, Image as ImageIcon, MoreHorizontal, Brain, Zap, Search, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
-import { TokenEstimateDisplay } from './TokenEstimateDisplay';
 
 interface ChatInputProps {
   value: string;
@@ -276,12 +275,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </div>
       </div>
 
-      {/* Token Estimate Display */}
-      <div className="flex items-center justify-between px-2">
-        <TokenEstimateDisplay
-          message={value}
-          conversationHistory={conversationHistory}
-        />
+      {/* Disclaimer */}
+      <div className="flex items-center justify-center px-2">
         <p className={`text-xs ${
           theme === 'light' ? 'text-gray-400' : 'text-white/30'
         }`}>
