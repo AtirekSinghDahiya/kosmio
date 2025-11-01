@@ -313,10 +313,32 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       }
     } catch (error: any) {
       console.error('Video generation error:', error);
-      let errorMessage = error?.message || 'Unable to generate video. Please try again.';
 
+      let errorMessage = 'Unable to generate video. Please try again.';
+
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.body?.detail) {
+        errorMessage = error.body.detail;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      // Check for specific error types
       if (errorMessage.includes('verification') || errorMessage.includes('AIMLAPI')) {
         errorMessage = 'Service configuration error. Please contact support.';
+      } else if (errorMessage.includes('credentials') || errorMessage.includes('API key')) {
+        errorMessage = 'API configuration error. Please check your settings.';
+      } else if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+        errorMessage = 'Service quota exceeded. Please try again later.';
+      } else if (errorMessage.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again with a shorter duration.';
+      } else if (errorMessage.includes('network')) {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (errorMessage.includes('premium') || errorMessage.includes('access')) {
+        errorMessage = 'Premium access required for video generation.';
       }
 
       showToast('error', 'Generation Failed', errorMessage);

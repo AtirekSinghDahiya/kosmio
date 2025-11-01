@@ -98,7 +98,29 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
       }
     } catch (error: any) {
       console.error('Image generation error:', error);
-      showToast('error', 'Generation failed', error.message || 'Could not generate image');
+
+      let errorMessage = 'Could not generate image';
+
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.body?.detail) {
+        errorMessage = error.body.detail;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      // Check for specific error types
+      if (errorMessage.includes('credentials') || errorMessage.includes('API key')) {
+        errorMessage = 'API configuration error. Please check your settings.';
+      } else if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
+        errorMessage = 'Service quota exceeded. Please try again later.';
+      } else if (errorMessage.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (errorMessage.includes('network')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+
+      showToast('error', 'Generation Failed', errorMessage);
       setImageLoading(false);
     } finally {
       setIsGenerating(false);
