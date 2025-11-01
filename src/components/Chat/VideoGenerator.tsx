@@ -42,13 +42,28 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
   useEffect(() => {
     const checkAccess = async () => {
       if (user?.uid) {
+        console.log('[VIDEO GEN] Checking access for user:', user.uid);
         const access = await getUserTierAccess(user.uid);
+        console.log('[VIDEO GEN] Access result:', {
+          isPremium: access.isPremium,
+          hasPaidTokens: access.hasPaidTokens,
+          paidTokensBalance: access.paidTokensBalance,
+          canAccessPremiumModels: access.canAccessPremiumModels,
+          canAccessVideoGeneration: access.canAccessVideoGeneration,
+          tier: access.tier
+        });
+
         setIsPremium(access.canAccessPremiumModels);
         setCanAccessVideoGen(access.canAccessVideoGeneration);
         setUserTier(access.canAccessPremiumModels ? 'premium' : 'free');
-        console.log('✅ [VIDEO GEN] User tier access:', access);
-        console.log('✅ [VIDEO GEN] Can access video generation:', access.canAccessVideoGeneration);
+
+        console.log('[VIDEO GEN] State updated:', {
+          isPremium: access.canAccessPremiumModels,
+          canAccessVideoGen: access.canAccessVideoGeneration,
+          userTier: access.canAccessPremiumModels ? 'premium' : 'free'
+        });
       } else {
+        console.log('[VIDEO GEN] No user, setting to free');
         setIsPremium(false);
         setCanAccessVideoGen(false);
         setUserTier('free');
@@ -248,15 +263,30 @@ export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initial
       return;
     }
 
+    console.log('[VIDEO GEN] Generate clicked with:', {
+      userTier,
+      canAccessVideoGen,
+      isPremium,
+      userId: user?.uid
+    });
+
     if (userTier === 'loading') {
       showToast('info', 'Checking Access', 'Please wait while we verify your tier status...');
       return;
     }
 
     if (!canAccessVideoGen) {
+      console.error('[VIDEO GEN] ❌ ACCESS DENIED:', {
+        userTier,
+        canAccessVideoGen,
+        isPremium,
+        userId: user?.uid
+      });
       showToast('error', 'Premium Feature', 'Video generation is only available for paid users. Please purchase tokens to access this feature.', 5000);
       return;
     }
+
+    console.log('[VIDEO GEN] ✅ ACCESS GRANTED - Starting generation');
 
     if ((provider === 'sora' || provider === 'sora2-new') && !soraAvailable && !sora2NewAvailable) {
       showToast('error', 'API Key Missing', 'Sora API key is not configured');
