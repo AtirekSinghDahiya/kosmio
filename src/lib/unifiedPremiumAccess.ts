@@ -12,10 +12,12 @@ export interface UnifiedPremiumStatus {
   timestamp: number;
 }
 
-const CACHE_DURATION = 2000;
+const CACHE_DURATION = 1000; // Reduced to 1 second for faster updates
 const cache = new Map<string, UnifiedPremiumStatus>();
 let authInitialized = false;
 let authInitPromise: Promise<void> | null = null;
+const profileSubscriptions = new Map<string, any>();
+const statusChangeCallbacks = new Map<string, Set<(status: UnifiedPremiumStatus) => void>>();
 
 // Expose debug functions to window
 if (typeof window !== 'undefined') {
@@ -102,13 +104,10 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
     const paidTokens = profile.paid_tokens_balance || 0;
     const totalTokens = profile.tokens_balance || 0;
 
-    // Premium status: Check paid_tokens_balance first (source of truth after migration)
-    // Then fallback to other flags for backward compatibility
-    const isPremium = paidTokens > 0 ||
-                     profile.is_premium === true ||
-                     profile.is_paid === true ||
-                     profile.current_tier === 'premium' ||
-                     profile.current_tier === 'ultra-premium';
+    // Premium status: ONLY check paid_tokens_balance (source of truth)
+    // Free users have tokens_balance (free tokens) but paid_tokens_balance should be 0
+    // DO NOT use is_premium flag as fallback - it can be incorrect
+    const isPremium = paidTokens > 0;
 
     console.log('💎 Premium calculation:', {
       paidTokens,
@@ -259,4 +258,67 @@ export async function forceRefreshPremiumStatus(userId?: string): Promise<Unifie
     clearUnifiedCache(userId);
   }
   return getUnifiedPremiumStatus(userId || undefined);
+}
+
+/**
+ * Subscribe to real-time premium status changes for a user
+ */
+export function subscribeToProfileChanges(
+  userId: string,
+  callback: (status: UnifiedPremiumStatus) => void
+): () => void {
+  // Add callback to the set
+  if (!statusChangeCallbacks.has(userId)) {
+    statusChangeCallbacks.set(userId, new Set());
+  }
+  statusChangeCallbacks.get(userId)!.add(callback);
+
+  // Set up subscription if not already subscribed
+  if (!profileSubscriptions.has(userId)) {
+    const subscription = supabase
+      .channel(`profile_${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`
+        },
+        async (payload) => {
+          console.log('📡 Profile changed:', payload);
+
+          // Clear cache and fetch fresh status
+          clearUnifiedCache(userId);
+          const newStatus = await getUnifiedPremiumStatus(userId);
+
+          // Notify all callbacks
+          const callbacks = statusChangeCallbacks.get(userId);
+          if (callbacks) {
+            callbacks.forEach(cb => cb(newStatus));
+          }
+        }
+      )
+      .subscribe();
+
+    profileSubscriptions.set(userId, subscription);
+  }
+
+  // Return unsubscribe function
+  return () => {
+    const callbacks = statusChangeCallbacks.get(userId);
+    if (callbacks) {
+      callbacks.delete(callback);
+
+      // If no more callbacks, unsubscribe from Supabase
+      if (callbacks.size === 0) {
+        const subscription = profileSubscriptions.get(userId);
+        if (subscription) {
+          subscription.unsubscribe();
+          profileSubscriptions.delete(userId);
+        }
+        statusChangeCallbacks.delete(userId);
+      }
+    }
+  };
 }

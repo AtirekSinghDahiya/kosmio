@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Check, ChevronDown, Lock, Zap, RefreshCw } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUnifiedPremiumStatus, clearUnifiedCache, forceRefreshPremiumStatus, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
+import { getUnifiedPremiumStatus, clearUnifiedCache, forceRefreshPremiumStatus, subscribeToProfileChanges, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 
 export interface AIModel {
@@ -74,6 +74,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const checkAccess = async () => {
     if (!currentUser) {
       console.log('❌ AIModelSelector: No current user');
+      setPremiumAccess(null);
       setIsLoading(false);
       return;
     }
@@ -95,6 +96,16 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   useEffect(() => {
     if (currentUser) {
       checkAccess();
+
+      // Subscribe to real-time profile changes
+      const unsubscribe = subscribeToProfileChanges(currentUser.uid, (newStatus) => {
+        console.log('📡 Received profile update in AIModelSelector:', newStatus);
+        setPremiumAccess(newStatus);
+      });
+
+      return () => {
+        unsubscribe();
+      };
     }
   }, [currentUser]);
 
