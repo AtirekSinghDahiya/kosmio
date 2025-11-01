@@ -437,27 +437,28 @@ export const MainChat: React.FC = () => {
       // Deduct tokens from user's balance
       let deductionSuccess = false;
       try {
+        console.log('🔄 Calling deduct_tokens_simple with:', { user_id: user.uid, tokens: tokensToDeduct });
+
         const { data: deductResult, error: deductError } = await supabase.rpc('deduct_tokens_simple', {
           p_user_id: user.uid,
           p_tokens: tokensToDeduct
         });
 
+        console.log('📊 Deduction result:', { deductResult, deductError });
+
         if (deductError) {
           console.error('❌ Token deduction error:', deductError);
-          showToast('warning', 'Token Deduction Failed', 'Response received but tokens were not deducted. Please contact support.');
+          // Don't show error toast - just log it
         } else if (deductResult && deductResult.success) {
           console.log(`✅ Deducted ${tokensToDeduct.toLocaleString()} tokens. New balance: ${deductResult.new_balance?.toLocaleString()}`);
-          showToast('success', 'Tokens Deducted', `Used ${tokensToDeduct.toLocaleString()} tokens (2x OpenRouter cost)`);
           deductionSuccess = true;
         } else {
           console.warn('⚠️ Token deduction returned success=false:', deductResult);
-          if (deductResult?.error?.includes('insufficient')) {
-            showToast('error', 'Insufficient Balance', 'You don\'t have enough tokens. Please purchase more tokens to continue.');
-          }
         }
       } catch (deductErr: any) {
         console.error('❌ Exception during token deduction:', deductErr);
-        showToast('error', 'Token Error', 'Failed to process token deduction. Please check your balance.');
+        console.error('❌ Error details:', JSON.stringify(deductErr, null, 2));
+        // Don't show error toast - AI response was successful
       }
 
       // Log usage to database for tracking and analytics

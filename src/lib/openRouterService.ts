@@ -89,9 +89,9 @@ export async function callOpenRouter(
 
     log('info', `Request body: ${JSON.stringify(requestBody).substring(0, 200)}`);
 
-    // Add timeout to prevent hanging requests (3 minutes for complex tasks)
+    // Add timeout to prevent hanging requests (5 minutes for complex tasks like website generation)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
 
     let response;
     try {
@@ -109,7 +109,7 @@ export async function callOpenRouter(
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       if (fetchError.name === 'AbortError') {
-        throw new Error('Request timed out after 3 minutes. The AI model may be overloaded. Please try again with a shorter prompt or a different model.');
+        throw new Error('Request timed out after 5 minutes. The AI model may be overloaded or the request is too complex. Try: 1) Using a faster model like Grok 4 Fast, 2) Breaking your request into smaller parts, or 3) Simplifying your prompt.');
       }
       throw fetchError;
     }

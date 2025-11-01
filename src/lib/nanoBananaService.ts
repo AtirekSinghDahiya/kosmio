@@ -1,10 +1,6 @@
-import { fal } from '@fal-ai/client';
+import { fal, isFalConfigured } from './falClient';
 
-const FAL_API_KEY = import.meta.env.VITE_FAL_KEY || import.meta.env.VITE_NANO_BANANA_API_KEY || '288cd86d-c5ff-40dc-a54e-3a0800cafc43:44049e7a693bb817738342bfd37b26e0';
-
-fal.config({
-  credentials: FAL_API_KEY
-});
+const FAL_API_KEY = import.meta.env.VITE_FAL_KEY || import.meta.env.VITE_NANO_BANANA_API_KEY || '6dfba93b-9c01-49de-b8a8-8b10b96d524c:150129ebf6144a9052c279f1749922b0';
 
 export interface NanoBananaRequest {
   prompt: string;
