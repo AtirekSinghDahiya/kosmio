@@ -202,7 +202,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {pricingTiers.map((tier) => (
             <div
               key={tier.id}
-              className="relative rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 flex flex-col"
+              className={`relative rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 flex flex-col ${tier.popular ? 'z-10' : 'z-0'}`}
               style={{
                 backgroundColor: tier.popular ? `${themeColors.accent}10` : themeColors.surface,
                 border: `2px solid ${tier.popular ? themeColors.accent : themeColors.border}`,
