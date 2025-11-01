@@ -202,7 +202,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           {pricingTiers.map((tier) => (
             <div
               key={tier.id}
-              className="relative rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-105"
+              className="relative rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:scale-[1.02] sm:hover:scale-105 flex flex-col"
               style={{
                 backgroundColor: tier.popular ? `${themeColors.accent}10` : themeColors.surface,
                 border: `2px solid ${tier.popular ? themeColors.accent : themeColors.border}`,
@@ -212,7 +212,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               {/* Badge */}
               {tier.badge && (
                 <div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap"
+                  className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap"
                   style={{
                     background: themeColors.gradient,
                     color: themeColors.text,
@@ -224,38 +224,60 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
 
               {/* Icon */}
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center mb-3 sm:mb-4 mx-auto"
                 style={{
                   background: themeColors.gradient,
                 }}
               >
                 {tier.id === 'pro' ? (
-                  <Crown className="w-6 h-6" style={{ color: themeColors.text }} />
+                  <Crown className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: themeColors.text }} />
                 ) : tier.popular ? (
-                  <Sparkles className="w-6 h-6" style={{ color: themeColors.text }} />
+                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: themeColors.text }} />
                 ) : (
-                  <Zap className="w-6 h-6" style={{ color: themeColors.text }} />
+                  <Zap className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: themeColors.text }} />
                 )}
               </div>
 
               {/* Name */}
               <h3
-                className="text-xl font-bold mb-2"
+                className="text-lg sm:text-xl font-bold mb-3 text-center"
                 style={{ color: themeColors.text }}
               >
                 {tier.name}
               </h3>
 
+              {/* Tokens - Moved up for better hierarchy */}
+              <div
+                className="px-3 py-3 sm:py-4 rounded-xl mb-3 text-center"
+                style={{
+                  backgroundColor: themeColors.surface,
+                  border: `1px solid ${themeColors.border}`,
+                }}
+              >
+                <div
+                  className="text-3xl sm:text-4xl font-bold mb-1"
+                  style={{ color: themeColors.accent }}
+                >
+                  {formatTokens(tier.tokens)}
+                </div>
+                <div
+                  className="text-xs sm:text-sm"
+                  style={{ color: themeColors.textMuted }}
+                >
+                  tokens
+                </div>
+              </div>
+
               {/* Price */}
-              <div className="mb-4">
-                <div className="flex items-baseline gap-1">
+              <div className="mb-4 text-center">
+                <div className="flex items-baseline justify-center gap-1">
                   <span
-                    className="text-4xl font-bold"
+                    className="text-3xl sm:text-4xl font-bold"
                     style={{ color: themeColors.text }}
                   >
                     ${getDiscountedPrice(tier.price)}
                   </span>
-                  <span style={{ color: themeColors.textMuted }}>
+                  <span className="text-sm" style={{ color: themeColors.textMuted }}>
                     {billingCycle === 'monthly' ? '/mo' : ''}
                   </span>
                 </div>
@@ -267,36 +289,22 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
                     Save ${(tier.price * 0.1).toFixed(2)}/month
                   </p>
                 )}
-              </div>
-
-              {/* Tokens */}
-              <div
-                className="px-3 py-2 rounded-lg mb-4 text-center"
-                style={{
-                  backgroundColor: themeColors.surface,
-                  border: `1px solid ${themeColors.border}`,
-                }}
-              >
-                <div
-                  className="text-2xl font-bold"
-                  style={{ color: themeColors.accent }}
-                >
-                  {formatTokens(tier.tokens)}
-                </div>
-                <div
-                  className="text-xs"
-                  style={{ color: themeColors.textMuted }}
-                >
-                  tokens
-                </div>
+                {billingCycle === 'one-time' && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: themeColors.textMuted }}
+                  >
+                    One-time payment
+                  </p>
+                )}
               </div>
 
               {/* Features */}
-              <ul className="space-y-2 mb-6">
+              <ul className="space-y-2 mb-5 flex-grow">
                 {tier.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
+                  <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
                     <Check
-                      className="w-4 h-4 mt-0.5 flex-shrink-0"
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 mt-0.5 flex-shrink-0"
                       style={{ color: themeColors.accent }}
                     />
                     <span style={{ color: themeColors.textSecondary }}>
@@ -309,7 +317,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
               {/* Button */}
               <button
                 onClick={() => handlePurchase(tier)}
-                className="w-full py-3 rounded-xl font-semibold transition-all"
+                className="w-full py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-all mt-auto"
                 style={{
                   background: tier.popular ? themeColors.gradient : themeColors.surface,
                   color: themeColors.text,
