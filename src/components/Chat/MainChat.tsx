@@ -435,6 +435,7 @@ export const MainChat: React.FC = () => {
       console.log(`💎 Tokens to deduct: ${tokensToDeduct.toLocaleString()}`);
 
       // Deduct tokens from user's balance
+      let deductionSuccess = false;
       try {
         const { data: deductResult, error: deductError } = await supabase.rpc('deduct_tokens_simple', {
           p_user_id: user.uid,
@@ -447,6 +448,7 @@ export const MainChat: React.FC = () => {
         } else if (deductResult && deductResult.success) {
           console.log(`✅ Deducted ${tokensToDeduct.toLocaleString()} tokens. New balance: ${deductResult.new_balance?.toLocaleString()}`);
           showToast('success', 'Tokens Deducted', `Used ${tokensToDeduct.toLocaleString()} tokens (2x OpenRouter cost)`);
+          deductionSuccess = true;
         } else {
           console.warn('⚠️ Token deduction returned success=false:', deductResult);
           if (deductResult?.error?.includes('insufficient')) {
@@ -456,6 +458,29 @@ export const MainChat: React.FC = () => {
       } catch (deductErr: any) {
         console.error('❌ Exception during token deduction:', deductErr);
         showToast('error', 'Token Error', 'Failed to process token deduction. Please check your balance.');
+      }
+
+      // Log usage to database for tracking and analytics
+      try {
+        await supabase.from('ai_usage_logs').insert({
+          user_id: user.uid,
+          model: selectedModel,
+          provider: aiResponse.provider || 'OpenRouter',
+          request_type: 'chat',
+          prompt: userMessage.substring(0, 500),
+          response_length: aiContent.length,
+          tokens_used: tokensToDeduct,
+          openrouter_cost_usd: openRouterCost,
+          final_cost_usd: finalCostUSD,
+          success: deductionSuccess,
+          metadata: {
+            usage: aiResponse.usage,
+            project_id: projectId
+          }
+        });
+        console.log('✅ Usage logged to database');
+      } catch (logErr) {
+        console.error('⚠️ Failed to log usage:', logErr);
       }
 
       // Step 6: Save AI response

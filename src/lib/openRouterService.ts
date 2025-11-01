@@ -89,17 +89,32 @@ export async function callOpenRouter(
 
     log('info', `Request body: ${JSON.stringify(requestBody).substring(0, 200)}`);
 
-    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': SITE_URL,
-        'X-Title': SITE_NAME,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // Add timeout to prevent hanging requests (3 minutes for complex tasks)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes
 
+    let response;
+    try {
+      response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'HTTP-Referer': SITE_URL,
+          'X-Title': SITE_NAME,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } catch (fetchError: any) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        throw new Error('Request timed out after 3 minutes. The AI model may be overloaded. Please try again with a shorter prompt or a different model.');
+      }
+      throw fetchError;
+    }
+
+    clearTimeout(timeoutId);
     log('info', `Response status: ${response.status}`);
 
     if (!response.ok) {
