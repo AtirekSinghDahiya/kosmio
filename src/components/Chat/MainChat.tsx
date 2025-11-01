@@ -38,6 +38,7 @@ import {
 import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../../lib/userPreferences';
 import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionService';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
