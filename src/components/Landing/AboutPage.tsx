@@ -159,10 +159,10 @@ export const AboutPage: React.FC = () => {
           </div>
 
           <div className="relative">
-            {/* Timeline Line */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#00FFF0] via-[#8A2BE2] to-[#00FFF0] transform -translate-x-1/2" />
+            {/* Timeline Line - Hidden on mobile */}
+            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#00FFF0] via-[#8A2BE2] to-[#00FFF0] transform -translate-x-1/2" />
 
-            <div className="space-y-16">
+            <div className="space-y-8 md:space-y-16">
               {milestones.map((milestone, idx) => {
                 const Icon = milestone.icon;
                 const isLeft = idx % 2 === 0;
@@ -170,26 +170,26 @@ export const AboutPage: React.FC = () => {
                 return (
                   <div
                     key={idx}
-                    className={`relative flex items-center ${isLeft ? 'flex-row' : 'flex-row-reverse'}`}
+                    className={`relative flex items-center md:${isLeft ? 'flex-row' : 'flex-row-reverse'} justify-center md:justify-normal`}
                   >
-                    <div className={`w-5/12 ${isLeft ? 'text-right pr-8' : 'text-left pl-8'}`}>
+                    <div className={`w-full md:w-5/12 ${isLeft ? 'md:text-right md:pr-8' : 'md:text-left md:pl-8'} px-4 md:px-0`}>
                       <Floating3DCard delay={idx * 100}>
-                        <div className="glass-panel rounded-2xl p-6 border border-white/20 hover:border-[#00FFF0]/50 transition-all duration-500">
-                          <div className={`inline-flex items-center gap-3 mb-3 ${isLeft ? 'flex-row-reverse' : ''}`}>
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center">
+                        <div className="glass-panel rounded-2xl p-4 md:p-6 border border-white/20 hover:border-[#00FFF0]/50 transition-all duration-500">
+                          <div className={`flex items-center gap-3 mb-3 ${isLeft ? 'md:flex-row-reverse' : ''}`}>
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 flex items-center justify-center flex-shrink-0">
                               <Icon className="w-5 h-5 text-[#00FFF0]" />
                             </div>
-                            <span className="text-2xl font-bold text-[#00FFF0]">{milestone.year}</span>
+                            <span className="text-lg md:text-2xl font-bold text-[#00FFF0]">{milestone.year}</span>
                           </div>
-                          <p className="text-white/80 text-lg">{milestone.event}</p>
+                          <p className="text-white/80 text-base md:text-lg break-words">{milestone.event}</p>
                         </div>
                       </Floating3DCard>
                     </div>
 
-                    {/* Center Dot */}
-                    <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] border-4 border-slate-900 z-10" />
+                    {/* Center Dot - Hidden on mobile */}
+                    <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] border-4 border-slate-900 z-10" />
 
-                    <div className="w-5/12" />
+                    <div className="hidden md:block w-5/12" />
                   </div>
                 );
               })}

@@ -111,9 +111,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
       <div
-        className="relative w-full max-w-6xl my-8 rounded-3xl border shadow-2xl"
+        className="relative w-full max-w-6xl my-4 sm:my-8 rounded-2xl sm:rounded-3xl border shadow-2xl max-h-[95vh] overflow-y-auto"
         style={{
           background: themeColors.backgroundSecondary,
           borderColor: themeColors.border,
@@ -121,7 +121,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
       >
         {/* Header */}
         <div
-          className="sticky top-0 z-10 backdrop-blur-xl border-b p-6 flex items-center justify-between rounded-t-3xl"
+          className="sticky top-0 z-10 backdrop-blur-xl border-b p-4 sm:p-6 flex items-center justify-between rounded-t-2xl sm:rounded-t-3xl"
           style={{
             borderColor: themeColors.border,
             background: `${themeColors.backgroundSecondary}cc`,
@@ -129,12 +129,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         >
           <div>
             <h2
-              className="text-3xl font-bold mb-1"
+              className="text-xl sm:text-3xl font-bold mb-1"
               style={{ color: themeColors.text }}
             >
               Choose Your Plan
             </h2>
-            <p style={{ color: themeColors.textMuted }}>
+            <p className="text-sm sm:text-base" style={{ color: themeColors.textMuted }}>
               Select the perfect token pack for your needs
             </p>
           </div>
@@ -157,9 +157,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         </div>
 
         {/* Billing Toggle */}
-        <div className="p-6 pb-0">
+        <div className="p-4 sm:p-6 pb-0 flex justify-center">
           <div
-            className="inline-flex rounded-full p-1 mx-auto"
+            className="inline-flex rounded-full p-1"
             style={{
               backgroundColor: themeColors.surface,
               border: `1px solid ${themeColors.border}`,
@@ -167,7 +167,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
           >
             <button
               onClick={() => setBillingCycle('one-time')}
-              className="px-6 py-2 rounded-full text-sm font-semibold transition-all"
+              className="px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all"
               style={{
                 backgroundColor: billingCycle === 'one-time' ? themeColors.accent : 'transparent',
                 color: billingCycle === 'one-time' ? themeColors.text : themeColors.textMuted,
@@ -177,7 +177,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
             </button>
             <button
               onClick={() => setBillingCycle('monthly')}
-              className="px-6 py-2 rounded-full text-sm font-semibold transition-all relative"
+              className="px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all relative"
               style={{
                 backgroundColor: billingCycle === 'monthly' ? themeColors.accent : 'transparent',
                 color: billingCycle === 'monthly' ? themeColors.text : themeColors.textMuted,
@@ -198,11 +198,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose }) => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {pricingTiers.map((tier) => (
             <div
               key={tier.id}
-              className="relative rounded-2xl p-6 transition-all duration-300 hover:scale-105"
+              className="relative rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:scale-105"
               style={{
                 backgroundColor: tier.popular ? `${themeColors.accent}10` : themeColors.surface,
                 border: `2px solid ${tier.popular ? themeColors.accent : themeColors.border}`,
