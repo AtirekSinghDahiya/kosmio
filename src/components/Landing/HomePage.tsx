@@ -36,37 +36,37 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
       icon: MessageSquare,
       title: 'Chat AI',
       description: 'Intelligent conversations powered by multiple AI models with context awareness and memory.',
-      stats: '10M+ conversations',
+      stats: '500+ conversations',
       color: 'from-cyan-500 to-blue-600'
     },
     {
       icon: Code,
       title: 'Code Studio',
       description: 'Generate, debug, and optimize code across multiple programming languages with AI assistance.',
-      stats: '500K+ projects',
+      stats: '50+ projects',
       color: 'from-purple-500 to-pink-600'
     },
     {
       icon: Palette,
       title: 'Design Studio',
       description: 'Create stunning visuals, logos, and UI designs with AI-powered creative tools.',
-      stats: '2M+ designs',
+      stats: '100+ designs',
       color: 'from-pink-500 to-rose-600'
     },
     {
       icon: Video,
       title: 'Video Studio',
       description: 'Edit, enhance, and generate video content with advanced AI video processing.',
-      stats: '100K+ videos',
+      stats: '50+ videos',
       color: 'from-blue-500 to-indigo-600'
     }
   ];
 
   const stats = [
-    { icon: Users, value: '100+', label: 'Active Users' },
-    { icon: Sparkles, value: '2,500+', label: 'AI Generations' },
+    { icon: Users, value: '50+', label: 'Active Users' },
+    { icon: Sparkles, value: '800+', label: 'AI Generations' },
     { icon: TrendingUp, value: '99.5%', label: 'Uptime' },
-    { icon: Star, value: '4.4/5', label: 'User Rating' }
+    { icon: Star, value: '4.5/5', label: 'User Rating' }
   ];
 
   const journey = [
@@ -112,6 +112,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             Harness the power of <span className="text-[#00FFF0] font-semibold">multiple AI models</span> in one unified platform. Create, code, design, and deploy with <span className="text-[#8A2BE2] font-semibold">unprecedented speed</span>.
           </p>
 
+          {/* Under Construction Notice */}
+          <div className="mb-8 px-6 py-3 glass-panel border border-[#00FFF0]/30 rounded-xl max-w-2xl mx-auto">
+            <p className="text-white/80 text-center text-sm">
+              🚧 <span className="font-semibold text-[#00FFF0]">Beta Version</span> - We're still building! Some features may be under development or not fully functional yet.
+            </p>
+          </div>
+
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
             <button
@@ -141,7 +148,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             {[
               { icon: Check, text: 'No credit card required' },
               { icon: Zap, text: 'Instant activation' },
-              { icon: Star, text: 'Trusted by 500K+ creators' }
+              { icon: Star, text: 'Trusted by 50+ early users' }
             ].map((item, idx) => {
               const Icon = item.icon;
               return (

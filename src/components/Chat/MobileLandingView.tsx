@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Code, Palette, Video, Volume2, Send, ArrowRight } from 'lucide-react';
+import { ImageIcon, Video, Send, ArrowRight, Presentation, Music } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AIModelSelector } from './AIModelSelector';
 
@@ -24,24 +24,24 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
   const { theme } = useTheme();
   const suggestions = [
     {
-      icon: Code,
-      title: 'Write Code',
-      prompt: 'Help me build a React component',
-    },
-    {
-      icon: Palette,
-      title: 'Design UI',
-      prompt: 'Design a modern landing page',
+      icon: ImageIcon,
+      title: 'Generate Image',
+      prompt: 'Create an image of a sunset over mountains',
     },
     {
       icon: Video,
-      title: 'Video Edit',
-      prompt: 'Help me edit a video',
+      title: 'Generate Video',
+      prompt: 'Generate a video of ocean waves',
     },
     {
-      icon: Volume2,
-      title: 'Generate Voice',
-      prompt: 'Generate a voice saying hello world',
+      icon: Presentation,
+      title: 'Create PPT',
+      prompt: 'Create a presentation about AI',
+    },
+    {
+      icon: Music,
+      title: 'Generate Song',
+      prompt: 'Create a calm instrumental music',
     }
   ];
 
