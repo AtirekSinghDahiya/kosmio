@@ -1,12 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { clearUnifiedCache } from '../lib/unifiedPremiumAccess';
-
-// Extended User type with Firebase compatibility (uid property)
-interface User extends SupabaseUser {
-  uid: string; // Alias for id (Firebase compatibility)
-}
 
 interface UserData {
   id: string;
@@ -55,14 +50,6 @@ const SESSION_KEY = 'kroniq_session_timestamp';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-  // Helper to create Firebase-compatible user object
-  const createCompatibleUser = (supabaseUser: SupabaseUser): User => {
-    return {
-      ...supabaseUser,
-      uid: supabaseUser.id // Add uid alias for Firebase compatibility
-    } as User;
-  };
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -364,87 +351,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔄 Setting up auth listener...');
 
-    // Initialize session on mount
-    const initAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error('❌ Error getting session:', error);
-          setLoading(false);
-          return;
-        }
-
-        if (session?.user) {
-          console.log('✅ Existing session found:', session.user.email);
-          setCurrentUser(createCompatibleUser(session.user));
-          updateSessionTimestamp();
-
-          // Fetch or create profile
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('id', session.user.id)
-              .maybeSingle();
-
-            if (!profile) {
-              console.log('📝 Creating profile for existing user...');
-              await createDefaultProfile(
-                session.user.id,
-                session.user.email!,
-                session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
-              );
-            } else {
-              await ensureTokenBalance(session.user.id);
-              await fetchUserData(session.user.id, session.user.email!);
-            }
-          } catch (profileError) {
-            console.error('❌ Profile error:', profileError);
-          }
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error('❌ Auth initialization error:', error);
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state changed:', event, session?.user?.email);
 
-      try {
-        if (session?.user) {
-          setCurrentUser(createCompatibleUser(session.user));
-          updateSessionTimestamp();
+      if (session?.user) {
+        setCurrentUser(session.user);
+        updateSessionTimestamp();
 
-          // Fetch or create profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', session.user.id)
-            .maybeSingle();
+        // Fetch or create profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-          if (!profile) {
-            console.log('📝 Creating profile for new user...');
-            await createDefaultProfile(
-              session.user.id,
-              session.user.email!,
-              session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
-            );
-          } else {
-            await ensureTokenBalance(session.user.id);
-            await fetchUserData(session.user.id, session.user.email!);
-          }
+        if (!profile) {
+          console.log('📝 Creating profile for new user...');
+          await createDefaultProfile(
+            session.user.id,
+            session.user.email!,
+            session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
+          );
         } else {
-          setCurrentUser(null);
-          setUserData(null);
+          await ensureTokenBalance(session.user.id);
+          await fetchUserData(session.user.id, session.user.email!);
         }
-      } catch (error) {
-        console.error('❌ Auth state change error:', error);
+      } else {
         setCurrentUser(null);
         setUserData(null);
       }
