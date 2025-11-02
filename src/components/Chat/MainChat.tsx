@@ -175,6 +175,21 @@ export const MainChat: React.FC = () => {
       return;
     }
 
+    // CRITICAL: Check token balance FIRST - Block if 0 tokens
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('tokens_balance, free_tokens_balance, paid_tokens_balance')
+      .eq('id', user?.uid)
+      .maybeSingle();
+
+    const totalTokens = (profile?.tokens_balance || 0);
+    console.log('💰 Current token balance:', totalTokens);
+
+    if (totalTokens <= 0) {
+      showToast('error', 'No Tokens Remaining', 'You have 0 tokens. Please purchase tokens or upgrade your plan to continue chatting.');
+      return;
+    }
+
     const messageAccess = await checkFeatureAccess('chat_messages_daily');
     if (!messageAccess.allowed) {
       showToast('error', 'Daily Limit Reached', `You've reached your daily message limit of ${messageAccess.limit} messages. Upgrade your plan to send more messages.`);
@@ -307,30 +322,42 @@ export const MainChat: React.FC = () => {
 
       // Import and use image service
       try {
-        const { generateImage } = await import('../../lib/imageService');
-        const imageUrl = await generateImage(finalPrompt);
+        console.log('🎨 Starting image generation with prompt:', finalPrompt);
+        const { imageService } = await import('../../lib/imageService');
+        const result = await imageService.generateImage(finalPrompt, 'flux-1.1-pro');
+        console.log('🎨 Image generation result:', result);
 
-        // Update message with generated image
+        if (result.success && result.url) {
+          console.log('✅ Image generated successfully! URL:', result.url);
+          // Update message with generated image
+          await supabase
+            .from('messages')
+            .update({
+              content: `Here's your generated image:`,
+              file_attachments: [{
+                id: Date.now().toString(),
+                type: 'image/png',
+                url: result.url,
+                name: 'generated-image.png',
+                size: 0
+              }]
+            })
+            .eq('id', generatingMsg.id);
+
+          // Force reload messages to show the image
+          await loadMessages(activeProjectId!);
+
+          showToast('success', 'Image Generated', 'Your image is ready!');
+        } else {
+          throw new Error(result.error || 'Image generation failed');
+        }
+      } catch (error: any) {
+        console.error('❌ Image generation error:', error);
         await supabase
           .from('messages')
-          .update({
-            content: `Here's your generated image: ${finalPrompt}`,
-            file_attachments: JSON.stringify([{
-              type: 'image',
-              url: imageUrl,
-              name: 'generated-image.png'
-            }])
-          })
+          .update({ content: `Failed to generate image: ${error.message}. Please try again.` })
           .eq('id', generatingMsg.id);
-
-        showToast('success', 'Image Generated', 'Your image has been created!');
-      } catch (error) {
-        console.error('Image generation error:', error);
-        await supabase
-          .from('messages')
-          .update({ content: 'Failed to generate image. Please try again.' })
-          .eq('id', generatingMsg.id);
-        showToast('error', 'Generation Failed', 'Failed to generate image');
+        showToast('error', 'Generation Failed', error.message || 'Failed to generate image');
       }
 
       return;
