@@ -1,15 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider,
-  User
-} from 'firebase/auth';
-import { auth } from '../lib/firebase';
 import { supabase } from '../lib/supabaseClient';
+import { User, Session } from '@supabase/supabase-js';
 import { clearUnifiedCache } from '../lib/unifiedPremiumAccess';
 
 interface UserData {
@@ -82,29 +73,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance, free_tokens_balance, monthly_token_limit')
+        .select('tokens_balance, free_tokens_balance')
         .eq('id', userId)
         .maybeSingle();
 
-      if (profile) {
-        const isFreeUser = !profile.is_paid && !profile.is_premium && profile.current_tier === 'free';
-
-        // If tokens_balance is missing or 0 for a free user, initialize with 150k
-        if ((profile.tokens_balance === null || profile.tokens_balance === 0) && isFreeUser && (profile.paid_tokens_balance === null || profile.paid_tokens_balance === 0)) {
-          console.log('🔧 Fixing missing tokens_balance for user, giving 150k tokens:', userId);
-          await supabase
-            .from('profiles')
-            .update({
-              tokens_balance: 150000,
-              free_tokens_balance: 150000,
-              daily_tokens_remaining: 5000,
-              daily_token_limit: 5000,
-              monthly_token_limit: 150000,
-              last_token_refresh: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', userId);
-        }
+      if (!profile || (!profile.tokens_balance && !profile.free_tokens_balance)) {
+        console.log('🪙 Initializing token balances...');
+        await supabase
+          .from('profiles')
+          .update({
+            tokens_balance: 5000000,
+            free_tokens_balance: 150000,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', userId);
       }
     } catch (error) {
       console.error('Error ensuring token balance:', error);
@@ -113,48 +95,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createSupabaseProfile = async (userId: string, email: string, displayName?: string) => {
     try {
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (existingProfile) {
-        await ensureTokenBalance(userId);
-        return;
-      }
-
-      console.log('🆕 Creating new profile with 150k tokens for user:', userId);
-
-      const result = await supabase
+      const { error } = await supabase
         .from('profiles')
         .insert({
           id: userId,
-          email,
-          display_name: displayName || email.split('@')[0],
-          avatar_url: null,
-          tokens_balance: 150000,
-          free_tokens_balance: 150000,
-          paid_tokens_balance: 0,
-          daily_tokens_remaining: 5000,
-          daily_token_limit: 5000,
-          monthly_token_limit: 150000,
+          email: email,
+          display_name: displayName || '',
+          photo_url: '',
+          bio: '',
+          location: '',
+          phone: '',
           current_tier: 'free',
-          is_paid: false,
-          is_premium: false,
-          last_token_refresh: new Date().toISOString(),
-          last_reset_date: new Date().toISOString(),
+          tokens_balance: 5000000,
+          free_tokens_balance: 150000,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
 
-      console.log('✅ Profile created successfully:', result);
-
-      if (result.error) {
-        console.error('❌ Error creating profile:', result.error);
-        throw result.error;
+      if (error && !error.message.includes('duplicate key')) {
+        throw error;
       }
-    } catch (error) {
+
+      console.log('✅ Profile created in Supabase');
+    } catch (error: any) {
+      if (error.message && error.message.includes('duplicate key')) {
+        console.log('ℹ️ Profile already exists');
+      } else {
+        console.error('❌ Error creating profile:', error);
+        throw error;
+      }
     }
   };
 
@@ -225,22 +194,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Password should be at least 6 characters');
       }
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      clearUnifiedCache(userCredential.user.uid);
-      await createDefaultProfile(userCredential.user.uid, email, displayName);
-    } catch (error: any) {
+      console.log('🔐 Signing up with Supabase...');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName || ''
+          },
+          emailRedirectTo: window.location.origin
+        }
+      });
 
-      // Translate Firebase error codes to user-friendly messages
-      if (error.code === 'auth/email-already-in-use') {
+      if (error) throw error;
+
+      if (data.user) {
+        console.log('✅ User created:', data.user.id);
+        clearUnifiedCache(data.user.id);
+        await createDefaultProfile(data.user.id, email, displayName);
+        updateSessionTimestamp();
+      }
+    } catch (error: any) {
+      console.error('❌ Sign up error:', error);
+
+      // Translate Supabase error codes to user-friendly messages
+      if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
         throw new Error('This email is already registered. Please sign in instead.');
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message?.includes('invalid email')) {
         throw new Error('Please enter a valid email address.');
-      } else if (error.code === 'auth/operation-not-allowed') {
-        throw new Error('Email/password sign up is not enabled. Please contact support.');
-      } else if (error.code === 'auth/weak-password') {
+      } else if (error.message?.includes('Password should be at least')) {
         throw new Error('Password should be at least 6 characters.');
-      } else if (error.code === 'auth/network-request-failed') {
-        throw new Error('Network error. Please check your internet connection.');
       }
 
       throw error;
@@ -249,43 +232,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
-      console.log('🔵 Starting Google sign in...');
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
+      console.log('🔵 Starting Google sign in with Supabase...');
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
       });
 
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
+      if (error) throw error;
 
-      console.log('✅ Google sign in successful:', user.email);
+      console.log('✅ Google OAuth initiated');
       updateSessionTimestamp();
-      clearUnifiedCache(user.uid);
-
-      // Check if profile exists, create if not
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.uid)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        console.log('📝 Creating profile for Google user...');
-        await createDefaultProfile(user.uid, user.email!, user.displayName || undefined);
-      }
-
-      await fetchUserData(user.uid, user.email!);
     } catch (error: any) {
       console.error('❌ Google sign in error:', error);
 
-      if (error.code === 'auth/popup-closed-by-user') {
-        throw new Error('Sign in cancelled. Please try again.');
-      } else if (error.code === 'auth/popup-blocked') {
+      if (error.message?.includes('popup')) {
         throw new Error('Popup blocked. Please allow popups for this site.');
-      } else if (error.code === 'auth/account-exists-with-different-credential') {
-        throw new Error('An account already exists with this email using a different sign-in method.');
-      } else if (error.code === 'auth/network-request-failed') {
-        throw new Error('Network error. Please check your internet connection.');
       }
 
       throw error;
@@ -298,24 +266,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email and password are required');
       }
 
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      updateSessionTimestamp();
-      clearUnifiedCache(userCredential.user.uid);
-    } catch (error: any) {
+      console.log('🔐 Signing in with Supabase...');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      // Translate Firebase error codes to user-friendly messages
-      if (error.code === 'auth/user-not-found') {
-        throw new Error('No account found with this email. Please sign up first.');
-      } else if (error.code === 'auth/wrong-password') {
-        throw new Error('Incorrect password. Please try again.');
-      } else if (error.code === 'auth/invalid-email') {
-        throw new Error('Please enter a valid email address.');
-      } else if (error.code === 'auth/user-disabled') {
-        throw new Error('This account has been disabled. Please contact support.');
-      } else if (error.code === 'auth/network-request-failed') {
-        throw new Error('Network error. Please check your internet connection.');
-      } else if (error.code === 'auth/invalid-credential') {
-        throw new Error('Invalid email or password. Please try again.');
+      if (error) throw error;
+
+      if (data.user) {
+        console.log('✅ Sign in successful');
+        updateSessionTimestamp();
+        clearUnifiedCache(data.user.id);
+        await ensureTokenBalance(data.user.id);
+        await fetchUserData(data.user.id, data.user.email!);
+      }
+    } catch (error: any) {
+      console.error('❌ Sign in error:', error);
+
+      // Translate Supabase error codes to user-friendly messages
+      if (error.message?.includes('Invalid login credentials')) {
+        throw new Error('Invalid email or password. Please check your credentials.');
+      } else if (error.message?.includes('Email not confirmed')) {
+        throw new Error('Please confirm your email address before signing in.');
       }
 
       throw error;
@@ -324,11 +297,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      await firebaseSignOut(auth);
-      clearSession();
+      console.log('👋 Signing out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      setCurrentUser(null);
       setUserData(null);
+      clearSession();
       clearUnifiedCache();
+      console.log('✅ Signed out successfully');
     } catch (error) {
+      console.error('❌ Sign out error:', error);
       throw error;
     }
   };
@@ -352,69 +331,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase
         .from('profiles')
         .update(supabaseData)
-        .eq('id', currentUser.uid);
+        .eq('id', currentUser.id);
 
       if (error) throw error;
 
       setUserData(prev => prev ? { ...prev, ...data } : null);
-    } catch (error: any) {
-
-      if (error.code === 'PGRST116') {
-        throw new Error('Profile not found. Please contact support.');
-      } else if (error.code === 'unavailable') {
-        throw new Error('Network error. Please check your internet connection.');
-      } else if (error.code === 'not-found') {
-        throw new Error('Profile not found. Try signing out and back in.');
-      } else {
-        throw new Error(error.message || 'Failed to update profile. Please try again.');
-      }
+    } catch (error) {
+      throw error;
     }
   };
 
   const refreshUserData = async () => {
     if (currentUser) {
-      await fetchUserData(currentUser.uid, currentUser.email || '');
+      await fetchUserData(currentUser.id, currentUser.email!);
     }
   };
 
+  // Listen to auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
+    console.log('🔄 Setting up auth listener...');
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.email);
+
+      if (session?.user) {
+        setCurrentUser(session.user);
         updateSessionTimestamp();
-        setCurrentUser(user);
-        clearUnifiedCache(user.uid);
-        await fetchUserData(user.uid, user.email || '');
+
+        // Fetch or create profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (!profile) {
+          console.log('📝 Creating profile for new user...');
+          await createDefaultProfile(
+            session.user.id,
+            session.user.email!,
+            session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
+          );
+        } else {
+          await ensureTokenBalance(session.user.id);
+          await fetchUserData(session.user.id, session.user.email!);
+        }
       } else {
         setCurrentUser(null);
         setUserData(null);
-        clearSession();
-        clearUnifiedCache();
       }
 
       setLoading(false);
     });
 
-    const activityHandler = () => {
-      if (currentUser && checkSessionValidity()) {
-        updateSessionTimestamp();
-      }
-    };
-
-    window.addEventListener('click', activityHandler);
-    window.addEventListener('keydown', activityHandler);
-    window.addEventListener('scroll', activityHandler);
-
+    // Check session validity periodically
     const sessionCheck = setInterval(() => {
       if (currentUser && !checkSessionValidity()) {
-        firebaseSignOut(auth);
+        console.log('⏰ Session expired, signing out...');
+        signOut();
       }
     }, 60000);
 
     return () => {
-      unsubscribe();
-      window.removeEventListener('click', activityHandler);
-      window.removeEventListener('keydown', activityHandler);
-      window.removeEventListener('scroll', activityHandler);
+      authListener.subscription.unsubscribe();
       clearInterval(sessionCheck);
     };
   }, [currentUser]);
