@@ -364,32 +364,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔄 Setting up auth listener...');
 
+    // Initialize session on mount
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+
+        if (session?.user) {
+          console.log('✅ Existing session found:', session.user.email);
+          setCurrentUser(createCompatibleUser(session.user));
+          updateSessionTimestamp();
+
+          // Fetch or create profile
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (!profile) {
+              console.log('📝 Creating profile for existing user...');
+              await createDefaultProfile(
+                session.user.id,
+                session.user.email!,
+                session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
+              );
+            } else {
+              await ensureTokenBalance(session.user.id);
+              await fetchUserData(session.user.id, session.user.email!);
+            }
+          } catch (profileError) {
+            console.error('❌ Profile error:', profileError);
+          }
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('❌ Auth initialization error:', error);
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state changed:', event, session?.user?.email);
 
-      if (session?.user) {
-        setCurrentUser(createCompatibleUser(session.user));
-        updateSessionTimestamp();
+      try {
+        if (session?.user) {
+          setCurrentUser(createCompatibleUser(session.user));
+          updateSessionTimestamp();
 
-        // Fetch or create profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', session.user.id)
-          .maybeSingle();
+          // Fetch or create profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-        if (!profile) {
-          console.log('📝 Creating profile for new user...');
-          await createDefaultProfile(
-            session.user.id,
-            session.user.email!,
-            session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
-          );
+          if (!profile) {
+            console.log('📝 Creating profile for new user...');
+            await createDefaultProfile(
+              session.user.id,
+              session.user.email!,
+              session.user.user_metadata?.display_name || session.user.user_metadata?.full_name
+            );
+          } else {
+            await ensureTokenBalance(session.user.id);
+            await fetchUserData(session.user.id, session.user.email!);
+          }
         } else {
-          await ensureTokenBalance(session.user.id);
-          await fetchUserData(session.user.id, session.user.email!);
+          setCurrentUser(null);
+          setUserData(null);
         }
-      } else {
+      } catch (error) {
+        console.error('❌ Auth state change error:', error);
         setCurrentUser(null);
         setUserData(null);
       }
