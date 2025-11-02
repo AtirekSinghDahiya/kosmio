@@ -223,30 +223,79 @@ export const MainChat: React.FC = () => {
       return;
     }
 
-    // Auto-detect video generation requests
+    // Auto-detect video generation requests - INLINE in chat
     const videoKeywords = /\b(generate|create|make|show|render|produce)\b.*\b(video|clip|animation|footage|movie)\b/i;
     const videoRequestPattern = /\b(video|clip|animation) (of|about|showing|with|depicting)\b/i;
 
     if (videoKeywords.test(textToSend) || videoRequestPattern.test(textToSend)) {
-      console.log('🎬 Video generation detected!');
+      console.log('🎬 Video generation detected - generating inline!');
       setInputValue('');
 
       const cleanPrompt = textToSend
         .replace(/^(generate|create|make|show|render|produce)\s+(a|an)?\s+(video|clip|animation|footage|movie)\s+(of|about|showing|with|depicting)?\s*/i, '')
         .trim();
 
-      setVideoPrompt(cleanPrompt || textToSend);
-      setShowVideoGenerator(true);
+      const finalPrompt = cleanPrompt || textToSend;
+      setIsLoading(true);
+
+      try {
+        // Create or use project
+        let projectId = activeProjectId;
+        if (!projectId) {
+          const project = await createProject('Video Generation', 'chat', finalPrompt);
+          projectId = project.id;
+          setActiveProjectId(projectId);
+        }
+
+        // Add user message
+        await addMessage(projectId, 'user', textToSend, []);
+
+        // Add generating message
+        const generatingMsg = await addMessage(projectId, 'assistant', '🎬 Generating video... This may take 2-3 minutes.', []);
+
+        // Generate video - using Runway
+        const { runwayService } = await import('../../lib/runwayService');
+        const result = await runwayService.generateVideo(finalPrompt);
+
+        if (result && result.videoUrl) {
+          console.log('✅ Video generated:', result.videoUrl);
+
+          // Update message with video player
+          await supabase
+            .from('messages')
+            .update({
+              content: `Here's your generated video:`,
+              file_attachments: [{
+                id: Date.now().toString(),
+                type: 'video/mp4',
+                url: result.videoUrl,
+                name: 'generated-video.mp4',
+                size: 0
+              }]
+            })
+            .eq('id', generatingMsg.id);
+
+          await loadMessages(projectId);
+          showToast('success', 'Video Generated', 'Your video is ready!');
+        } else {
+          throw new Error('Video generation failed');
+        }
+      } catch (error: any) {
+        console.error('❌ Video generation error:', error);
+        showToast('error', 'Generation Failed', error.message || 'Failed to generate video');
+      } finally {
+        setIsLoading(false);
+      }
 
       return;
     }
 
-    // Auto-detect music generation requests
+    // Auto-detect music generation requests - INLINE in chat
     const musicKeywords = /\b(generate|create|make|compose|produce|write)\b.*\b(music|song|track|tune|beat|melody|soundtrack|audio|composition)\b/i;
     const musicRequestPattern = /\b(music|song|track|tune) (about|for|with|depicting)\b/i;
 
     if (musicKeywords.test(textToSend) || musicRequestPattern.test(textToSend)) {
-      console.log('🎵 Music generation detected!');
+      console.log('🎵 Music generation detected - generating inline!');
       setInputValue('');
 
       // Extract the prompt (remove command words)
@@ -254,8 +303,61 @@ export const MainChat: React.FC = () => {
         .replace(/^(generate|create|make|compose|produce|write)\s+(an?\s+)?(music|song|track|tune|beat|melody|soundtrack|audio|composition)\s+(about|for|with|depicting)?\s*/i, '')
         .trim();
 
-      setMusicPrompt(cleanPrompt || textToSend);
-      setShowMusicGenerator(true);
+      const finalPrompt = cleanPrompt || textToSend;
+      setIsLoading(true);
+
+      try {
+        // Create or use project
+        let projectId = activeProjectId;
+        if (!projectId) {
+          const project = await createProject('Music Generation', 'chat', finalPrompt);
+          projectId = project.id;
+          setActiveProjectId(projectId);
+        }
+
+        // Add user message
+        await addMessage(projectId, 'user', textToSend, []);
+
+        // Add generating message
+        const generatingMsg = await addMessage(projectId, 'assistant', '🎵 Generating music... This may take 1-2 minutes.', []);
+
+        // Generate music
+        const { sunoService } = await import('../../lib/sunoService');
+        const result = await sunoService.generateMusic({
+          prompt: finalPrompt,
+          makeInstrumental: false
+        });
+
+        if (result && result.songs && result.songs.length > 0) {
+          const song = result.songs[0];
+          console.log('✅ Music generated:', song);
+
+          // Update message with audio player
+          await supabase
+            .from('messages')
+            .update({
+              content: `Here's your generated music: "${song.title}"`,
+              file_attachments: [{
+                id: song.id,
+                type: 'audio/mpeg',
+                url: song.audioUrl,
+                name: `${song.title}.mp3`,
+                size: 0
+              }]
+            })
+            .eq('id', generatingMsg.id);
+
+          await loadMessages(projectId);
+          showToast('success', 'Music Generated', 'Your music is ready!');
+        } else {
+          throw new Error('Music generation failed');
+        }
+      } catch (error: any) {
+        console.error('❌ Music generation error:', error);
+        showToast('error', 'Generation Failed', error.message || 'Failed to generate music');
+      } finally {
+        setIsLoading(false);
+      }
 
       return;
     }
@@ -323,11 +425,11 @@ export const MainChat: React.FC = () => {
       // Import and use image service
       try {
         console.log('🎨 Starting image generation with prompt:', finalPrompt);
-        const { imageService } = await import('../../lib/imageService');
-        const result = await imageService.generateImage(finalPrompt, 'flux-1.1-pro');
+        const { generateImageFree } = await import('../../lib/imageService');
+        const result = await generateImageFree(finalPrompt);
         console.log('🎨 Image generation result:', result);
 
-        if (result.success && result.url) {
+        if (result && result.url) {
           console.log('✅ Image generated successfully! URL:', result.url);
           // Update message with generated image
           await supabase
@@ -436,10 +538,10 @@ export const MainChat: React.FC = () => {
           project_id: projectId,
           role: 'user',
           content: textToSend,
-          file_attachments: JSON.stringify(fileAttachments)
+          file_attachments: fileAttachments
         });
       } else {
-        await addMessage(projectId, 'user', textToSend);
+        await addMessage(projectId, 'user', textToSend, []);
       }
 
       // Get AI response
@@ -773,9 +875,13 @@ export const MainChat: React.FC = () => {
                       </div>
 
                       {/* Display Attachments */}
-                      {message.file_attachments && typeof message.file_attachments === 'string' && (() => {
+                      {message.file_attachments && (() => {
                         try {
-                          const attachments = JSON.parse(message.file_attachments);
+                          // Handle both stringified and direct array
+                          const attachments = typeof message.file_attachments === 'string'
+                            ? JSON.parse(message.file_attachments)
+                            : message.file_attachments;
+
                           if (Array.isArray(attachments) && attachments.length > 0) {
                             return (
                               <div className="mt-3 space-y-2">
@@ -788,6 +894,22 @@ export const MainChat: React.FC = () => {
                                         className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
                                         onClick={() => window.open(attachment.url, '_blank')}
                                       />
+                                    ) : attachment.type?.startsWith('audio/') ? (
+                                      <div className="mt-2">
+                                        <audio controls className="w-full max-w-md">
+                                          <source src={attachment.url} type={attachment.type} />
+                                          Your browser does not support the audio element.
+                                        </audio>
+                                        <p className="text-xs mt-1 opacity-70">🎵 {attachment.name || 'Audio file'}</p>
+                                      </div>
+                                    ) : attachment.type?.startsWith('video/') ? (
+                                      <div className="mt-2">
+                                        <video controls className="w-full max-w-2xl rounded-lg">
+                                          <source src={attachment.url} type={attachment.type} />
+                                          Your browser does not support the video element.
+                                        </video>
+                                        <p className="text-xs mt-1 opacity-70">🎬 {attachment.name || 'Video file'}</p>
+                                      </div>
                                     ) : (
                                       <a
                                         href={attachment.url}
