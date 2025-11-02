@@ -79,22 +79,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance')
+        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance, free_tokens_balance, monthly_token_limit')
         .eq('id', userId)
         .maybeSingle();
 
       if (profile) {
         const isFreeUser = !profile.is_paid && !profile.is_premium && profile.current_tier === 'free';
 
-        // If tokens_balance is missing or 0 for a free user, initialize it
+        // If tokens_balance is missing or 0 for a free user, initialize with 150k
         if ((profile.tokens_balance === null || profile.tokens_balance === 0) && isFreeUser && (profile.paid_tokens_balance === null || profile.paid_tokens_balance === 0)) {
-          console.log('🔧 Fixing missing tokens_balance for user:', userId);
+          console.log('🔧 Fixing missing tokens_balance for user, giving 150k tokens:', userId);
           await supabase
             .from('profiles')
             .update({
-              tokens_balance: 5000,
+              tokens_balance: 150000,
+              free_tokens_balance: 150000,
               daily_tokens_remaining: 5000,
               daily_token_limit: 5000,
+              monthly_token_limit: 150000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -119,18 +121,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      await supabase
+      console.log('🆕 Creating new profile with 150k tokens for user:', userId);
+
+      const result = await supabase
         .from('profiles')
         .insert({
           id: userId,
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          tokens_balance: 5000,
-          free_tokens_balance: 6667,
+          tokens_balance: 150000,
+          free_tokens_balance: 150000,
           paid_tokens_balance: 0,
           daily_tokens_remaining: 5000,
           daily_token_limit: 5000,
+          monthly_token_limit: 150000,
           current_tier: 'free',
           is_paid: false,
           is_premium: false,
@@ -139,6 +144,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
+
+      console.log('✅ Profile created successfully:', result);
+
+      if (result.error) {
+        console.error('❌ Error creating profile:', result.error);
+        throw result.error;
+      }
     } catch (error) {
     }
   };

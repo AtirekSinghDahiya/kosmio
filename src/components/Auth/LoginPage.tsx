@@ -76,19 +76,24 @@ export const LoginPage: React.FC = () => {
     console.log('   Auth domain:', auth?.app?.options?.authDomain);
   }, []);
 
-  const handlePromoRedemption = async (userId: string) => {
+  const handlePromoRedemption = async (userId: string, userEmail: string) => {
     if (!promoCode) return;
 
     try {
+      console.log('🎯 Starting promo redemption for:', { userId, userEmail, promoCode });
+
       const ipAddress = await PromoService.getUserIpAddress();
       const userAgent = PromoService.getUserAgent();
 
       const result = await PromoService.redeemPromoCode(
         userId,
         promoCode,
+        userEmail,
         ipAddress || undefined,
         userAgent
       );
+
+      console.log('📊 Redemption result:', result);
 
       if (result.success) {
         console.log('🎉 Promo redeemed successfully:', result);
@@ -125,7 +130,7 @@ export const LoginPage: React.FC = () => {
         console.log('✅ Sign up successful, waiting for redirect...');
 
         if (promoCode && currentUser) {
-          await handlePromoRedemption(currentUser.uid);
+          await handlePromoRedemption(currentUser.uid, email);
         }
       }
 
@@ -159,8 +164,9 @@ export const LoginPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentUser && promoCode && !isLogin) {
-      handlePromoRedemption(currentUser.uid);
+    if (currentUser && promoCode && !isLogin && email) {
+      console.log('🔄 User authenticated, attempting promo redemption...');
+      handlePromoRedemption(currentUser.uid, email);
     }
   }, [currentUser]);
 

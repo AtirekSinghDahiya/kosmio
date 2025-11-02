@@ -160,17 +160,18 @@ export const MainChat: React.FC = () => {
   };
 
   // Send message
-  const handleSendMessage = async (messageText?: string) => {
+  const handleSendMessage = async (messageText?: string, attachments?: File[]) => {
     console.log('🚀 handleSendMessage CALLED!');
     console.log('📝 messageText:', messageText);
     console.log('📝 inputValue:', inputValue);
+    console.log('📎 attachments:', attachments?.length || 0);
 
     const textToSend = messageText || inputValue.trim();
     console.log('📝 textToSend:', textToSend);
     console.log('⏳ isLoading:', isLoading);
 
-    if (!textToSend || isLoading) {
-      console.warn('⚠️ BLOCKED: textToSend empty or already loading');
+    if ((!textToSend && (!attachments || attachments.length === 0)) || isLoading) {
+      console.warn('⚠️ BLOCKED: No text or attachments, or already loading');
       return;
     }
 
@@ -260,6 +261,18 @@ export const MainChat: React.FC = () => {
       }, 500);
 
       return;
+    }
+
+    // Handle file attachments
+    if (attachments && attachments.length > 0) {
+      console.log('📎 Files attached:', attachments.length);
+      showToast('info', 'Files Attached', `${attachments.length} file(s) will be included in your message`);
+
+      // TODO: Upload files and include URLs in message
+      // For now, just notify the user
+      const fileNames = attachments.map(f => f.name).join(', ');
+      const enhancedText = textToSend + `\n\n[Attached files: ${fileNames}]`;
+      // Continue with enhancedText instead of textToSend when implemented
     }
 
     // Auto-detect image generation requests
@@ -638,7 +651,7 @@ export const MainChat: React.FC = () => {
               {/* Desktop Landing View */}
               <div className="hidden md:block">
                 <LandingView
-                  onQuickAction={(text) => handleSendMessage(text)}
+                  onQuickAction={(text, files) => handleSendMessage(text, files)}
                   selectedModel={selectedModel}
                   onModelChange={setSelectedModel}
                 />

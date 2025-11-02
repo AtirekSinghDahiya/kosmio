@@ -71,13 +71,17 @@ export class PromoService {
   static async redeemPromoCode(
     userId: string,
     campaignCode: string,
+    userEmail?: string,
     ipAddress?: string,
     userAgent?: string
   ): Promise<RedemptionResult> {
     try {
+      console.log('🎁 Redeeming promo code:', { userId, campaignCode, userEmail });
+
       const { data, error } = await supabase.rpc('redeem_promo_atomic', {
         p_user_id: userId,
         p_campaign_code: campaignCode,
+        p_user_email: userEmail || null,
         p_ip_address: ipAddress || null,
         p_user_agent: userAgent || null
       });
