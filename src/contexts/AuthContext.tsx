@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { User, Session } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { clearUnifiedCache } from '../lib/unifiedPremiumAccess';
+
+// Extended User type with Firebase compatibility (uid property)
+interface User extends SupabaseUser {
+  uid: string; // Alias for id (Firebase compatibility)
+}
 
 interface UserData {
   id: string;
@@ -50,6 +55,14 @@ const SESSION_KEY = 'kroniq_session_timestamp';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Helper to create Firebase-compatible user object
+  const createCompatibleUser = (supabaseUser: SupabaseUser): User => {
+    return {
+      ...supabaseUser,
+      uid: supabaseUser.id // Add uid alias for Firebase compatibility
+    } as User;
+  };
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -355,7 +368,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🔐 Auth state changed:', event, session?.user?.email);
 
       if (session?.user) {
-        setCurrentUser(session.user);
+        setCurrentUser(createCompatibleUser(session.user));
         updateSessionTimestamp();
 
         // Fetch or create profile
