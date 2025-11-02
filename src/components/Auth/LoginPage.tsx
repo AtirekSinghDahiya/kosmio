@@ -4,6 +4,10 @@ import { Mail, Lock, User as UserIcon, Bug, Eye, EyeOff, Check, X } from 'lucide
 import { CosmicBackground } from '../Layout/CosmicBackground';
 import { auth } from '../../lib/firebase';
 import { useTheme } from '../../contexts/ThemeContext';
+import { PromoService } from '../../lib/promoService';
+import PromoBanner from '../Promo/PromoBanner';
+import PromoSuccessModal from '../Promo/PromoSuccessModal';
+import OfferExpiredModal from '../Promo/OfferExpiredModal';
 
 export const LoginPage: React.FC = () => {
   const { theme } = useTheme();
@@ -16,7 +20,11 @@ export const LoginPage: React.FC = () => {
   const [mounted, setMounted] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const [promoCode, setPromoCode] = useState<string | null>(null);
+  const [showPromoSuccess, setShowPromoSuccess] = useState(false);
+  const [promoTokensAwarded, setPromoTokensAwarded] = useState(0);
+  const [showOfferExpired, setShowOfferExpired] = useState(false);
+  const { signIn, signUp, currentUser } = useAuth();
 
   const getPasswordStrength = () => {
     const checks = {
@@ -40,23 +48,73 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
-    // Log Firebase status on mount
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const promo = searchParams.get('promo');
+
+    if (promo) {
+      setPromoCode(promo);
+      PromoService.storePromoCodeInSession(promo);
+      setIsLogin(false);
+
+      PromoService.checkCampaignStatus(promo).then(status => {
+        if (!status.isValid) {
+          setShowOfferExpired(true);
+        }
+      });
+    } else {
+      const storedPromo = PromoService.getPromoCodeFromSession();
+      if (storedPromo) {
+        setPromoCode(storedPromo);
+        setIsLogin(false);
+      }
+    }
+
     console.log('🔥 Firebase Auth Status:');
     console.log('   Auth instance:', auth ? 'OK' : 'NULL');
     console.log('   Project ID:', auth?.app?.options?.projectId);
     console.log('   Auth domain:', auth?.app?.options?.authDomain);
   }, []);
 
+  const handlePromoRedemption = async (userId: string) => {
+    if (!promoCode) return;
+
+    try {
+      const ipAddress = await PromoService.getUserIpAddress();
+      const userAgent = PromoService.getUserAgent();
+
+      const result = await PromoService.redeemPromoCode(
+        userId,
+        promoCode,
+        ipAddress || undefined,
+        userAgent
+      );
+
+      if (result.success) {
+        console.log('🎉 Promo redeemed successfully:', result);
+        setPromoTokensAwarded(result.tokensAwarded);
+        setShowPromoSuccess(true);
+        PromoService.clearPromoCodeFromSession();
+      } else {
+        console.warn('Promo redemption failed:', result.message);
+        if (result.message.includes('claimed')) {
+          setShowOfferExpired(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error redeeming promo:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Set a timeout to prevent hanging forever
     const timeoutId = setTimeout(() => {
       setLoading(false);
       setError('Request timed out. Please check your connection and try again.');
-    }, 30000); // 30 second timeout
+    }, 30000);
 
     try {
       if (isLogin) {
@@ -65,10 +123,13 @@ export const LoginPage: React.FC = () => {
       } else {
         await signUp(email, password, displayName);
         console.log('✅ Sign up successful, waiting for redirect...');
+
+        if (promoCode && currentUser) {
+          await handlePromoRedemption(currentUser.uid);
+        }
       }
 
       clearTimeout(timeoutId);
-      // Give a moment for auth state to update
       setTimeout(() => {
         setLoading(false);
       }, 1000);
@@ -97,6 +158,12 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (currentUser && promoCode && !isLogin) {
+      handlePromoRedemption(currentUser.uid);
+    }
+  }, [currentUser]);
+
   return (
     <div className="min-h-screen gradient-background flex items-center justify-center p-3 md:p-4 relative overflow-hidden">
       <CosmicBackground />
@@ -123,6 +190,10 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div className="glass-panel rounded-2xl md:rounded-3xl shadow-2xl p-4 md:p-6 border border-white/20 backdrop-blur-2xl">
+          {!isLogin && promoCode && (
+            <PromoBanner campaignCode={promoCode} />
+          )}
+
           <div className="flex gap-1 md:gap-2 mb-4 md:mb-6 glass-panel rounded-xl md:rounded-2xl p-1">
             <button
               onClick={() => {
@@ -367,6 +438,22 @@ export const LoginPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {showPromoSuccess && (
+        <PromoSuccessModal
+          tokensAwarded={promoTokensAwarded}
+          onClose={() => {
+            setShowPromoSuccess(false);
+            window.location.href = '/';
+          }}
+        />
+      )}
+
+      {showOfferExpired && (
+        <OfferExpiredModal
+          onClose={() => setShowOfferExpired(false)}
+        />
+      )}
     </div>
   );
 };

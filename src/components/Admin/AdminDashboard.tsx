@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Users, FolderOpen, Activity, DollarSign, TrendingUp } from 'lucide-react';
+import { Users, FolderOpen, Activity, DollarSign, TrendingUp, Gift, Clock } from 'lucide-react';
+import { PromoService } from '../../lib/promoService';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState({
@@ -11,9 +12,12 @@ export const AdminDashboard: React.FC = () => {
     revenue: 0
   });
   const [loading, setLoading] = useState(true);
+  const [promoStats, setPromoStats] = useState<any>(null);
+  const [recentRedemptions, setRecentRedemptions] = useState<any[]>([]);
 
   useEffect(() => {
     loadStats();
+    loadPromoStats();
   }, []);
 
   const loadStats = async () => {
@@ -40,6 +44,18 @@ export const AdminDashboard: React.FC = () => {
       console.error('Error loading stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPromoStats = async () => {
+    try {
+      const status = await PromoService.checkCampaignStatus('FIRST100');
+      setPromoStats(status);
+
+      const redemptions = await PromoService.getRecentRedemptions('FIRST100', 5);
+      setRecentRedemptions(redemptions);
+    } catch (error) {
+      console.error('Error loading promo stats:', error);
     }
   };
 
@@ -118,6 +134,98 @@ export const AdminDashboard: React.FC = () => {
             );
           })}
         </div>
+
+        {promoStats && (
+          <div className="mb-8 bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
+                  <Gift className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">FIRST100 Campaign</h2>
+                  <p className="text-sm text-gray-600">Promotional token distribution status</p>
+                </div>
+              </div>
+              <div className={`px-4 py-2 rounded-lg font-semibold ${
+                promoStats.isValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {promoStats.isValid ? 'Active' : 'Completed'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                <div className="text-sm text-blue-600 font-medium mb-1">Total Slots</div>
+                <div className="text-3xl font-bold text-blue-900">100</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                <div className="text-sm text-green-600 font-medium mb-1">Claimed</div>
+                <div className="text-3xl font-bold text-green-900">{100 - promoStats.remainingSlots}</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+                <div className="text-sm text-orange-600 font-medium mb-1">Remaining</div>
+                <div className="text-3xl font-bold text-orange-900">{promoStats.remainingSlots}</div>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span>Campaign Progress</span>
+                <span>{100 - promoStats.remainingSlots}/100 ({Math.round(((100 - promoStats.remainingSlots) / 100) * 100)}%)</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+                  style={{ width: `${((100 - promoStats.remainingSlots) / 100) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {recentRedemptions.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">Recent Redemptions</h3>
+                <div className="space-y-2">
+                  {recentRedemptions.map((redemption: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">
+                          {redemption.profile?.email || 'Unknown User'}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {redemption.tokens_awarded?.toLocaleString()} tokens awarded
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Clock className="w-4 h-4" />
+                        {new Date(redemption.redeemed_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  i
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-blue-900 font-medium mb-1">Campaign Details</p>
+                  <ul className="text-xs text-blue-700 space-y-1">
+                    <li>• Token Amount: {promoStats.tokenAmount?.toLocaleString()} per user</li>
+                    <li>• Campaign Code: FIRST100</li>
+                    <li>• Signup URL: /login?promo=FIRST100</li>
+                    <li>• Total Value Distributed: ${((100 - promoStats.remainingSlots) * promoStats.tokenAmount / 1000000).toFixed(2)}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">

@@ -11,6 +11,7 @@ import { LegalPages } from '../Legal/LegalPages';
 import { FloatingElements } from './FloatingElements';
 import { CosmicBackground } from '../Layout/CosmicBackground';
 import { useTheme } from '../../contexts/ThemeContext';
+import PromoLandingPage from '../Promo/PromoLandingPage';
 
 interface LandingRouterProps {
   onGetStarted: () => void;
@@ -18,10 +19,10 @@ interface LandingRouterProps {
 
 export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
   const { theme } = useTheme();
-  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security' | 'promo'>('home');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security') => {
+  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security' | 'promo') => {
     setCurrentPage(page);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
@@ -31,6 +32,11 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo(0, 0);
+    }
+
+    const hash = window.location.hash.substring(1);
+    if (hash === 'promo' || hash === 'first100') {
+      setCurrentPage('promo');
     }
   }, [currentPage]);
 
@@ -58,6 +64,8 @@ export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) =>
         return <LegalPages page="cookies" />;
       case 'security':
         return <LegalPages page="security" />;
+      case 'promo':
+        return <PromoLandingPage />;
       default:
         return <HomePage onGetStarted={onGetStarted} />;
     }
