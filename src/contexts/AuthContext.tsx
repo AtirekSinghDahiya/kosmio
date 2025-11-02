@@ -4,6 +4,8 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
   User
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
@@ -36,6 +38,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateUserProfile: (data: Partial<UserData>) => Promise<void>;
   refreshUserData: () => Promise<void>;
@@ -244,6 +247,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      console.log('🔵 Starting Google sign in...');
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
+      console.log('✅ Google sign in successful:', user.email);
+      updateSessionTimestamp();
+      clearUnifiedCache(user.uid);
+
+      // Check if profile exists, create if not
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.uid)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        console.log('📝 Creating profile for Google user...');
+        await createDefaultProfile(user.uid, user.email!, user.displayName || undefined);
+      }
+
+      await fetchUserData(user.uid, user.email!);
+    } catch (error: any) {
+      console.error('❌ Google sign in error:', error);
+
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign in cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        throw new Error('An account already exists with this email using a different sign-in method.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection.');
+      }
+
+      throw error;
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
       if (!email || !password) {
@@ -378,6 +426,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     updateUserProfile,
     refreshUserData
