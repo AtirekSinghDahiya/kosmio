@@ -79,20 +79,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid')
+        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance')
         .eq('id', userId)
         .maybeSingle();
 
       if (profile) {
-        const isFreeUser = !profile.is_paid && profile.current_tier === 'free';
-        const relevantBalance = isFreeUser ? profile.daily_tokens_remaining : profile.tokens_balance;
+        const isFreeUser = !profile.is_paid && !profile.is_premium && profile.current_tier === 'free';
 
-        if (relevantBalance === 0 && isFreeUser) {
+        // If tokens_balance is missing or 0 for a free user, initialize it
+        if ((profile.tokens_balance === null || profile.tokens_balance === 0) && isFreeUser && (profile.paid_tokens_balance === null || profile.paid_tokens_balance === 0)) {
+          console.log('🔧 Fixing missing tokens_balance for user:', userId);
           await supabase
             .from('profiles')
             .update({
               tokens_balance: 5000,
               daily_tokens_remaining: 5000,
+              daily_token_limit: 5000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
@@ -100,6 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } catch (error) {
+      console.error('Error ensuring token balance:', error);
     }
   };
 
@@ -123,10 +126,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
+          tokens_balance: 5000,
           free_tokens_balance: 6667,
           paid_tokens_balance: 0,
+          daily_tokens_remaining: 5000,
+          daily_token_limit: 5000,
           current_tier: 'free',
+          is_paid: false,
+          is_premium: false,
           last_token_refresh: new Date().toISOString(),
+          last_reset_date: new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
