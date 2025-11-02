@@ -6,12 +6,14 @@ import { useToast } from '../../contexts/ToastContext';
 interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSend: () => void;
+  onSend: (attachments?: File[]) => void;
   onKeyPress?: (e: React.KeyboardEvent) => void;
   placeholder?: string;
   disabled?: boolean;
   selectedModel: string;
   conversationHistory?: Array<{ role: string; content: string }>;
+  attachedFiles?: File[];
+  onFilesChange?: (files: File[]) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -22,12 +24,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   placeholder = 'Type your message...',
   disabled = false,
   conversationHistory,
+  attachedFiles: externalFiles,
+  onFilesChange,
 }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>(externalFiles || []);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [showMoreActions, setShowMoreActions] = useState(false);
 
@@ -48,8 +53,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      setAttachedFiles(prev => [...prev, ...files]);
+      const newFiles = [...attachedFiles, ...files];
+      setAttachedFiles(newFiles);
+      if (onFilesChange) {
+        onFilesChange(newFiles);
+      }
       showToast('success', 'Files Attached', `${files.length} file(s) attached`);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    const newFiles = attachedFiles.filter((_, i) => i !== index);
+    setAttachedFiles(newFiles);
+    if (onFilesChange) {
+      onFilesChange(newFiles);
     }
   };
 
@@ -102,7 +119,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               <Paperclip className="w-4 h-4" />
               <span className="max-w-[150px] truncate">{file.name}</span>
               <button
-                onClick={() => setAttachedFiles(prev => prev.filter((_, i) => i !== index))}
+                onClick={() => handleRemoveFile(index)}
                 className="ml-1 hover:text-red-500"
               >
                 ×
@@ -130,6 +147,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 className="hidden"
                 accept="*/*"
               />
+              <input
+                ref={imageInputRef}
+                type="file"
+                multiple
+                onChange={handleFileAttach}
+                className="hidden"
+                accept="image/*"
+              />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled}
@@ -143,7 +168,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 <Paperclip className="w-4 h-4" />
               </button>
               <button
-                onClick={() => showToast('info', 'Coming Soon', 'Image upload coming soon!')}
+                onClick={() => imageInputRef.current?.click()}
                 disabled={disabled}
                 className={`p-2 rounded-lg transition-colors ${
                   theme === 'light'
@@ -254,10 +279,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 onClick={() => {
                   console.log('💬 Send button clicked!');
                   console.log('💬 Value:', value);
+                  console.log('💬 Files:', attachedFiles.length);
                   console.log('💬 Disabled:', disabled);
-                  onSend();
+                  onSend(attachedFiles.length > 0 ? attachedFiles : undefined);
+                  setAttachedFiles([]);
+                  if (onFilesChange) {
+                    onFilesChange([]);
+                  }
                 }}
-                disabled={!value.trim() || disabled}
+                disabled={(!value.trim() && attachedFiles.length === 0) || disabled}
                 className={`p-2 rounded-xl transition-all ${
                   value.trim() && !disabled
                     ? theme === 'light'

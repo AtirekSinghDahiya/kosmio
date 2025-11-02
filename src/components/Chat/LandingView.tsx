@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { ImageIcon, Video, Send, Sparkles, ArrowRight, Presentation, Music } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { ImageIcon, Video, Send, Sparkles, ArrowRight, Presentation, Music, Paperclip, Image, File } from 'lucide-react';
 import { AIModelSelector } from './AIModelSelector';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface LandingViewProps {
-  onQuickAction: (prompt: string) => void;
+  onQuickAction: (prompt: string, attachments?: File[]) => void;
   selectedModel?: string;
   onModelChange?: (modelId: string) => void;
 }
@@ -13,10 +13,31 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState('');
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachedFiles(prev => [...prev, ...files]);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim() || attachedFiles.length > 0) {
+      onQuickAction(input || 'Please analyze these files', attachedFiles);
+      setInput('');
+      setAttachedFiles([]);
+    }
+  };
 
   const suggestions = [
     {
@@ -84,13 +105,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
       {/* Input Area - Fixed at Bottom */}
       <div className={`w-full max-w-4xl mx-auto mt-auto ${mounted ? 'opacity-100 transition-opacity duration-700 delay-400' : 'opacity-0'}`}>
           <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (input.trim()) {
-                onQuickAction(input);
-                setInput('');
-              }
-            }}
+            onSubmit={handleSubmit}
             className="relative"
           >
             {onModelChange && (
@@ -103,7 +118,61 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
               </div>
             )}
 
+            {attachedFiles.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {attachedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white"
+                  >
+                    <span className="truncate max-w-[200px]">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-white/60 hover:text-white transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="relative flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden hover:border-white/20 transition-colors focus-within:border-white/30">
+              <div className="flex items-center gap-1 pl-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="*/*"
+                />
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  accept="image/*"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  title="Attach file"
+                >
+                  <Paperclip className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  title="Upload image"
+                >
+                  <Image className="w-5 h-5" />
+                </button>
+              </div>
               <input
                 type="text"
                 value={input}
@@ -113,7 +182,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
               />
               <button
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() && attachedFiles.length === 0}
                 className="mr-3 p-2 bg-white text-slate-900 rounded-lg hover:bg-white/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 <ArrowRight className="w-5 h-5" />
