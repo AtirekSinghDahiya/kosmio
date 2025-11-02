@@ -70,6 +70,31 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          files.push(file);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      const newFiles = [...attachedFiles, ...files];
+      setAttachedFiles(newFiles);
+      if (onFilesChange) {
+        onFilesChange(newFiles);
+      }
+      showToast('success', 'Image Pasted', `${files.length} image(s) pasted from clipboard`);
+    }
+  };
+
   return (
     <div className="space-y-2">
       {/* Active Options Display */}
@@ -250,6 +275,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
               }}
               onKeyPress={onKeyPress}
+              onPaste={handlePaste}
               placeholder={placeholder}
               disabled={disabled}
               className={`flex-1 bg-transparent px-4 py-3 resize-none focus:outline-none text-sm font-medium ${

@@ -263,24 +263,33 @@ export const MainChat: React.FC = () => {
       return;
     }
 
-    // Handle file attachments
+    // Handle file attachments - upload them
+    let uploadedFiles: any[] = [];
     if (attachments && attachments.length > 0) {
       console.log('📎 Files attached:', attachments.length);
-      showToast('info', 'Files Attached', `${attachments.length} file(s) will be included in your message`);
+      showToast('info', 'Uploading Files...', `Uploading ${attachments.length} file(s)...`);
 
-      // TODO: Upload files and include URLs in message
-      // For now, just notify the user
-      const fileNames = attachments.map(f => f.name).join(', ');
-      const enhancedText = textToSend + `\n\n[Attached files: ${fileNames}]`;
-      // Continue with enhancedText instead of textToSend when implemented
+      try {
+        const { FileUploadService } = await import('../../lib/fileUploadService');
+        uploadedFiles = await FileUploadService.uploadMultipleFiles(attachments, user!.uid);
+
+        if (uploadedFiles.length > 0) {
+          showToast('success', 'Files Uploaded', `${uploadedFiles.length} file(s) uploaded successfully`);
+        }
+      } catch (error) {
+        console.error('Error uploading files:', error);
+        showToast('error', 'Upload Failed', 'Failed to upload files. Please try again.');
+        setIsLoading(false);
+        return;
+      }
     }
 
-    // Auto-detect image generation requests
+    // Auto-detect image generation requests - INLINE, NOT POPUP
     const imageKeywords = /\b(generate|create|make|draw|design|show|paint|illustrate|render)\b.*\b(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\b/i;
     const imageRequestPattern = /\b(image|picture|photo|illustration) (of|about|showing|with|depicting)\b/i;
 
     if (imageKeywords.test(textToSend) || imageRequestPattern.test(textToSend)) {
-      console.log('🎨 Image generation detected!');
+      console.log('🎨 Image generation detected - will generate inline!');
       setInputValue('');
 
       // Extract the prompt (remove command words)
@@ -288,8 +297,41 @@ export const MainChat: React.FC = () => {
         .replace(/^(generate|create|make|draw|design|show|paint|illustrate|render)\s+(an?\s+)?(image|picture|photo|illustration|artwork|art|painting|drawing|graphic)\s+(of|about|showing|with|depicting)?\s*/i, '')
         .trim();
 
-      setImagePrompt(cleanPrompt || textToSend);
-      setShowImageGenerator(true);
+      const finalPrompt = cleanPrompt || textToSend;
+
+      // Create user message
+      const userMsg = await addMessage(activeProjectId!, 'user', `Generate an image: ${finalPrompt}`);
+
+      // Create generating message
+      const generatingMsg = await addMessage(activeProjectId!, 'assistant', 'Generating image...');
+
+      // Import and use image service
+      try {
+        const { generateImage } = await import('../../lib/imageService');
+        const imageUrl = await generateImage(finalPrompt);
+
+        // Update message with generated image
+        await supabase
+          .from('messages')
+          .update({
+            content: `Here's your generated image: ${finalPrompt}`,
+            file_attachments: JSON.stringify([{
+              type: 'image',
+              url: imageUrl,
+              name: 'generated-image.png'
+            }])
+          })
+          .eq('id', generatingMsg.id);
+
+        showToast('success', 'Image Generated', 'Your image has been created!');
+      } catch (error) {
+        console.error('Image generation error:', error);
+        await supabase
+          .from('messages')
+          .update({ content: 'Failed to generate image. Please try again.' })
+          .eq('id', generatingMsg.id);
+        showToast('error', 'Generation Failed', 'Failed to generate image');
+      }
 
       return;
     }
@@ -353,8 +395,25 @@ export const MainChat: React.FC = () => {
         console.log('✅ Project created:', projectId, 'Name:', projectName);
       }
 
-      // Add user message
-      await addMessage(projectId, 'user', textToSend);
+      // Add user message with attachments
+      if (uploadedFiles.length > 0) {
+        const fileAttachments = uploadedFiles.map(f => ({
+          id: f.id,
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          url: f.url
+        }));
+
+        await supabase.from('messages').insert({
+          project_id: projectId,
+          role: 'user',
+          content: textToSend,
+          file_attachments: JSON.stringify(fileAttachments)
+        });
+      } else {
+        await addMessage(projectId, 'user', textToSend);
+      }
 
       // Get AI response
       await getAIResponse(projectId, textToSend);
@@ -685,6 +744,43 @@ export const MainChat: React.FC = () => {
                       <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
                         {message.content}
                       </div>
+
+                      {/* Display Attachments */}
+                      {message.file_attachments && typeof message.file_attachments === 'string' && (() => {
+                        try {
+                          const attachments = JSON.parse(message.file_attachments);
+                          if (Array.isArray(attachments) && attachments.length > 0) {
+                            return (
+                              <div className="mt-3 space-y-2">
+                                {attachments.map((attachment: any, idx: number) => (
+                                  <div key={idx}>
+                                    {attachment.type === 'image' || attachment.type?.startsWith('image/') ? (
+                                      <img
+                                        src={attachment.url}
+                                        alt={attachment.name || 'Attached image'}
+                                        className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => window.open(attachment.url, '_blank')}
+                                      />
+                                    ) : (
+                                      <a
+                                        href={attachment.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 p-2 bg-black/10 dark:bg-white/10 rounded-lg hover:bg-black/20 dark:hover:bg-white/20 transition-colors"
+                                      >
+                                        <span>📎 {attachment.name || 'File'}</span>
+                                      </a>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }
+                        } catch (e) {
+                          console.error('Error parsing attachments:', e);
+                        }
+                        return null;
+                      })()}
                     </div>
 
                     {/* Action Buttons - Only for AI messages */}

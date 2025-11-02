@@ -32,10 +32,27 @@ export interface Project {
   updated_at?: string;
 }
 
+export interface MessageAttachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+}
+
 export interface Message {
   id: string;
   project_id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at?: string;
+  attachments?: MessageAttachment[];
+  generating?: boolean;
+  generationType?: 'image' | 'video' | 'audio' | 'text';
+  generationProgress?: number;
+  generatedContent?: {
+    type: 'image' | 'video' | 'audio';
+    url: string;
+    prompt?: string;
+  };
 }
