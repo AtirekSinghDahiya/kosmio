@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, User as UserIcon, Bug, Eye, EyeOff, Check, X } from 'lucide-react';
 import { CosmicBackground } from '../Layout/CosmicBackground';
+import { auth } from '../../lib/firebase';
 import { useTheme } from '../../contexts/ThemeContext';
 import { PromoService } from '../../lib/promoService';
 import PromoBanner from '../Promo/PromoBanner';
