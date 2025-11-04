@@ -49,10 +49,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) =
     { id: 'voice', label: 'Voice & Music Studio', icon: Mic },
     { id: 'ppt', label: 'PPT Studio', icon: Presentation },
     { id: 'billing', label: 'Billing', icon: CreditCard },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
   if (userData?.plan === 'enterprise') {
-    menuItems.push({ id: 'admin', label: 'Admin', icon: BarChart3 });
+    menuItems.push({ id: 'admin', label: 'Admin', icon: Database });
   }
 
   return (

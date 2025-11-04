@@ -18,6 +18,7 @@ import { VideoStudio } from './components/Studio/VideoStudio';
 import { PPTStudio } from './components/Studio/PPTStudio';
 import { BillingView } from './components/Billing/BillingView';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
+import { AdminAnalyticsDashboard } from './components/Admin/AdminAnalyticsDashboard';
 import { SettingsView } from './components/Settings/SettingsView';
 import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
@@ -53,6 +54,7 @@ const MainApp: React.FC = () => {
       ppt: 'KroniQ - PPT Studio',
       billing: 'KroniQ - Billing',
       admin: 'KroniQ - Admin Dashboard',
+      analytics: 'KroniQ - Analytics',
       settings: 'KroniQ - Settings',
     };
     document.title = titles[currentView] || 'KroniQ - AI Development Studio';
@@ -98,6 +100,8 @@ const MainApp: React.FC = () => {
         return <BillingView />;
       case 'admin':
         return userData?.plan === 'enterprise' ? <AdminDashboard /> : <MainChat />;
+      case 'analytics':
+        return <AdminAnalyticsDashboard />;
       case 'settings':
         return <SettingsView />;
       case 'profile':

@@ -8,6 +8,7 @@ import { PromoService } from '../../lib/promoService';
 import PromoBanner from '../Promo/PromoBanner';
 import PromoSuccessModal from '../Promo/PromoSuccessModal';
 import OfferExpiredModal from '../Promo/OfferExpiredModal';
+import { trackSignupPageView, trackSignupComplete, trackEvent } from '../../lib/analyticsService';
 
 export const LoginPage: React.FC = () => {
   const { theme } = useTheme();
@@ -48,6 +49,8 @@ export const LoginPage: React.FC = () => {
 
   useEffect(() => {
     setMounted(true);
+
+    trackSignupPageView();
 
     const searchParams = new URLSearchParams(window.location.search);
     const promo = searchParams.get('promo');
@@ -125,9 +128,19 @@ export const LoginPage: React.FC = () => {
       if (isLogin) {
         await signIn(email, password);
         console.log('✅ Login successful, waiting for redirect...');
+
+        trackEvent({
+          eventType: 'auth',
+          eventName: 'login_success',
+          pageName: 'signup',
+        });
       } else {
-        await signUp(email, password, displayName);
+        const userCredential = await signUp(email, password, displayName);
         console.log('✅ Sign up successful, waiting for redirect...');
+
+        if (userCredential?.user?.uid) {
+          await trackSignupComplete(userCredential.user.uid);
+        }
 
         if (promoCode && currentUser) {
           await handlePromoRedemption(currentUser.uid, email);

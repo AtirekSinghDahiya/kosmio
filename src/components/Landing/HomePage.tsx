@@ -3,6 +3,7 @@ import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, 
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getTokenPacks, getTotalTokens } from '../../lib/subscriptionManagementService';
+import { trackPageVisit, trackGetStartedClick, trackEvent } from '../../lib/analyticsService';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -22,6 +23,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
     }, 3000);
 
     loadTokenPacks();
+
+    trackPageVisit({ pageName: 'home' });
 
     return () => clearInterval(interval);
   }, []);
@@ -122,7 +125,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
             <button
-              onClick={onGetStarted}
+              onClick={() => {
+                trackGetStartedClick('home');
+                onGetStarted();
+              }}
               className="group relative bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-10 py-5 rounded-2xl font-bold text-xl hover:shadow-2xl hover:shadow-[#00FFF0]/50 transition-all duration-300 hover:scale-105 flex items-center gap-3 overflow-hidden"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
@@ -132,6 +138,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
 
             <button
               onClick={() => {
+                trackEvent({
+                  eventType: 'button_click',
+                  eventName: 'explore_features_clicked',
+                  pageName: 'home',
+                });
                 const element = document.getElementById('features-showcase');
                 if (element) {
                   element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -385,7 +396,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                       </div>
 
                       <button
-                        onClick={onGetStarted}
+                        onClick={() => {
+                          trackEvent({
+                            eventType: 'button_click',
+                            eventName: 'pricing_get_started_clicked',
+                            eventData: { pack_name: pack.name },
+                            pageName: 'home',
+                          });
+                          trackGetStartedClick('home');
+                          onGetStarted();
+                        }}
                         className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
                           pack.popular
                             ? 'bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white hover:shadow-xl hover:shadow-[#00FFF0]/50 hover:scale-105'
@@ -422,7 +442,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 </p>
 
                 <button
-                  onClick={onGetStarted}
+                  onClick={() => {
+                    trackGetStartedClick('home');
+                    onGetStarted();
+                  }}
                   className="group bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white px-12 py-6 rounded-2xl font-bold text-2xl hover:shadow-2xl hover:shadow-[#00FFF0]/50 transition-all duration-300 hover:scale-110 inline-flex items-center gap-4"
                 >
                   <span>Start Creating Now</span>
