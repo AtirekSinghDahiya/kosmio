@@ -10,6 +10,7 @@ import { Sidebar } from './components/Layout/Sidebar';
 import { FloatingNavbar } from './components/Layout/FloatingNavbar';
 import { CosmicBackground } from './components/Layout/CosmicBackground';
 import { MainChat } from './components/Chat/MainChat';
+import { UnifiedStudioChat } from './components/Chat/UnifiedStudioChat';
 import { ProjectsView } from './components/Projects/ProjectsView';
 import { VoiceStudio } from './components/Studio/VoiceStudio';
 import { CodeStudio } from './components/Studio/CodeStudio';
@@ -83,7 +84,7 @@ const MainApp: React.FC = () => {
   const renderView = () => {
     switch (currentView) {
       case 'chat':
-        return <MainChat />;
+        return <UnifiedStudioChat projectId={activeProject?.id} projectName={activeProject?.name} />;
       case 'projects':
         return <ProjectsView onOpenProject={handleOpenProject} />;
       case 'voice':
@@ -99,7 +100,7 @@ const MainApp: React.FC = () => {
       case 'billing':
         return <BillingView />;
       case 'admin':
-        return userData?.plan === 'enterprise' ? <AdminDashboard /> : <MainChat />;
+        return userData?.plan === 'enterprise' ? <AdminDashboard /> : <UnifiedStudioChat />;
       case 'analytics':
         return <AdminAnalyticsDashboard />;
       case 'settings':
@@ -109,7 +110,7 @@ const MainApp: React.FC = () => {
       case 'backup':
         return <BackupView />;
       default:
-        return <MainChat />;
+        return <UnifiedStudioChat />;
     }
   };
 
