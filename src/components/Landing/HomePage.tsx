@@ -98,6 +98,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
             />
           </div>
 
+          {/* Limited Time Promo Banner */}
+          <div className="mb-8 animate-pulse-slow">
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#00FFF0]/20 via-[#8A2BE2]/20 to-[#00FFF0]/20 border-2 border-[#00FFF0] rounded-2xl backdrop-blur-xl shadow-2xl shadow-[#00FFF0]/30">
+              <Crown className="w-6 h-6 text-[#FFD700] animate-bounce" />
+              <span className="text-white font-bold text-lg md:text-xl">
+                🎉 First 100 Users Get <span className="text-[#00FFF0] text-2xl">5 MILLION</span> Tokens FREE!
+              </span>
+              <Sparkles className="w-6 h-6 text-[#FFD700] animate-spin-slow" />
+            </div>
+          </div>
+
           {/* Main Headline */}
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight">
             <span className="block mb-4">One AI.</span>

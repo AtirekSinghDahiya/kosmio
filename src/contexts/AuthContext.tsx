@@ -11,6 +11,7 @@ import {
 import { auth } from '../lib/firebase';
 import { supabase } from '../lib/supabaseClient';
 import { clearUnifiedCache } from '../lib/unifiedPremiumAccess';
+import { PromoService } from '../lib/promoService';
 
 interface UserData {
   id: string;
@@ -153,6 +154,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (result.error) {
         console.error('❌ Error creating profile:', result.error);
         throw result.error;
+      }
+
+      // Automatically try to redeem FIRST100 promo for new users
+      try {
+        console.log('🎁 Attempting to auto-redeem FIRST100 promo for new user');
+        const redemption = await PromoService.redeemPromoCode(userId, 'FIRST100', email);
+        if (redemption.success) {
+          console.log(`✅ Successfully awarded ${redemption.tokensAwarded} tokens from FIRST100 promo!`);
+        } else {
+          console.log(`ℹ️ FIRST100 promo not redeemed: ${redemption.message}`);
+        }
+      } catch (promoError) {
+        console.log('ℹ️ Could not auto-redeem promo (campaign may be full):', promoError);
       }
     } catch (error) {
     }
