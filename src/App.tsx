@@ -26,6 +26,7 @@ import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
+import { StudioModeProvider } from './contexts/StudioModeContext';
 import { Project } from './types';
 
 const MainApp: React.FC = () => {
@@ -156,9 +157,11 @@ function App() {
         <AuthProvider>
           <ToastProvider>
             <NavigationProvider>
-              <MainApp />
-              <CookieConsent />
-              <BugReportButton />
+              <StudioModeProvider>
+                <MainApp />
+                <CookieConsent />
+                <BugReportButton />
+              </StudioModeProvider>
             </NavigationProvider>
           </ToastProvider>
         </AuthProvider>

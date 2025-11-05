@@ -39,12 +39,14 @@ import { getUserPreferences, generateSystemPrompt, UserPreferences } from '../..
 import { checkFeatureAccess, incrementUsage } from '../../lib/subscriptionService';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { useStudioMode } from '../../contexts/StudioModeContext';
 
 export const MainChat: React.FC = () => {
   const { showToast } = useToast();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { setMode, setProjectId: setStudioProjectId } = useStudioMode();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -65,6 +67,26 @@ export const MainChat: React.FC = () => {
   const [musicPrompt, setMusicPrompt] = useState('');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update studio mode context when generators are shown
+  useEffect(() => {
+    if (showImageGenerator) {
+      setMode('image');
+      setStudioProjectId(activeProjectId);
+    } else if (showVideoGenerator) {
+      setMode('video');
+      setStudioProjectId(activeProjectId);
+    } else if (showMusicGenerator) {
+      setMode('music');
+      setStudioProjectId(activeProjectId);
+    } else if (showVoiceoverGenerator) {
+      setMode('voice');
+      setStudioProjectId(activeProjectId);
+    } else {
+      setMode('chat');
+      setStudioProjectId(activeProjectId);
+    }
+  }, [showImageGenerator, showVideoGenerator, showMusicGenerator, showVoiceoverGenerator, activeProjectId, setMode, setStudioProjectId]);
 
   // Load user preferences on mount
   useEffect(() => {

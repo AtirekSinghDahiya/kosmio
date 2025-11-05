@@ -8,6 +8,7 @@ import { VoiceControls } from './Controls/VoiceControls';
 import { useAuth } from '../../hooks/useAuth';
 import { renameProject } from '../../lib/chatService';
 import { getUnifiedPremiumStatus, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
+import { useStudioMode } from '../../contexts/StudioModeContext';
 
 export type StudioMode = 'chat' | 'image' | 'video' | 'music' | 'voice';
 
@@ -23,7 +24,7 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   onProjectNameChange,
 }) => {
   const { user } = useAuth();
-  const [mode, setMode] = useState<StudioMode>('chat');
+  const { mode } = useStudioMode();
   const [projectName, setProjectName] = useState(initialProjectName || 'New Chat');
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(projectName);
@@ -65,10 +66,12 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
     }
   }, [initialProjectName]);
 
-  // Auto-show panel when switching to studio modes
+  // Auto-show panel when switching to studio modes (first time only)
   useEffect(() => {
     if (mode !== 'chat') {
       setShowControlPanel(true);
+    } else {
+      setShowControlPanel(false);
     }
   }, [mode]);
 
