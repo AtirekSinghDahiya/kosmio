@@ -882,7 +882,9 @@ export const MainChat: React.FC = () => {
                   <div className={`flex flex-col max-w-[75%] ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
                     <div className={`rounded-2xl px-4 py-3 ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white rounded-br-md'
+                        ? theme === 'light'
+                          ? 'bg-gray-100 text-gray-900 rounded-br-md'
+                          : 'bg-gray-800/50 text-gray-100 rounded-br-md'
                         : theme === 'light'
                         ? 'bg-gray-100 text-gray-900 rounded-bl-md'
                         : 'bg-gray-800/50 text-gray-100 rounded-bl-md'

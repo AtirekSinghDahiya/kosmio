@@ -34,10 +34,7 @@ export const CookieConsent: React.FC = () => {
         <div className="flex-1">
           <h3 className="text-white font-bold mb-2">We use cookies</h3>
           <p className="text-white/70 text-sm mb-4 leading-relaxed">
-            We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.{' '}
-            <a href="#" className="text-[#00FFF0] hover:underline font-semibold">
-              Learn more
-            </a>
+            We use cookies to enhance your experience, analyze site traffic, and personalize content. By continuing to use our site, you consent to our use of cookies.
           </p>
           <div className="flex gap-3">
             <button
