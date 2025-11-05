@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Check, X, Sparkles } from 'lucide-react';
+import { Edit2, Check, X, Sparkles, ChevronRight, ChevronLeft, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic, Settings } from 'lucide-react';
 import { MainChat } from './MainChat';
-import { StudioControlPanel, StudioMode } from './StudioControlPanel';
-import { ChatControls } from './Controls/ChatControls';
 import { ImageControls } from './Controls/ImageControls';
 import { VideoControls } from './Controls/VideoControls';
 import { MusicControls } from './Controls/MusicControls';
 import { VoiceControls } from './Controls/VoiceControls';
 import { useAuth } from '../../hooks/useAuth';
 import { renameProject } from '../../lib/chatService';
+import { getUnifiedPremiumStatus, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
+
+export type StudioMode = 'chat' | 'image' | 'video' | 'music' | 'voice';
 
 interface UnifiedStudioChatProps {
   projectId?: string | null;
@@ -26,11 +27,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   const [projectName, setProjectName] = useState(initialProjectName || 'Untitled Project');
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(projectName);
-  const [showControlPanel, setShowControlPanel] = useState(true);
-
-  // Chat controls state
-  const [selectedModel, setSelectedModel] = useState('grok-4-fast');
-  const [temperature, setTemperature] = useState(1);
+  const [showControlPanel, setShowControlPanel] = useState(false);
+  const [premiumStatus, setPremiumStatus] = useState<UnifiedPremiumStatus | null>(null);
 
   // Image controls state
   const [imageAspectRatio, setImageAspectRatio] = useState('1:1');
@@ -51,11 +49,28 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   const [speechSpeed, setSpeechSpeed] = useState(1);
 
   useEffect(() => {
+    const checkAccess = async () => {
+      if (user?.uid) {
+        const status = await getUnifiedPremiumStatus(user.uid);
+        setPremiumStatus(status);
+      }
+    };
+    checkAccess();
+  }, [user]);
+
+  useEffect(() => {
     if (initialProjectName) {
       setProjectName(initialProjectName);
       setEditedName(initialProjectName);
     }
   }, [initialProjectName]);
+
+  // Auto-show panel when switching to studio modes
+  useEffect(() => {
+    if (mode !== 'chat') {
+      setShowControlPanel(true);
+    }
+  }, [mode]);
 
   const handleSaveName = async () => {
     if (editedName.trim() && editedName !== projectName) {
@@ -83,20 +98,15 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
 
   const getModelInfo = () => {
     switch (mode) {
-      case 'chat':
-        return {
-          name: selectedModel === 'grok-4-fast' ? 'Grok 4 Fast' : selectedModel === 'gpt-4-turbo-latest' ? 'GPT-4 Turbo' : 'Claude 3 Sonnet',
-          description: 'Advanced AI chat model for conversations',
-        };
       case 'image':
         return {
           name: 'Nano Banana',
-          description: 'State-of-the-art image generation and editing model',
+          description: 'State-of-the-art image generation model',
         };
       case 'video':
         return {
           name: videoProvider === 'veo3-new' ? 'Veo 3' : 'Sora 2',
-          description: 'State-of-the-art video generation model',
+          description: 'Advanced video generation model',
         };
       case 'music':
         return {
@@ -109,21 +119,12 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
           description: 'Text-to-speech synthesis',
         };
       default:
-        return { name: 'AI Model', description: 'AI powered generation' };
+        return null;
     }
   };
 
   const renderControls = () => {
     switch (mode) {
-      case 'chat':
-        return (
-          <ChatControls
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-            temperature={temperature}
-            onTemperatureChange={setTemperature}
-          />
-        );
       case 'image':
         return (
           <ImageControls
@@ -170,15 +171,21 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   };
 
   const modelInfo = getModelInfo();
+  const showStudioControls = mode !== 'chat';
+  const modeIcons = {
+    image: ImageIcon,
+    video: VideoIcon,
+    music: MusicIcon,
+    voice: Mic,
+  };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full">
-        {/* Project Name Header */}
-        <div className="flex-shrink-0 border-b border-white/10 bg-black/20 backdrop-blur-xl px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+    <div className="flex flex-col h-screen overflow-hidden relative">
+      {/* Project Name Header - Only show for studio modes */}
+      {showStudioControls && (
+        <div className="flex-shrink-0 border-b border-white/10 bg-black/20 backdrop-blur-xl px-4 md:px-6 py-3 z-10">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 md:gap-3">
               {isEditingName ? (
                 <div className="flex items-center gap-2">
                   <input
@@ -189,65 +196,113 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
                       if (e.key === 'Enter') handleSaveName();
                       if (e.key === 'Escape') handleCancelEdit();
                     }}
-                    className="bg-white/10 text-white border border-[#00FFF0] rounded-lg px-3 py-1.5 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#00FFF0]/50"
+                    className="bg-white/10 text-white border border-[#00FFF0] rounded-lg px-2 md:px-3 py-1 md:py-1.5 text-sm md:text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#00FFF0]/50 w-32 md:w-auto"
                     autoFocus
                   />
                   <button
                     onClick={handleSaveName}
-                    className="p-1.5 rounded-lg bg-[#00FFF0]/20 hover:bg-[#00FFF0]/30 text-[#00FFF0] transition-colors"
+                    className="p-1 md:p-1.5 rounded-lg bg-[#00FFF0]/20 hover:bg-[#00FFF0]/30 text-[#00FFF0] transition-colors"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3 h-3 md:w-4 md:h-4" />
                   </button>
                   <button
                     onClick={handleCancelEdit}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
+                    className="p-1 md:p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3 md:w-4 md:h-4" />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setIsEditingName(true)}
-                  className="group flex items-center gap-2 hover:bg-white/5 rounded-lg px-3 py-1.5 transition-colors"
+                  className="group flex items-center gap-2 hover:bg-white/5 rounded-lg px-2 md:px-3 py-1 md:py-1.5 transition-colors"
                 >
-                  <h1 className="text-xl font-bold text-white">{projectName}</h1>
-                  <Edit2 className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
+                  <h1 className="text-sm md:text-xl font-bold text-white truncate max-w-[150px] md:max-w-none">{projectName}</h1>
+                  <Edit2 className="w-3 h-3 md:w-4 md:h-4 text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0" />
                 </button>
               )}
 
-              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20">
-                <Sparkles className="w-3 h-3 text-[#00FFF0]" />
-                <span className="text-xs font-semibold text-white/80">
-                  {mode === 'chat' ? 'Chat Mode' : mode === 'image' ? 'Image Studio' : mode === 'video' ? 'Video Studio' : mode === 'music' ? 'Music Studio' : 'Voice Studio'}
+              <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full bg-gradient-to-r from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20">
+                {mode !== 'chat' && React.createElement(modeIcons[mode as keyof typeof modeIcons], { className: "w-3 h-3 text-[#00FFF0]" })}
+                <span className="text-[10px] md:text-xs font-semibold text-white/80">
+                  {mode === 'image' ? 'Image Studio' : mode === 'video' ? 'Video Studio' : mode === 'music' ? 'Music Studio' : 'Voice Studio'}
                 </span>
               </div>
             </div>
 
             <button
               onClick={() => setShowControlPanel(!showControlPanel)}
-              className="px-4 py-2 rounded-lg glass-panel border border-white/20 text-white/70 hover:text-white hover:border-[#00FFF0]/30 transition-all text-sm font-semibold"
+              className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-lg glass-panel border border-white/20 text-white/70 hover:text-white hover:border-[#00FFF0]/30 transition-all text-xs md:text-sm font-semibold"
             >
-              {showControlPanel ? 'Hide' : 'Show'} Controls
+              <Settings className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">{showControlPanel ? 'Hide' : 'Show'} Controls</span>
+              {showControlPanel ? <ChevronRight className="w-3 h-3 md:w-4 md:h-4" /> : <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />}
             </button>
           </div>
         </div>
+      )}
 
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Main Chat Component */}
-        <div className="flex-1 overflow-hidden">
+        <div className={`flex-1 overflow-hidden transition-all duration-300 ${showStudioControls && showControlPanel ? 'mr-0 md:mr-80 lg:mr-96' : ''}`}>
           <MainChat />
         </div>
-      </div>
 
-      {/* Right Control Panel */}
-      {showControlPanel && (
-        <StudioControlPanel
-          mode={mode}
-          onModeChange={setMode}
-          modelName={modelInfo.name}
-          modelDescription={modelInfo.description}
-          controls={renderControls()}
-        />
-      )}
+        {/* Right Control Panel - Only for studio modes */}
+        {showStudioControls && showControlPanel && modelInfo && (
+          <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 glass-panel border-l border-white/10 flex flex-col overflow-hidden z-20 transform transition-transform duration-300 ease-in-out">
+            {/* Model Info Header */}
+            <div className="p-4 border-b border-white/10 flex-shrink-0">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-white font-bold text-base md:text-lg">{modelInfo.name}</h3>
+                <div className="flex items-center gap-1">
+                  {premiumStatus?.isPremium && (
+                    <div className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
+                      <span className="text-[#00FFF0] text-xs font-semibold">PRO</span>
+                    </div>
+                  )}
+                  <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+                </div>
+              </div>
+              <p className="text-white/60 text-xs md:text-sm leading-relaxed">{modelInfo.description}</p>
+            </div>
+
+            {/* Controls */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {renderControls()}
+            </div>
+
+            {/* Token Balance Footer */}
+            {premiumStatus && (
+              <div className="p-4 border-t border-white/10 bg-gradient-to-br from-white/5 to-white/0 flex-shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white/60 text-xs font-semibold uppercase">Token Balance</span>
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                    {premiumStatus.totalTokens.toLocaleString()}
+                  </span>
+                  <span className="text-white/40 text-xs md:text-sm">tokens</span>
+                </div>
+                {premiumStatus.paidTokens > 0 && (
+                  <div className="mt-1 text-xs text-white/50">
+                    {premiumStatus.paidTokens.toLocaleString()} paid tokens available
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={() => setShowControlPanel(false)}
+              className="md:hidden absolute top-4 right-4 p-2 rounded-lg bg-black/40 backdrop-blur-xl border border-white/20 text-white hover:bg-black/60 transition-colors z-30"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
