@@ -297,7 +297,6 @@ export const MainChat: React.FC = () => {
             })
             .eq('id', generatingMsg.id);
 
-          await loadMessages(projectId);
           showToast('success', 'Video Generated', 'Your video is ready!');
         } else {
           throw new Error('Video generation failed');
@@ -369,7 +368,6 @@ export const MainChat: React.FC = () => {
             })
             .eq('id', generatingMsg.id);
 
-          await loadMessages(projectId);
           showToast('success', 'Music Generated', 'Your music is ready!');
         } else {
           throw new Error('Music generation failed');
@@ -467,9 +465,6 @@ export const MainChat: React.FC = () => {
               }]
             })
             .eq('id', generatingMsg.id);
-
-          // Force reload messages to show the image
-          await loadMessages(activeProjectId!);
 
           showToast('success', 'Image Generated', 'Your image is ready!');
         } else {
