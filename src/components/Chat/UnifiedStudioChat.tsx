@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Check, X, Sparkles, ChevronRight, ChevronLeft, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic, Settings } from 'lucide-react';
+import { Edit2, Check, X, Sparkles, Settings, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic } from 'lucide-react';
 import { MainChat } from './MainChat';
 import { ImageControls } from './Controls/ImageControls';
 import { VideoControls } from './Controls/VideoControls';
@@ -24,7 +24,7 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
 }) => {
   const { user } = useAuth();
   const [mode, setMode] = useState<StudioMode>('chat');
-  const [projectName, setProjectName] = useState(initialProjectName || 'Untitled Project');
+  const [projectName, setProjectName] = useState(initialProjectName || 'New Chat');
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(projectName);
   const [showControlPanel, setShowControlPanel] = useState(false);
@@ -172,6 +172,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
 
   const modelInfo = getModelInfo();
   const showStudioControls = mode !== 'chat';
+  const hasActiveProject = !!projectId;
+
   const modeIcons = {
     image: ImageIcon,
     video: VideoIcon,
@@ -181,8 +183,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
 
   return (
     <div className="flex flex-col h-screen overflow-hidden relative">
-      {/* Project Name Header - Only show for studio modes */}
-      {showStudioControls && (
+      {/* Project Name Header - Only show when there's an active project AND in studio mode */}
+      {showStudioControls && hasActiveProject && (
         <div className="flex-shrink-0 border-b border-white/10 bg-black/20 backdrop-blur-xl px-4 md:px-6 py-3 z-10">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 md:gap-3">
@@ -229,15 +231,6 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
                 </span>
               </div>
             </div>
-
-            <button
-              onClick={() => setShowControlPanel(!showControlPanel)}
-              className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-lg glass-panel border border-white/20 text-white/70 hover:text-white hover:border-[#00FFF0]/30 transition-all text-xs md:text-sm font-semibold"
-            >
-              <Settings className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">{showControlPanel ? 'Hide' : 'Show'} Controls</span>
-              {showControlPanel ? <ChevronRight className="w-3 h-3 md:w-4 md:h-4" /> : <ChevronLeft className="w-3 h-3 md:w-4 md:h-4" />}
-            </button>
           </div>
         </div>
       )}
@@ -249,8 +242,19 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
           <MainChat />
         </div>
 
-        {/* Right Control Panel - Only for studio modes */}
-        {showStudioControls && showControlPanel && modelInfo && (
+        {/* Floating Toggle Button - Only show in studio modes when there's an active project */}
+        {showStudioControls && hasActiveProject && !showControlPanel && (
+          <button
+            onClick={() => setShowControlPanel(true)}
+            className="fixed bottom-24 right-6 z-30 p-4 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white shadow-2xl hover:shadow-[#00FFF0]/50 transition-all hover:scale-110 group"
+            title="Show Studio Controls"
+          >
+            <Settings className="w-6 h-6 animate-pulse group-hover:animate-spin" />
+          </button>
+        )}
+
+        {/* Right Control Panel - Only for studio modes with active project */}
+        {showStudioControls && hasActiveProject && showControlPanel && modelInfo && (
           <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 glass-panel border-l border-white/10 flex flex-col overflow-hidden z-20 transform transition-transform duration-300 ease-in-out">
             {/* Model Info Header */}
             <div className="p-4 border-b border-white/10 flex-shrink-0">
@@ -293,10 +297,10 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
               </div>
             )}
 
-            {/* Mobile Close Button */}
+            {/* Close Button */}
             <button
               onClick={() => setShowControlPanel(false)}
-              className="md:hidden absolute top-4 right-4 p-2 rounded-lg bg-black/40 backdrop-blur-xl border border-white/20 text-white hover:bg-black/60 transition-colors z-30"
+              className="absolute top-4 right-4 p-2 rounded-lg bg-black/40 backdrop-blur-xl border border-white/20 text-white hover:bg-black/60 transition-colors z-30"
             >
               <X className="w-4 h-4" />
             </button>
