@@ -135,7 +135,24 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
           />
         );
       default:
-        return null;
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-white/80 text-sm font-semibold mb-3">
+                AI Model
+              </label>
+              <AIModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+              />
+            </div>
+            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+              <p className="text-white/60 text-sm">
+                Select a model above to start chatting. Premium models offer enhanced capabilities and faster responses.
+              </p>
+            </div>
+          </div>
+        );
     }
   };
 
@@ -149,8 +166,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         <MainChat />
       </div>
 
-      {/* Floating Toggle Button - Only in studio modes */}
-      {!showControlPanel && mode !== 'chat' && (
+      {/* Floating Toggle Button - Always visible */}
+      {!showControlPanel && (
         <button
           onClick={() => setShowControlPanel(true)}
           className="fixed bottom-24 right-6 z-30 p-4 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white shadow-2xl hover:shadow-[#00FFF0]/50 transition-all hover:scale-110 group"
@@ -160,8 +177,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         </button>
       )}
 
-      {/* Right Control Panel - Only in studio modes, collapsable */}
-      {showControlPanel && mode !== 'chat' && (
+      {/* Right Control Panel - Always available, collapsable */}
+      {showControlPanel && (
         <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 glass-panel border-l border-white/10 flex flex-col overflow-hidden z-20 transform transition-transform duration-300 ease-in-out">
           {/* Header */}
           <div className="p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-black/40 to-black/20">
