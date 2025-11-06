@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic, Palette, Code, Film } from 'lucide-react';
 import { MainChat } from './MainChat';
 import { ImageControls } from './Controls/ImageControls';
 import { VideoControls } from './Controls/VideoControls';
@@ -24,8 +24,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   onProjectNameChange,
 }) => {
   const { user } = useAuth();
-  const { mode } = useStudioMode();
-  const [showControlPanel, setShowControlPanel] = useState(false);
+  const { mode, setMode } = useStudioMode();
+  const [showControlPanel, setShowControlPanel] = useState(true);
   const [premiumStatus, setPremiumStatus] = useState<UnifiedPremiumStatus | null>(null);
   const [selectedModel, setSelectedModel] = useState('grok-4-fast');
 
@@ -136,20 +136,49 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         );
       default:
         return (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-white/80 text-sm font-semibold mb-3">
-                AI Model
+              <label className="block text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">
+                Select Studio
               </label>
-              <AIModelSelector
-                selectedModel={selectedModel}
-                onModelChange={setSelectedModel}
-              />
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { mode: 'image', icon: Palette, label: 'Image', color: 'from-pink-500 to-rose-500', desc: 'Generate images' },
+                  { mode: 'video', icon: Film, label: 'Video', color: 'from-blue-500 to-cyan-500', desc: 'Create videos' },
+                  { mode: 'music', icon: MusicIcon, label: 'Music', color: 'from-purple-500 to-pink-500', desc: 'Compose music' },
+                  { mode: 'voice', icon: Mic, label: 'Voice', color: 'from-green-500 to-emerald-500', desc: 'Text to speech' },
+                ].map((studio) => {
+                  const StudioIcon = studio.icon;
+                  const isActive = mode === studio.mode;
+                  return (
+                    <button
+                      key={studio.mode}
+                      onClick={() => setMode(studio.mode as StudioMode)}
+                      className={`p-4 rounded-xl bg-gradient-to-br ${studio.color} ${
+                        isActive ? 'bg-opacity-30 border-2 border-white/50 scale-105' : 'bg-opacity-10 border border-white/10'
+                      } hover:border-white/30 transition-all hover:scale-105 group relative overflow-hidden`}
+                    >
+                      {isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+                      )}
+                      <StudioIcon className="w-8 h-8 text-white mb-2 mx-auto group-hover:scale-110 transition-transform relative z-10" />
+                      <div className="text-white font-semibold text-sm relative z-10">{studio.label}</div>
+                      <div className="text-white/60 text-xs mt-1 relative z-10">{studio.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-              <p className="text-white/60 text-sm">
-                Select a model above to start chatting. Premium models offer enhanced capabilities and faster responses.
-              </p>
+
+            <div className="pt-4 border-t border-white/10">
+              <label className="block text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">
+                Recent Projects
+              </label>
+              <div className="text-center py-8 text-white/40 text-sm">
+                <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>No projects yet</p>
+                <p className="text-xs mt-1">Start creating to see your work here</p>
+              </div>
             </div>
           </div>
         );
@@ -180,8 +209,17 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
       {/* Right Control Panel - Always available, collapsable */}
       {showControlPanel && (
         <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 glass-panel border-l border-white/10 flex flex-col overflow-hidden z-20 transform transition-transform duration-300 ease-in-out">
+          {/* Close Button - Positioned at top */}
+          <button
+            onClick={() => setShowControlPanel(false)}
+            className="absolute top-3 right-3 p-2 rounded-lg bg-black/60 backdrop-blur-xl border border-white/20 text-white hover:bg-black/80 transition-colors z-50 group shadow-xl"
+            title="Hide Panel"
+          >
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
           {/* Header */}
-          <div className="p-4 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-black/40 to-black/20">
+          <div className="p-4 pr-14 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-black/40 to-black/20 relative z-10">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <IconComponent className="w-5 h-5 text-[#00FFF0]" />
@@ -220,15 +258,6 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
               )}
             </div>
           )}
-
-          {/* Collapse Button */}
-          <button
-            onClick={() => setShowControlPanel(false)}
-            className="absolute top-4 right-4 p-2 rounded-lg bg-black/40 backdrop-blur-xl border border-white/20 text-white hover:bg-black/60 transition-colors z-30 group"
-            title="Hide Controls"
-          >
-            <ChevronRight className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          </button>
         </div>
       )}
     </div>
