@@ -136,48 +136,47 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         );
       default:
         return (
-          <div className="space-y-3">
-            <div>
-              <label className="block text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">
-                Select Studio
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { mode: 'image', icon: Palette, label: 'Image', color: 'from-pink-500 to-rose-500', desc: 'Generate images' },
-                  { mode: 'video', icon: Film, label: 'Video', color: 'from-blue-500 to-cyan-500', desc: 'Create videos' },
-                  { mode: 'music', icon: MusicIcon, label: 'Music', color: 'from-purple-500 to-pink-500', desc: 'Compose music' },
-                  { mode: 'voice', icon: Mic, label: 'Voice', color: 'from-green-500 to-emerald-500', desc: 'Text to speech' },
-                ].map((studio) => {
-                  const StudioIcon = studio.icon;
-                  const isActive = mode === studio.mode;
-                  return (
-                    <button
-                      key={studio.mode}
-                      onClick={() => setMode(studio.mode as StudioMode)}
-                      className={`p-4 rounded-xl bg-gradient-to-br ${studio.color} ${
-                        isActive ? 'bg-opacity-30 border-2 border-white/50 scale-105' : 'bg-opacity-10 border border-white/10'
-                      } hover:border-white/30 transition-all hover:scale-105 group relative overflow-hidden`}
-                    >
-                      {isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-                      )}
-                      <StudioIcon className="w-8 h-8 text-white mb-2 mx-auto group-hover:scale-110 transition-transform relative z-10" />
-                      <div className="text-white font-semibold text-sm relative z-10">{studio.label}</div>
-                      <div className="text-white/60 text-xs mt-1 relative z-10">{studio.desc}</div>
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="space-y-6">
+            {/* Studio Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { mode: 'image', icon: Palette, label: 'Image', bgColor: 'bg-pink-500/10 hover:bg-pink-500/20', borderColor: 'border-pink-500/20', textColor: 'text-pink-400' },
+                { mode: 'video', icon: Film, label: 'Video', bgColor: 'bg-blue-500/10 hover:bg-blue-500/20', borderColor: 'border-blue-500/20', textColor: 'text-blue-400' },
+                { mode: 'music', icon: MusicIcon, label: 'Music', bgColor: 'bg-purple-500/10 hover:bg-purple-500/20', borderColor: 'border-purple-500/20', textColor: 'text-purple-400' },
+                { mode: 'voice', icon: Mic, label: 'Voice', bgColor: 'bg-green-500/10 hover:bg-green-500/20', borderColor: 'border-green-500/20', textColor: 'text-green-400' },
+              ].map((studio) => {
+                const StudioIcon = studio.icon;
+                const isActive = mode === studio.mode;
+                return (
+                  <button
+                    key={studio.mode}
+                    onClick={() => setMode(studio.mode as StudioMode)}
+                    className={`group p-4 rounded-lg border transition-all ${
+                      isActive
+                        ? `${studio.bgColor.split('hover:')[1]} ${studio.borderColor} border-2`
+                        : `bg-white/5 border-white/10 ${studio.bgColor}`
+                    }`}
+                  >
+                    <StudioIcon className={`w-10 h-10 mx-auto mb-2 ${isActive ? studio.textColor : 'text-white/60 group-hover:text-white/80'} transition-colors`} />
+                    <div className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/70'}`}>
+                      {studio.label}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="pt-4 border-t border-white/10">
-              <label className="block text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">
+            {/* Recent Projects */}
+            <div>
+              <h3 className="text-white/40 text-xs font-medium mb-3 tracking-wide uppercase">
                 Recent Projects
-              </label>
-              <div className="text-center py-8 text-white/40 text-sm">
-                <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>No projects yet</p>
-                <p className="text-xs mt-1">Start creating to see your work here</p>
+              </h3>
+              <div className="text-center py-12 text-white/30">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <p className="text-sm">No projects yet</p>
+                <p className="text-xs mt-1 text-white/20">Start creating to see your work here</p>
               </div>
             </div>
           </div>
@@ -206,56 +205,45 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         </button>
       )}
 
-      {/* Right Control Panel - Always available, collapsable */}
+      {/* Right Control Panel - Google AI Studio Style */}
       {showControlPanel && (
-        <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 glass-panel border-l border-white/10 flex flex-col overflow-hidden z-20 transform transition-transform duration-300 ease-in-out">
-          {/* Close Button - Positioned at top */}
+        <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 bg-[#1a1a1a] border-l border-white/5 flex flex-col overflow-hidden z-20 shadow-2xl">
+          {/* Close Button */}
           <button
             onClick={() => setShowControlPanel(false)}
-            className="absolute top-3 right-3 p-2 rounded-lg bg-black/60 backdrop-blur-xl border border-white/20 text-white hover:bg-black/80 transition-colors z-50 group shadow-xl"
-            title="Hide Panel"
+            className="absolute top-4 right-4 p-1.5 rounded-md hover:bg-white/5 text-white/60 hover:text-white transition-colors z-50"
+            title="Close panel"
           >
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Header */}
-          <div className="p-4 pr-14 border-b border-white/10 flex-shrink-0 bg-gradient-to-br from-black/40 to-black/20 relative z-10">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <IconComponent className="w-5 h-5 text-[#00FFF0]" />
-                <h3 className="text-white font-bold text-base md:text-lg">{modelInfo.name}</h3>
-              </div>
-              {premiumStatus?.isPremium && (
-                <div className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
-                  <span className="text-[#00FFF0] text-xs font-semibold">PRO</span>
-                </div>
-              )}
-            </div>
-            <p className="text-white/60 text-xs md:text-sm leading-relaxed">{modelInfo.description}</p>
+          {/* Header - Clean & Minimal */}
+          <div className="px-6 pt-6 pb-4">
+            <h2 className="text-white/90 text-sm font-medium tracking-wide mb-1">
+              {mode === 'chat' ? 'SELECT STUDIO' : modelInfo.name.toUpperCase()}
+            </h2>
+            {mode !== 'chat' && (
+              <p className="text-white/40 text-xs">{modelInfo.description}</p>
+            )}
           </div>
 
-          {/* Controls */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Content Area */}
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
             {renderControls()}
           </div>
 
-          {/* Token Balance Footer */}
+          {/* Token Balance - Minimal Footer */}
           {premiumStatus && (
-            <div className="p-4 border-t border-white/10 bg-gradient-to-br from-white/5 to-white/0 flex-shrink-0">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white/60 text-xs font-semibold uppercase">Token Balance</span>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-                  {premiumStatus.totalTokens.toLocaleString()}
-                </span>
-                <span className="text-white/40 text-xs md:text-sm">tokens</span>
-              </div>
-              {premiumStatus.paidTokens > 0 && (
-                <div className="mt-1 text-xs text-white/50">
-                  {premiumStatus.paidTokens.toLocaleString()} paid tokens available
+            <div className="px-6 py-4 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                <span className="text-white/40 text-xs font-medium">Balance</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-white text-lg font-semibold">
+                    {premiumStatus.totalTokens.toLocaleString()}
+                  </span>
+                  <span className="text-white/40 text-xs">tokens</span>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>
