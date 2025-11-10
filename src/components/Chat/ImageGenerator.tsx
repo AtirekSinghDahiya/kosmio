@@ -16,6 +16,9 @@ import { DynamicTokenEstimator } from '../../lib/dynamicTokenEstimator';
 interface GeneratedImage {
   url: string;
   model?: string;
+  prompt?: string;
+  seed?: number;
+  timestamp?: Date;
 }
 
 interface ImageGeneratorProps {
@@ -74,7 +77,9 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
 
       const image: GeneratedImage = {
         url: imageUrls[0],
-        model: 'nano-banana'
+        model: 'nano-banana',
+        prompt: prompt,
+        timestamp: new Date()
       };
 
       setGeneratedImage(image);

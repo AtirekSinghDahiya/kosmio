@@ -903,8 +903,8 @@ export const MainChat: React.FC = () => {
                       )}
 
                       {/* Display Generated Media (images, videos, audio) */}
-                      {(message as any).generatedContent && (() => {
-                        const generatedContent = (message as any).generatedContent;
+                      {(message as any).payload?.generatedContent && (() => {
+                        const generatedContent = (message as any).payload.generatedContent;
                         if (generatedContent.url) {
                           return (
                             <MediaPreview
