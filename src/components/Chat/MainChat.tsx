@@ -503,7 +503,7 @@ export const MainChat: React.FC = () => {
         if (intent.suggestedModel && intent.suggestedModel !== selectedModel) {
           console.log(`🤖 Auto-selecting AI model: ${intent.suggestedModel}`);
           setSelectedModel(intent.suggestedModel);
-          showToast('info', 'Model Selected', `Using ${intent.suggestedModel} as requested`);
+          // Don't show toast - just select the model silently
         }
       } catch (error) {
         console.warn('⚠️ Intent classification failed, defaulting to chat:', error);
@@ -1112,7 +1112,6 @@ export const MainChat: React.FC = () => {
             setImagePrompt('');
           }}
           onImageGenerated={async (image) => {
-            showToast('success', 'Success', 'Image generated successfully!');
             console.log('Generated image:', image);
 
             // Add the generated image to chat
