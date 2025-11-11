@@ -23,6 +23,7 @@ import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MediaPreview } from './MediaPreview';
+import { TypingEffect, TypingIndicator } from './TypingEffect';
 import { getModelCost, isModelFree } from '../../lib/modelTokenPricing';
 import { checkPremiumAccess } from '../../lib/premiumAccessService';
 import {
@@ -67,6 +68,9 @@ export const MainChat: React.FC = () => {
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
   const [musicPrompt, setMusicPrompt] = useState('');
+  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+  const [isThinking, setIsThinking] = useState(false);
+  const [thinkingText, setThinkingText] = useState('Thinking...');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -629,9 +633,18 @@ export const MainChat: React.FC = () => {
 
       console.log('🎯 Using custom preferences:', !!systemPrompt);
 
+      // Show thinking animation for deep research models
+      if (selectedModel.includes('deep-research') || selectedModel.includes('think')) {
+        setIsThinking(true);
+        setThinkingText('Deep researching...');
+      }
+
       // Step 4: Call OpenRouter service with usage tracking
       const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
       const aiContent = aiResponse.content;
+
+      // Hide thinking animation
+      setIsThinking(false);
 
       console.log('✅ AI Response received! Length:', aiContent.length);
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
@@ -705,9 +718,15 @@ export const MainChat: React.FC = () => {
         console.error('⚠️ Failed to log usage:', logErr);
       }
 
-      // Step 6: Save AI response
+      // Step 6: Save AI response with typing effect
       console.log('💾 Saving AI response to database...');
-      await addMessage(projectId, 'assistant', aiContent);
+      const savedMessage = await addMessage(projectId, 'assistant', aiContent);
+
+      // Set typing animation for this message
+      if (savedMessage && savedMessage.id) {
+        setTypingMessageId(savedMessage.id);
+      }
+
       console.log('✅ AI response saved successfully');
 
       await incrementUsage('chat_messages_daily', 1);
@@ -892,15 +911,33 @@ export const MainChat: React.FC = () => {
                         : 'bg-gray-800/50 text-gray-100 rounded-bl-md'
                     } backdrop-blur-sm shadow-lg`}>
                       {/* Render content with Markdown for assistant messages */}
-                      {message.role === 'assistant' && message.content && (message.content.includes('#') || message.content.includes('**') || message.content.includes('```') || message.content.includes('|')) ? (
-                        <div className="text-[15px] leading-[1.6]">
-                          <MarkdownRenderer content={message.content} />
-                        </div>
-                      ) : (
-                        <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
-                          {message.content}
-                        </div>
-                      )}
+                      {message.role === 'assistant' && message.content ? (
+                        message.content.includes('#') || message.content.includes('**') || message.content.includes('```') || message.content.includes('|') ? (
+                          <div className="text-[15px] leading-[1.6]">
+                            {typingMessageId === message.id ? (
+                              <TypingEffect
+                                text={message.content}
+                                speed={15}
+                                onComplete={() => setTypingMessageId(null)}
+                              />
+                            ) : (
+                              <MarkdownRenderer content={message.content} />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
+                            {typingMessageId === message.id ? (
+                              <TypingEffect
+                                text={message.content}
+                                speed={15}
+                                onComplete={() => setTypingMessageId(null)}
+                              />
+                            ) : (
+                              message.content
+                            )}
+                          </div>
+                        )
+                      ) : null}
 
                       {/* Display Generated Media (images, videos, audio) */}
                       {(message as any).payload?.generatedContent && (() => {
@@ -982,7 +1019,6 @@ export const MainChat: React.FC = () => {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(message.content);
-                            showToast('success', 'Copied', 'Message copied to clipboard');
                           }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Copy"
@@ -990,14 +1026,20 @@ export const MainChat: React.FC = () => {
                           <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
-                          onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
+                          onClick={() => {
+                            // Placeholder for feedback feature
+                            console.log('Good response feedback');
+                          }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Good response"
                         >
                           <ThumbsUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
-                          onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
+                          onClick={() => {
+                            // Placeholder for feedback feature
+                            console.log('Bad response feedback');
+                          }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Bad response"
                         >
@@ -1017,7 +1059,10 @@ export const MainChat: React.FC = () => {
                           <RotateCw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
-                          onClick={() => showToast('info', 'Coming Soon', 'More actions coming soon!')}
+                          onClick={() => {
+                            // Placeholder for more actions
+                            console.log('More actions');
+                          }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="More actions"
                         >
@@ -1038,7 +1083,7 @@ export const MainChat: React.FC = () => {
                 </div>
               ))}
 
-              {isLoading && (
+              {(isLoading || isThinking) && (
                 <div className="flex gap-3 justify-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
                     <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png" alt="KroniQ" className="w-8 h-8 animate-pulse" />
@@ -1046,10 +1091,23 @@ export const MainChat: React.FC = () => {
                   <div className={`rounded-2xl rounded-bl-md px-4 py-3 ${
                     theme === 'light' ? 'bg-gray-100' : 'bg-gray-800/50'
                   } backdrop-blur-sm shadow-lg`}>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="flex flex-col gap-2">
+                      {isThinking ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                          </div>
+                          <span className="text-sm text-white/80">{thinkingText}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
