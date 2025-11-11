@@ -139,7 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           paid_tokens_balance: 0,
           daily_tokens_remaining: 5000,
           daily_token_limit: 5000,
-          monthly_token_limit: 150000,
           current_tier: 'free',
           is_paid: false,
           is_premium: false,
