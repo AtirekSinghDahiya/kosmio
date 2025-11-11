@@ -557,12 +557,16 @@ export const MainChat: React.FC = () => {
           url: f.url
         }));
 
-        await supabase.from('messages').insert({
+        const { data: newMessage, error: insertError } = await supabase.from('messages').insert({
           project_id: projectId,
           role: 'user',
           content: textToSend,
           file_attachments: fileAttachments
-        });
+        }).select().single();
+
+        if (!insertError && newMessage) {
+          setMessages(prev => [...prev, newMessage as any]);
+        }
       } else {
         await addMessage(projectId, 'user', textToSend, []);
       }
@@ -917,7 +921,7 @@ export const MainChat: React.FC = () => {
                             {typingMessageId === message.id ? (
                               <TypingEffect
                                 text={message.content}
-                                speed={15}
+                                speed={5}
                                 onComplete={() => setTypingMessageId(null)}
                               />
                             ) : (
@@ -929,7 +933,7 @@ export const MainChat: React.FC = () => {
                             {typingMessageId === message.id ? (
                               <TypingEffect
                                 text={message.content}
-                                speed={15}
+                                speed={5}
                                 onComplete={() => setTypingMessageId(null)}
                               />
                             ) : (
