@@ -102,23 +102,22 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
     console.log('📦 Profile data:', profile);
 
     const paidTokens = profile.paid_tokens_balance || 0;
-    const totalTokens = profile.tokens_balance || 0;
+    const freeTokens = profile.free_tokens_balance || 0;
+    const totalTokens = paidTokens + freeTokens;
 
-    // Premium status: ONLY check paid_tokens_balance (source of truth)
-    // Free users have tokens_balance (free tokens) but paid_tokens_balance should be 0
-    // DO NOT use is_premium flag as fallback - it can be incorrect
+    // Premium status: SIMPLE RULE - paid_tokens_balance > 0
+    // This is the ONLY source of truth for premium access
     const isPremium = paidTokens > 0;
 
-    console.log('💎 Premium calculation:', {
-      paidTokens,
-      totalTokens,
-      is_premium: profile.is_premium,
-      is_paid: profile.is_paid,
-      current_tier: profile.current_tier,
-      result: isPremium,
-      logic: paidTokens > 0 ? 'HAS_PAID_TOKENS' : (profile.is_premium ? 'IS_PREMIUM_FLAG' : 'FREE')
+    console.log('💎 Premium Status Check:', {
+      paidTokens: paidTokens.toLocaleString(),
+      freeTokens: freeTokens.toLocaleString(),
+      totalTokens: totalTokens.toLocaleString(),
+      isPremium: isPremium ? '✅ YES' : '❌ NO',
+      logic: 'paid_tokens_balance > 0',
     });
 
+    // Sync premium flags if needed (for compatibility with old code)
     if (isPremium && paidTokens > 0) {
       await ensurePremiumFlagsSet(userId, paidTokens, profile.current_tier);
     }
