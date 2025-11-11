@@ -124,7 +124,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      console.log('🆕 Creating new profile with 150k tokens for user:', userId);
+      console.log('🆕 Creating new profile for user:', userId);
+
+      // Check if this will be one of the first 101 users
+      const { data: counterData } = await supabase
+        .from('promotional_user_counter')
+        .select('first_101_count')
+        .eq('id', 1)
+        .single();
+
+      const currentCount = counterData?.first_101_count || 0;
+      const isFirst101 = currentCount < 101;
+
+      // Set initial balance: 150k + 5M bonus for first 101 users
+      const initialBalance = isFirst101 ? 5150000 : 150000;
+
+      console.log(`🎁 User will ${isFirst101 ? 'GET' : 'NOT get'} First 101 bonus (current count: ${currentCount}/101)`);
+      console.log(`💰 Initial token balance: ${initialBalance.toLocaleString()}`);
 
       const result = await supabase
         .from('profiles')
@@ -133,8 +149,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          tokens_balance: 150000,
-          free_tokens_balance: 150000,
+          tokens_balance: initialBalance,
+          free_tokens_balance: initialBalance,
           paid_tokens_balance: 0,
           daily_tokens_remaining: 5000,
           daily_token_limit: 5000,
@@ -154,30 +170,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw result.error;
       }
 
-      // Automatically try to redeem FIRST100 promo for new users
-      setTimeout(async () => {
-        try {
-          console.log('🎁 Attempting to auto-redeem FIRST100 promo for new user:', userId);
+      // If first 101, increment counter and show notification
+      if (isFirst101) {
+        await supabase
+          .from('promotional_user_counter')
+          .update({
+            first_101_count: currentCount + 1,
+            last_updated: new Date().toISOString()
+          })
+          .eq('id', 1);
 
-          const campaignStatus = await PromoService.checkCampaignStatus('FIRST100');
-          console.log('📊 Campaign status:', campaignStatus);
+        console.log(`🎉 First 101 bonus granted! Counter incremented to ${currentCount + 1}/101`);
 
-          if (campaignStatus.isValid && campaignStatus.remainingSlots > 0) {
-            const redemption = await PromoService.redeemPromoCode(userId, 'FIRST100', email);
-            console.log('🎁 Redemption result:', redemption);
-
-            if (redemption.success) {
-              console.log(`✅ SUCCESS! Awarded ${redemption.tokensAwarded.toLocaleString()} tokens from FIRST100 promo!`);
-            } else {
-              console.error(`❌ FIRST100 promo redemption failed: ${redemption.message}`);
+        // Show success notification after 3 seconds
+        setTimeout(() => {
+          const event = new CustomEvent('show-toast', {
+            detail: {
+              title: '🎉 First 101 Welcome Bonus!',
+              message: `Congratulations! You're user #${currentCount + 1} of our first 101 users and received 5.0M tokens for FREE! 🚀`,
+              type: 'success'
             }
-          } else {
-            console.log(`ℹ️ FIRST100 campaign not available: ${campaignStatus.message}`);
-          }
-        } catch (promoError) {
-          console.error('❌ Error auto-redeeming promo:', promoError);
-        }
-      }, 2000);
+          });
+          window.dispatchEvent(event);
+        }, 3000);
+      }
     } catch (error) {
     }
   };
