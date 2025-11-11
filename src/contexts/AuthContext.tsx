@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance, free_tokens_balance, monthly_token_limit')
+        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance, free_tokens_balance')
         .eq('id', userId)
         .maybeSingle();
 
@@ -100,7 +100,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               free_tokens_balance: 150000,
               daily_tokens_remaining: 5000,
               daily_token_limit: 5000,
-              monthly_token_limit: 150000,
               last_token_refresh: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
