@@ -74,34 +74,33 @@ export async function handleTokenPurchase(
       tier = 'budget';
     }
 
-    console.log('🎯 [TOKEN PURCHASE] Setting tier to:', tier);
+    console.log('🎯 [TOKEN PURCHASE] Adding tokens via database function...');
 
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        paid_tokens_balance: newPaidTokens,
-        tokens_balance: (profile.tokens_balance || 0) + tokenAmount,
-        is_premium: true,
-        is_paid: true,
-        current_tier: tier,
-        tokens_lifetime_purchased: (profile.tokens_balance || 0) + tokenAmount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
+    // LOOPHOLE FIX: Use add_tokens_with_type function instead of direct update
+    // This ensures the auto_downgrade_depleted_users trigger handles all premium flags
+    const { data: addResult, error: addError } = await supabase.rpc('add_tokens_with_type', {
+      p_user_id: userId,
+      p_tokens: tokenAmount,
+      p_token_type: 'paid',
+      p_source: `purchase_${purchaseId}`,
+      p_stripe_payment_id: purchaseId
+    });
 
-    if (updateError) {
-      console.error('❌ [TOKEN PURCHASE] Failed to update profile:', updateError);
+    if (addError) {
+      console.error('❌ [TOKEN PURCHASE] Failed to add tokens:', addError);
       return {
         success: false,
-        message: 'Failed to update token balance',
+        message: 'Failed to add tokens',
         newBalance: currentPaidTokens,
         isPremium: false
       };
     }
 
-    console.log('✅ [TOKEN PURCHASE] Profile updated successfully');
+    console.log('✅ [TOKEN PURCHASE] Tokens added successfully:', addResult);
+    console.log('   The auto_downgrade_depleted_users trigger will handle premium flag updates');
 
-    await syncToPaidTierUsers(userId, profile.email, profile.display_name, tier, newPaidTokens);
+    // Tier sync is now handled by the auto_downgrade_depleted_users trigger
+    // No need to manually sync as trigger does it automatically
 
     const { error: purchaseError } = await supabase
       .from('token_purchases')
@@ -128,8 +127,8 @@ export async function handleTokenPurchase(
     return {
       success: true,
       message: 'Tokens purchased successfully',
-      newBalance: newPaidTokens,
-      isPremium: true
+      newBalance: addResult.paid_balance || newPaidTokens,
+      isPremium: (addResult.paid_balance || 0) > 0
     };
 
   } catch (error) {
