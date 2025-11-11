@@ -9,6 +9,8 @@ import { savePPTToProject } from '../../lib/contentSaveService';
 
 interface PPTStudioProps {
   projectId?: string;
+  onClose?: () => void;
+  initialTopic?: string;
 }
 
 interface Slide {
@@ -116,7 +118,7 @@ const PPT_TEMPLATES = [
   },
 ];
 
-export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId }) => {
+export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initialTopic }) => {
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const { showToast } = useToast();
@@ -405,26 +407,27 @@ Keep content concise and impactful.`;
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${
-      theme === 'light'
-        ? 'bg-white'
-        : 'bg-black'
-    }`}>
-      {/* Kimi-inspired Header */}
-      <div className={`flex items-center justify-between px-6 py-4 border-b ${
-        theme === 'light' ? 'border-gray-200 bg-white' : 'border-white/10 bg-black'
+    <div className={`${onClose ? 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm' : ''}`}>
+      <div className={`${onClose ? 'w-[95vw] h-[95vh] rounded-2xl shadow-2xl overflow-hidden' : 'min-h-screen'} flex flex-col ${
+        theme === 'light'
+          ? 'bg-white'
+          : 'bg-black'
       }`}>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigateTo('chat')}
-            className={`p-2 rounded-lg transition-all ${
-              theme === 'light'
-                ? 'hover:bg-gray-100'
-                : 'hover:bg-white/10'
-            }`}
-          >
-            <ArrowLeft className={`w-5 h-5 ${theme === 'light' ? 'text-gray-700' : 'text-white'}`} />
-          </button>
+        {/* Kimi-inspired Header */}
+        <div className={`flex items-center justify-between px-6 py-4 border-b ${
+          theme === 'light' ? 'border-gray-200 bg-white' : 'border-white/10 bg-black'
+        }`}>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => onClose ? onClose() : navigateTo('chat')}
+              className={`p-2 rounded-lg transition-all ${
+                theme === 'light'
+                  ? 'hover:bg-gray-100'
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              <ArrowLeft className={`w-5 h-5 ${theme === 'light' ? 'text-gray-700' : 'text-white'}`} />
+            </button>
           <div className="flex items-center gap-3">
             <img src="/kroniq-full-logo.svg" alt="KroniQ" className="h-8" />
           </div>
@@ -621,6 +624,7 @@ Keep content concise and impactful.`;
             </button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
