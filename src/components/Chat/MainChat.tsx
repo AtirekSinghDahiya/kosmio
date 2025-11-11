@@ -706,69 +706,61 @@ export const MainChat: React.FC = () => {
 
       console.log('🎯 Using custom preferences:', !!systemPrompt);
 
-      // SECURITY FIX: Step 4 - Reserve tokens BEFORE making AI call
-      const requestId = crypto.randomUUID();
-      const modelCostInfo = getModelCost(selectedModel);
-      const estimatedTokens = modelCostInfo.tokensPerMessage;
+      // Step 4: Call OpenRouter service with usage tracking
+      console.log('🤖 Calling AI model...');
+      const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
+      const aiContent = aiResponse.content;
 
-      console.log('🔒 Reserving tokens before AI call...');
-      console.log('   Estimated cost:', estimatedTokens.toLocaleString(), 'tokens');
-      console.log('   Request ID:', requestId);
+      // Hide thinking animation
+      setIsThinking(false);
 
-      const { data: reservation, error: reserveError } = await supabase.rpc('reserve_tokens', {
-        p_user_id: user.uid,
-        p_tokens: estimatedTokens,
-        p_request_id: requestId,
-        p_model: selectedModel
-      });
+      console.log('✅ AI Response received! Length:', aiContent.length);
+      console.log('✅ First 100 chars:', aiContent.substring(0, 100));
 
-      if (reserveError || !reservation?.success) {
-        const errorMsg = reservation?.error || reserveError?.message || 'Failed to reserve tokens';
-        showToast('error', 'Token Reservation Failed', errorMsg);
-        return;
-      }
+      // Step 5: Deduct tokens with 2x multiplier based on OpenRouter cost
+      console.log('💰 Processing token deduction...');
+      console.log('💰 aiResponse.usage:', aiResponse.usage);
 
-      console.log('✅ Tokens reserved:', reservation.tokens_reserved);
+      // Get the actual cost from OpenRouter (or use fallback)
+      const estimatedFallbackCost = Math.max(0.0005, (aiContent.length / 1000) * 0.0005);
+      const openRouterCost = aiResponse.usage?.total_cost || estimatedFallbackCost;
 
-      // Step 5: Call OpenRouter service with usage tracking
-      let aiResponse;
-      let aiContent;
+      console.log(`💰 OpenRouter cost: $${openRouterCost.toFixed(6)}`);
+
+      // Apply 2x multiplier to OpenRouter cost
+      const finalCostUSD = openRouterCost * 2;
+
+      // Convert USD to tokens (1 token = $0.000001, so $1 = 1,000,000 tokens)
+      const tokensToDeduct = Math.ceil(finalCostUSD * 1000000);
+
+      console.log(`💰 Final cost (2x): $${finalCostUSD.toFixed(6)}`);
+      console.log(`💎 Tokens to deduct: ${tokensToDeduct.toLocaleString()}`);
+
+      // Deduct tokens from user's balance
+      let deductionSuccess = false;
       try {
-        aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
-        aiContent = aiResponse.content;
+        console.log('🔄 Calling deduct_tokens_simple with:', { user_id: user.uid, tokens: tokensToDeduct });
 
-        // Hide thinking animation
-        setIsThinking(false);
-
-        console.log('✅ AI Response received! Length:', aiContent.length);
-
-        // Step 6: Calculate actual cost and finalize deduction
-        const estimatedFallbackCost = Math.max(0.0005, (aiContent.length / 1000) * 0.0005);
-        const openRouterCost = aiResponse.usage?.total_cost || estimatedFallbackCost;
-        const finalCostUSD = openRouterCost * 2; // 2x multiplier
-        const actualTokensUsed = Math.ceil(finalCostUSD * 1000000);
-
-        console.log(`💰 Actual cost: ${actualTokensUsed.toLocaleString()} tokens`);
-
-        // Finalize the deduction (will refund if we overestimated)
-        const { data: finalizeResult } = await supabase.rpc('finalize_token_deduction', {
-          p_request_id: requestId,
-          p_actual_tokens: actualTokensUsed
+        const { data: deductResult, error: deductError } = await supabase.rpc('deduct_tokens_simple', {
+          p_user_id: user.uid,
+          p_tokens: tokensToDeduct
         });
 
-        if (finalizeResult?.tokens_refunded > 0) {
-          console.log(`💰 Refunded ${finalizeResult.tokens_refunded} tokens (overestimate)`);
+        console.log('📊 Deduction result:', { deductResult, deductError });
+
+        if (deductError) {
+          console.error('❌ Token deduction error:', deductError);
+          // Don't show error toast - just log it
+        } else if (deductResult && deductResult.success) {
+          console.log(`✅ Deducted ${tokensToDeduct.toLocaleString()} tokens. New balance: ${deductResult.new_balance?.toLocaleString()}`);
+          deductionSuccess = true;
+        } else {
+          console.warn('⚠️ Token deduction returned success=false:', deductResult);
         }
-
-        console.log('✅ Token deduction finalized');
-      } catch (error: any) {
-        // CRITICAL: Refund tokens on error
-        console.error('❌ AI request failed, refunding tokens...');
-        await supabase.rpc('refund_reserved_tokens', {
-          p_request_id: requestId
-        });
-        console.log('✅ Tokens refunded due to error');
-        throw error; // Re-throw to handle in outer catch
+      } catch (deductErr: any) {
+        console.error('❌ Exception during token deduction:', deductErr);
+        console.error('❌ Error details:', JSON.stringify(deductErr, null, 2));
+        // Don't show error toast - AI response was successful
       }
 
       // Log usage to database for tracking and analytics
