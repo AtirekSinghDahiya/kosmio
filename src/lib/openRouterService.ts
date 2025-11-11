@@ -1,7 +1,10 @@
 /**
- * OpenRouter AI Service
- * All models (Claude, GPT, Grok, DeepSeek, Gemini, Kimi) via OpenRouter
+ * OpenRouter AI Service - SECURE VERSION
+ * All AI calls now route through Supabase Edge Function
+ * API keys are NEVER exposed to frontend
  */
+
+import { supabase } from './supabase';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -20,10 +23,10 @@ interface AIResponse {
   };
 }
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
-const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
-const SITE_URL = 'https://kroniq.ai';
-const SITE_NAME = 'KroniQ AI Platform';
+// SECURITY FIX: API keys removed from frontend
+// All API calls now go through Edge Function
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const AI_PROXY_URL = `${SUPABASE_URL}/functions/v1/ai-proxy`;
 
 const MODEL_MAP: Record<string, string> = {
   'gpt-5-chat': 'openai/gpt-5-chat',
@@ -70,37 +73,36 @@ export async function callOpenRouter(
   messages: Message[],
   modelId: string
 ): Promise<AIResponse> {
-  if (!OPENROUTER_API_KEY) {
-    throw new Error('OpenRouter API key is not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.');
-  }
-
   const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';
 
-  log('info', `Calling model: ${openRouterModel} (requested: ${modelId})`);
-  log('info', `API Key length: ${OPENROUTER_API_KEY.length}`);
-  log('info', `API Key prefix: ${OPENROUTER_API_KEY.substring(0, 20)}...`);
-  log('info', `API Base URL: ${OPENROUTER_BASE_URL}`);
+  log('info', `Calling model via Edge Function: ${openRouterModel}`);
 
   try {
+    // SECURITY FIX: Call Edge Function instead of direct API
+    // Get auth session for Edge Function
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Authentication required');
+    }
+
     const requestBody = {
+      provider: 'openrouter',
       model: openRouterModel,
       messages: messages,
     };
 
-    log('info', `Request body: ${JSON.stringify(requestBody).substring(0, 200)}`);
+    log('info', `Calling Edge Function: ${AI_PROXY_URL}`);
 
-    // Add timeout to prevent hanging requests (5 minutes for complex tasks like website generation)
+    // Add timeout to prevent hanging requests (5 minutes)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
 
     let response;
     try {
-      response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      response = await fetch(AI_PROXY_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'HTTP-Referer': SITE_URL,
-          'X-Title': SITE_NAME,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
@@ -109,7 +111,7 @@ export async function callOpenRouter(
     } catch (fetchError: any) {
       clearTimeout(timeoutId);
       if (fetchError.name === 'AbortError') {
-        throw new Error('Request timed out after 5 minutes. The AI model may be overloaded or the request is too complex. Try: 1) Using a faster model like Grok 4 Fast, 2) Breaking your request into smaller parts, or 3) Simplifying your prompt.');
+        throw new Error('Request timed out after 5 minutes.');
       }
       throw fetchError;
     }
@@ -120,25 +122,17 @@ export async function callOpenRouter(
     if (!response.ok) {
       const errorText = await response.text();
       log('error', `HTTP Status: ${response.status}`);
-      log('error', `Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()))}`);
-      log('error', `Error Response Body: ${errorText}`);
+      log('error', `Error Response: ${errorText}`);
 
       let errorData: any = {};
       try {
         errorData = JSON.parse(errorText);
-        log('error', `Parsed error data: ${JSON.stringify(errorData)}`);
       } catch (e) {
-        log('error', `Could not parse error response as JSON`);
+        // Ignore parse error
       }
 
-      const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}: ${errorText.substring(0, 100)}`;
-
-      // Add more context to the error
-      if (response.status === 401 || response.status === 403) {
-        throw new Error(`OpenRouter Authentication Error: ${errorMessage}. Please check your API key.`);
-      }
-
-      throw new Error(`OpenRouter API Error: ${errorMessage}`);
+      const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+      throw new Error(`AI Proxy Error: ${errorMessage}`);
     }
 
     const data = await response.json();
