@@ -123,19 +123,19 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) =
 
       if (line.startsWith('# ')) {
         elements.push(
-          <h1 key={`h1-${elements.length}`} className="text-3xl font-bold text-white mt-6 mb-4 leading-tight font-['Inter',sans-serif]">
+          <h1 key={`h1-${elements.length}`} className="text-3xl font-bold text-white mt-6 mb-4">
             {line.slice(2)}
           </h1>
         );
       } else if (line.startsWith('## ')) {
         elements.push(
-          <h2 key={`h2-${elements.length}`} className="text-2xl font-semibold text-white mt-5 mb-3 leading-snug font-['Inter',sans-serif]">
+          <h2 key={`h2-${elements.length}`} className="text-2xl font-semibold text-white mt-5 mb-3">
             {line.slice(3)}
           </h2>
         );
       } else if (line.startsWith('### ')) {
         elements.push(
-          <h3 key={`h3-${elements.length}`} className="text-xl font-medium text-white/90 mt-4 mb-2 leading-snug font-['Inter',sans-serif]">
+          <h3 key={`h3-${elements.length}`} className="text-xl font-semibold text-white/90 mt-4 mb-2">
             {line.slice(4)}
           </h3>
         );

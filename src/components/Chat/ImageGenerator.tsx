@@ -55,6 +55,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
+      showToast('warning', 'Enter a prompt', 'Please describe what you want to create');
       return;
     }
 
@@ -82,6 +83,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
       };
 
       setGeneratedImage(image);
+      showToast('success', 'Success!', 'Your image is ready');
 
       if (user) {
         try {
@@ -123,6 +125,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
         errorMessage = 'Network error. Please check your connection.';
       }
 
+      showToast('error', 'Generation Failed', errorMessage);
       setImageLoading(false);
     } finally {
       setIsGenerating(false);
@@ -138,7 +141,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Silent download
+    showToast('success', 'Downloaded!', 'Image saved to your device');
   };
 
   const handleRegenerate = () => {
