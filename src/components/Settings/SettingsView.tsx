@@ -3,9 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useToast } from '../../contexts/ToastContext';
-import { User, Bell, Trash2, Sun, Moon, ArrowLeft, Palette } from 'lucide-react';
+import { User, Bell, Shield, Trash2, Sun, Moon, ArrowLeft, Palette, Bug } from 'lucide-react';
 import { ChatSidebar } from '../Chat/ChatSidebar';
 import { ThemeSelector } from './ThemeSelector';
+import { TierDebugPanel } from '../Debug/TierDebugPanel';
 import { getProjects, deleteProject, renameProject } from '../../lib/chatService';
 import { supabase } from '../../lib/supabaseClient';
 import { updateProfile } from 'firebase/auth';
@@ -31,6 +32,7 @@ export const SettingsView: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [isUpdatingNotifications, setIsUpdatingNotifications] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -202,6 +204,28 @@ export const SettingsView: React.FC = () => {
 
           <div className="glass-panel rounded-2xl p-6 border border-white/10 backdrop-blur-xl">
             <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-yellow-500/30 to-orange-500/30 flex items-center justify-center border border-white/20">
+                <Bug className="w-5 h-5 text-yellow-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Premium Access Debug</h2>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-white/70">
+                Check your premium access status, verify tier tables, and sync your account data.
+              </p>
+              <button
+                onClick={() => setShowDebugPanel(true)}
+                className="px-6 py-3 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 text-white rounded-lg border border-white/10 hover:border-yellow-500/50 transition-all font-medium flex items-center gap-2"
+              >
+                <Bug className="w-5 h-5" />
+                Open Debug Panel
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-6 border border-white/10 backdrop-blur-xl">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-purple-500/30 to-pink-500/30 flex items-center justify-center border border-white/20">
                 <Bell className="w-5 h-5 text-purple-400" />
               </div>
@@ -253,6 +277,27 @@ export const SettingsView: React.FC = () => {
             </div>
           </div>
 
+          <div className="glass-panel rounded-2xl p-6 border border-white/10 backdrop-blur-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-green-500/30 to-emerald-500/30 flex items-center justify-center border border-white/20">
+                <Shield className="w-5 h-5 text-green-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Security</h2>
+            </div>
+
+            <div className="space-y-3">
+              <button className="w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg text-left transition-all">
+                <div className="font-medium text-white">Change Password</div>
+                <div className="text-sm text-white/60">Update your password</div>
+              </button>
+
+              <button className="w-full px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg text-left transition-all">
+                <div className="font-medium text-white">Two-Factor Authentication</div>
+                <div className="text-sm text-white/60">Add an extra layer of security</div>
+              </button>
+            </div>
+          </div>
+
           <div className="glass-panel rounded-2xl p-6 border border-red-500/30 backdrop-blur-xl">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-red-500/30 to-pink-500/30 flex items-center justify-center border border-red-500/30">
@@ -276,6 +321,7 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
       </div>
+      {showDebugPanel && <TierDebugPanel onClose={() => setShowDebugPanel(false)} />}
     </div>
   );
 };
