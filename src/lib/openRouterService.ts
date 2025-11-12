@@ -79,11 +79,8 @@ export async function callOpenRouter(
 
   try {
     // SECURITY FIX: Call Edge Function instead of direct API
-    // Get auth session for Edge Function
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error('Authentication required');
-    }
+    // Use Supabase anon key for Edge Function (Firebase auth handled separately)
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
     const requestBody = {
       provider: 'openrouter',
@@ -102,7 +99,8 @@ export async function callOpenRouter(
       response = await fetch(AI_PROXY_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),

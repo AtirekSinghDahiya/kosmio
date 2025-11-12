@@ -42,13 +42,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Verify authentication
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-
-    // Parse request
+    // Parse request (Firebase auth verification handled on client side)
     const body: AIRequest = await req.json();
     const { provider, model, messages, max_tokens, temperature } = body;
 
