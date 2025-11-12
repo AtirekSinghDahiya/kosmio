@@ -188,12 +188,11 @@ export const MainChat: React.FC = () => {
   };
 
   // Send message
-  const handleSendMessage = async (messageText?: string, attachments?: File[], options?: string[]) => {
+  const handleSendMessage = async (messageText?: string, attachments?: File[]) => {
     console.log('🚀 handleSendMessage CALLED!');
     console.log('📝 messageText:', messageText);
     console.log('📝 inputValue:', inputValue);
     console.log('📎 attachments:', attachments?.length || 0);
-    console.log('⚙️ options:', options);
 
     const textToSend = messageText || inputValue.trim();
     console.log('📝 textToSend:', textToSend);
@@ -202,24 +201,6 @@ export const MainChat: React.FC = () => {
     if ((!textToSend && (!attachments || attachments.length === 0)) || isLoading) {
       console.warn('⚠️ BLOCKED: No text or attachments, or already loading');
       return;
-    }
-
-    // Handle chat options (Deep Research, Think Longer, Creative Mode)
-    if (options && options.length > 0) {
-      console.log('⚙️ Processing chat options:', options);
-      if (options.includes('deep-research')) {
-        console.log('🔬 Deep Research mode activated');
-        setIsThinking(true);
-        setThinkingText('Deep researching...');
-      } else if (options.includes('think-longer')) {
-        console.log('🧠 Think Longer mode activated');
-        setIsThinking(true);
-        setThinkingText('Thinking longer...');
-      } else if (options.includes('creative-mode')) {
-        console.log('🎨 Creative Mode activated');
-        setIsThinking(true);
-        setThinkingText('Being creative...');
-      }
     }
 
     // CRITICAL: Check token balance FIRST - Block if 0 tokens
@@ -587,10 +568,7 @@ export const MainChat: React.FC = () => {
           setMessages(prev => [...prev, newMessage as any]);
         }
       } else {
-        const userMessage = await addMessage(projectId, 'user', textToSend, []);
-        if (userMessage) {
-          setMessages(prev => [...prev, userMessage as any]);
-        }
+        await addMessage(projectId, 'user', textToSend, []);
       }
 
       // Get AI response
@@ -644,46 +622,11 @@ export const MainChat: React.FC = () => {
         console.log(`✅ Free model ${selectedModel} - access granted to all users`);
       }
 
-      // Step 2: Build conversation history with image support
-      const conversationHistory = messages.slice(-10).map(msg => {
-        const baseMsg = {
-          role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
-          content: msg.content as any,
-        };
-
-        // Check if message has image attachments (for vision models)
-        if (msg.file_attachments) {
-          try {
-            const attachments = typeof msg.file_attachments === 'string'
-              ? JSON.parse(msg.file_attachments)
-              : msg.file_attachments;
-
-            const imageAttachments = Array.isArray(attachments)
-              ? attachments.filter((a: any) => a.type === 'image' || a.type?.startsWith('image/'))
-              : [];
-
-            if (imageAttachments.length > 0) {
-              // Format for vision models
-              const contentArray: any[] = [
-                { type: 'text', text: msg.content }
-              ];
-
-              imageAttachments.forEach((img: any) => {
-                contentArray.push({
-                  type: 'image_url',
-                  image_url: { url: img.url }
-                });
-              });
-
-              baseMsg.content = contentArray;
-            }
-          } catch (e) {
-            console.warn('Failed to parse file attachments:', e);
-          }
-        }
-
-        return baseMsg;
-      });
+      // Step 2: Build conversation history
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
+        content: msg.content,
+      }));
 
       console.log('📝 Messages count:', conversationHistory.length);
 
@@ -1200,7 +1143,7 @@ export const MainChat: React.FC = () => {
                 <ChatInput
                   value={inputValue}
                   onChange={setInputValue}
-                  onSend={(attachments, options) => handleSendMessage(undefined, attachments, options)}
+                  onSend={() => handleSendMessage()}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask KroniQ anything..."
                   disabled={isLoading}
