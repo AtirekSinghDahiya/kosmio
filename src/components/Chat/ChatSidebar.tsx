@@ -164,7 +164,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <img
             src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"
             alt="KroniQ"
-            className="w-16 h-16 object-contain drop-shadow-[0_0_15px_rgba(0,255,240,0.6)] transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_20px_rgba(0,255,240,0.8)]"
+            className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(0,255,240,0.5)]"
           />
         </div>
       </div>
@@ -219,7 +219,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               return (
                 <div key={group}>
                   {(isMobileOpen || isHovered) && (
-                    <div className="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-wide animate-fade-in text-center border-b border-white/5 mb-2">
+                    <div className="px-2 py-1 text-[10px] font-semibold text-white/40 uppercase tracking-wider animate-fade-in">
                       {group}
                     </div>
                   )}

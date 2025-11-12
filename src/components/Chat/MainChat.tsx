@@ -225,7 +225,7 @@ export const MainChat: React.FC = () => {
       }
     }
 
-    // SECURITY FIX: Check token balance AND validate sufficient tokens for model
+    // CRITICAL: Check token balance FIRST - Block if 0 tokens
     const { data: profile } = await supabase
       .from('profiles')
       .select('tokens_balance, free_tokens_balance, paid_tokens_balance')
@@ -237,20 +237,6 @@ export const MainChat: React.FC = () => {
 
     if (totalTokens <= 0) {
       showToast('error', 'No Tokens Remaining', 'You have 0 tokens. Please purchase tokens or upgrade your plan to continue chatting.');
-      return;
-    }
-
-    // SECURITY FIX: Validate user has enough tokens for THIS specific model
-    const modelCost = getModelCost(selectedModel);
-    const estimatedCost = modelCost.tokensPerMessage;
-
-    if (totalTokens < estimatedCost) {
-      const shortfall = estimatedCost - totalTokens;
-      showToast(
-        'error',
-        'Insufficient Tokens',
-        `${modelCost.name} requires ${estimatedCost.toLocaleString()} tokens per message. You have ${totalTokens.toLocaleString()} tokens (need ${shortfall.toLocaleString()} more). Please purchase tokens or select a cheaper model.`
-      );
       return;
     }
 
@@ -707,7 +693,6 @@ export const MainChat: React.FC = () => {
       console.log('🎯 Using custom preferences:', !!systemPrompt);
 
       // Step 4: Call OpenRouter service with usage tracking
-      console.log('🤖 Calling AI model...');
       const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
       const aiContent = aiResponse.content;
 

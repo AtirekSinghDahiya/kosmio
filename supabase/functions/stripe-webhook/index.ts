@@ -118,7 +118,7 @@ async function handleEvent(event: Stripe.Event) {
           return;
         }
 
-        // Handle token purchase (FIXED: Use new add_tokens_with_type function)
+        // Handle message credit purchase
         if (metadata && metadata.pack_id && metadata.user_id) {
           const { data: packData, error: packError } = await supabase
             .from('token_packs')
@@ -127,27 +127,46 @@ async function handleEvent(event: Stripe.Event) {
             .maybeSingle();
 
           if (!packError && packData) {
-            const tokensCount = packData.tokens;
+            const messagesCount = packData.tokens;
             const packPrice = parseFloat(packData.price_usd);
 
-            // Use new add_tokens_with_type function - PAID tokens
-            const { data: tokenResult, error: tokenError } = await supabase.rpc('add_tokens_with_type', {
+            const { error: creditsError } = await supabase.rpc('add_message_credits', {
               p_user_id: metadata.user_id,
-              p_tokens: tokensCount,
-              p_token_type: 'paid', // Critical: PAID tokens
-              p_source: `purchase_pack_${metadata.pack_id}`,
+              p_messages: messagesCount,
+              p_pack_price: packPrice,
               p_stripe_payment_id: payment_intent as string,
             });
 
-            if (tokenError) {
-              console.error('❌ Error adding tokens:', tokenError);
+            if (creditsError) {
+              console.error('Error adding message credits:', creditsError);
             } else {
-              console.info(`✅ Successfully added ${tokensCount} PAID tokens to user ${metadata.user_id}`);
-              console.info(`💰 New balances:`, tokenResult);
+              console.info(`Successfully added ${messagesCount} messages to user ${metadata.user_id}`);
 
-              // NO NEED to call manage-user-tier - the auto_downgrade_depleted_users trigger
-              // automatically handles upgrading users when paid_tokens_balance > 0
-              // This prevents the loophole where premium flags could be set without tokens
+              // Upgrade user to paid tier via edge function
+              try {
+                const tierResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/manage-user-tier`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+                  },
+                  body: JSON.stringify({
+                    action: 'upgrade',
+                    userId: metadata.user_id,
+                    tokensPurchased: messagesCount,
+                    stripeCustomerId: customerId
+                  })
+                });
+
+                if (!tierResponse.ok) {
+                  console.error('Error upgrading user to paid tier:', await tierResponse.text());
+                } else {
+                  const tierResult = await tierResponse.json();
+                  console.info(`Successfully upgraded user ${metadata.user_id} to paid tier:`, tierResult);
+                }
+              } catch (tierError) {
+                console.error('Exception upgrading user to paid tier:', tierError);
+              }
             }
           }
         }
