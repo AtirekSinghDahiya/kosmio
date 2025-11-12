@@ -21,7 +21,6 @@ import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
-import { PPTStudio } from '../Studio/PPTStudio';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MediaPreview } from './MediaPreview';
 import { TypingEffect, TypingIndicator } from './TypingEffect';
@@ -68,8 +67,6 @@ export const MainChat: React.FC = () => {
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
-  const [showPPTGenerator, setShowPPTGenerator] = useState(false);
-  const [pptTopic, setPPTTopic] = useState('');
   const [musicPrompt, setMusicPrompt] = useState('');
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
@@ -416,10 +413,15 @@ export const MainChat: React.FC = () => {
     const pptDirectPattern = /\b(make|need|want|create|build)\s+(a|an)?\s*(presentation|slides?|ppt|powerpoint|slideshow)/i;
 
     if (pptKeywords.test(textToSend) || pptRequestPattern.test(textToSend) || pptDirectPattern.test(textToSend)) {
-      console.log('📊 PPT generation detected! Opening PPT modal...');
-      setPPTTopic(textToSend);
-      setShowPPTGenerator(true);
+      console.log('📊 PPT generation detected! Navigating to PPT Studio...');
       setInputValue('');
+
+      showToast('success', 'Opening PPT Studio', 'Let\'s create your presentation!');
+
+      setTimeout(() => {
+        navigateTo('ppt');
+      }, 500);
+
       return;
     }
 
@@ -691,6 +693,12 @@ export const MainChat: React.FC = () => {
         : undefined;
 
       console.log('🎯 Using custom preferences:', !!systemPrompt);
+
+      // Show thinking animation for deep research models
+      if (selectedModel.includes('deep-research') || selectedModel.includes('think')) {
+        setIsThinking(true);
+        setThinkingText('Deep researching...');
+      }
 
       // Step 4: Call OpenRouter service with usage tracking
       const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
@@ -1316,17 +1324,6 @@ export const MainChat: React.FC = () => {
             setVoiceoverText('');
           }}
           initialText={voiceoverText}
-        />
-      )}
-
-      {showPPTGenerator && (
-        <PPTStudio
-          projectId={activeProjectId || undefined}
-          onClose={() => {
-            setShowPPTGenerator(false);
-            setPPTTopic('');
-          }}
-          initialTopic={pptTopic}
         />
       )}
     </div>
