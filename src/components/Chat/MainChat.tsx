@@ -8,7 +8,7 @@ import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-rea
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getOpenRouterResponse, getOpenRouterResponseWithUsage } from '../../lib/openRouterDirect';
+import { getOpenRouterResponseWithUsage } from '../../lib/openRouterService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
