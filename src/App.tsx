@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { checkSubscriptionExpiration } from './lib/subscriptionService';
 import { ToastProvider } from './contexts/ToastContext';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { LandingRouter } from './components/Landing/LandingRouter';
 import { LoginPage } from './components/Auth/LoginPage';
 import { Sidebar } from './components/Layout/Sidebar';
@@ -32,7 +32,6 @@ import { Project } from './types';
 const MainApp: React.FC = () => {
   const { currentUser, userData } = useAuth();
   const { currentView, activeProject, navigateTo } = useNavigation();
-  const { theme } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
@@ -130,7 +129,7 @@ const MainApp: React.FC = () => {
 
   // Other views use sidebar
   return (
-    <div className={`h-screen overflow-hidden ${theme === 'light' ? 'light-gradient-background' : 'gradient-background'} relative`}>
+    <div className="h-screen overflow-hidden gradient-background relative">
       <CosmicBackground />
       <div className="relative z-10 h-screen">
         {currentView === 'chat' || currentView === 'settings' ? (
