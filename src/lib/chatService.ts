@@ -114,19 +114,33 @@ export const subscribeToProjects = (callback: (projects: Project[]) => void) => 
 export const addMessage = async (
   projectId: string,
   role: 'user' | 'assistant' | 'system',
-  content: string
+  content: string,
+  userId?: string,
+  fileAttachments?: any[],
+  metadata?: Record<string, any>
 ): Promise<Message> => {
   console.log('📝 addMessage called:', { projectId, role, contentLength: content.length });
   console.log('📝 Content preview:', content.substring(0, 100));
 
   try {
+    const messageData: any = {
+      project_id: projectId,
+      role,
+      content,
+    };
+
+    if (fileAttachments && fileAttachments.length > 0) {
+      messageData.file_attachments = JSON.stringify(fileAttachments);
+    }
+
+    // Store metadata in the payload column
+    if (metadata) {
+      messageData.payload = metadata;
+    }
+
     const { data, error } = await supabase
       .from('messages')
-      .insert({
-        project_id: projectId,
-        role,
-        content,
-      })
+      .insert(messageData)
       .select()
       .single();
 

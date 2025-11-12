@@ -111,30 +111,45 @@ export async function deductTokensForRequest(
 ): Promise<TokenDeductionResult> {
   try {
     const modelCost = getModelCost(modelId);
-    const baseTokens = modelCost.tokensPerMessage;
+    const tokensToDeduct = modelCost.tokensPerMessage;
 
-    const tokensToDeduct = baseTokens * 2;
+    console.log(`💳 Deducting ${tokensToDeduct.toLocaleString()} tokens for ${modelId}`);
 
-    const { data, error } = await supabase.rpc('deduct_tokens', {
+    const { data, error } = await supabase.rpc('deduct_tokens_priority', {
       p_user_id: userId,
       p_tokens: tokensToDeduct,
       p_model: modelId,
       p_provider: provider,
-      p_cost_usd: providerCostUSD,
-      p_request_type: requestType,
+      p_cost_usd: providerCostUSD
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Token deduction error:', error);
+      throw error;
+    }
 
-    const result = data as { success: boolean; balance?: number; transaction_id?: string; error?: string };
+    const result = data as {
+      success: boolean;
+      balance?: number;
+      paid_balance?: number;
+      free_balance?: number;
+      deducted_from_paid?: number;
+      deducted_from_free?: number;
+      transaction_id?: string;
+      error?: string;
+    };
 
     if (!result.success) {
+      console.warn('⚠️ Token deduction failed:', result.error);
       return {
         success: false,
         balance: result.balance || 0,
-        error: result.error || 'Token deduction failed',
+        error: result.error || 'Insufficient token balance',
       };
     }
+
+    console.log(`✅ Tokens deducted successfully. New balance: ${result.balance?.toLocaleString()}`);
+    console.log(`   From paid: ${result.deducted_from_paid || 0}, From free: ${result.deducted_from_free || 0}`);
 
     return {
       success: true,
@@ -142,7 +157,7 @@ export async function deductTokensForRequest(
       transactionId: result.transaction_id,
     };
   } catch (error: any) {
-    console.error('Error deducting tokens:', error);
+    console.error('❌ Error deducting tokens:', error);
     return {
       success: false,
       balance: 0,
@@ -154,25 +169,39 @@ export async function deductTokensForRequest(
 export async function addTokensToUser(
   userId: string,
   tokens: number,
+  tokenType: 'paid' | 'free' = 'paid',
   packId?: string,
   amountPaid?: number,
   stripePaymentId?: string
 ): Promise<{ success: boolean; balance?: number; error?: string }> {
   try {
-    const { data, error } = await supabase.rpc('add_tokens', {
+    console.log(`💰 Adding ${tokens.toLocaleString()} ${tokenType} tokens to user ${userId}`);
+
+    const { data, error } = await supabase.rpc('add_tokens_with_type', {
       p_user_id: userId,
       p_tokens: tokens,
-      p_pack_id: packId || null,
-      p_amount_paid: amountPaid || 0,
+      p_token_type: tokenType,
+      p_source: packId ? `purchase:${packId}` : 'manual',
       p_stripe_payment_id: stripePaymentId || null,
     });
 
     if (error) throw error;
 
-    const result = data as { success: boolean; balance?: number };
+    const result = data as {
+      success: boolean;
+      balance?: number;
+      paid_balance?: number;
+      free_balance?: number;
+    };
+
+    if (result.success) {
+      console.log(`✅ Tokens added. New total: ${result.balance?.toLocaleString()}`);
+      console.log(`   Paid: ${result.paid_balance?.toLocaleString()}, Free: ${result.free_balance?.toLocaleString()}`);
+    }
+
     return result;
   } catch (error: any) {
-    console.error('Error adding tokens:', error);
+    console.error('❌ Error adding tokens:', error);
     return { success: false, error: error.message };
   }
 }

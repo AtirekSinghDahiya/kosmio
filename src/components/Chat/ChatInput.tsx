@@ -6,7 +6,7 @@ import { useToast } from '../../contexts/ToastContext';
 interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSend: (attachments?: File[]) => void;
+  onSend: (attachments?: File[], options?: string[]) => void;
   onKeyPress?: (e: React.KeyboardEvent) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -306,9 +306,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   console.log('💬 Send button clicked!');
                   console.log('💬 Value:', value);
                   console.log('💬 Files:', attachedFiles.length);
+                  console.log('💬 Options:', selectedOptions);
                   console.log('💬 Disabled:', disabled);
-                  onSend(attachedFiles.length > 0 ? attachedFiles : undefined);
+                  onSend(attachedFiles.length > 0 ? attachedFiles : undefined, selectedOptions.length > 0 ? selectedOptions : undefined);
                   setAttachedFiles([]);
+                  setSelectedOptions([]);
                   if (onFilesChange) {
                     onFilesChange([]);
                   }
