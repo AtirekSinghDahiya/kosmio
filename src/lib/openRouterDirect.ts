@@ -80,6 +80,9 @@ export async function callOpenRouter(
     throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.');
   }
 
+  // Known issue: OpenRouter's /auth/key endpoint may return "User not found"
+  // even with valid keys - this is an OpenRouter API bug (2025)
+
   try {
     const requestBody = {
       model: openRouterModel,
@@ -128,6 +131,18 @@ export async function callOpenRouter(
       }
 
       const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
+
+      // Provide helpful context for common OpenRouter API issues
+      if (errorMessage.includes('User not found') || errorMessage.includes('user not found')) {
+        throw new Error(
+          `OpenRouter API Issue: Your API key appears invalid despite having credits. ` +
+          `This is a known OpenRouter API bug. Please:\n` +
+          `1. Create a NEW API key at https://openrouter.ai/settings/keys\n` +
+          `2. Contact OpenRouter support if the issue persists\n` +
+          `3. Original error: ${errorMessage}`
+        );
+      }
+
       throw new Error(`OpenRouter Error: ${errorMessage}`);
     }
 
