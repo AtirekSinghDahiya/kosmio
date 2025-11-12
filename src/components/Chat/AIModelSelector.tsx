@@ -127,25 +127,34 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
     [category]
   );
 
-  const modelLockStatus = useMemo(() => {
-    const status = new Map<string, boolean>();
-    console.log('🔒 Calculating model lock status. premiumAccess:', premiumAccess);
+  const modelAccessStatus = useMemo(() => {
+    const status = new Map<string, { canUse: boolean; reason: string }>();
+    const totalTokens = (premiumAccess?.paidTokens || 0) + (premiumAccess?.totalTokens || 0);
+
+    console.log('🔒 Checking model access. Total tokens:', totalTokens.toLocaleString());
 
     availableModels.forEach(model => {
       const modelCost = getModelCost(model.id);
-      const isFree = modelCost.tier === 'free';
+      const tokenCost = modelCost.tokensPerMessage;
+      const canAfford = totalTokens >= tokenCost;
 
-      if (isFree) {
-        status.set(model.id, false);
+      if (canAfford) {
+        status.set(model.id, {
+          canUse: true,
+          reason: `${formatTokenDisplay(tokenCost)} tokens per message`
+        });
       } else {
-        const isLocked = !premiumAccess?.isPremium;
-        console.log(`🔐 Model ${model.id}: tier=${modelCost.tier}, isPremium=${premiumAccess?.isPremium}, isLocked=${isLocked}`);
-        status.set(model.id, isLocked);
+        status.set(model.id, {
+          canUse: false,
+          reason: `Need ${formatTokenDisplay(tokenCost - totalTokens)} more tokens`
+        });
       }
+
+      console.log(`🔐 Model ${model.id}: cost=${tokenCost.toLocaleString()}, canAfford=${canAfford}`);
     });
 
     return status;
-  }, [availableModels, premiumAccess?.isPremium]);
+  }, [availableModels, premiumAccess?.paidTokens, premiumAccess?.totalTokens]);
 
   const selected = availableModels.find(m => m.id === selectedModel) || availableModels[0];
 
@@ -223,22 +232,23 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                 <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
                   {availableModels.map((model, index) => {
                     const modelCost = getModelCost(model.id);
-                    const isLocked = modelLockStatus.get(model.id) || false;
+                    const accessInfo = modelAccessStatus.get(model.id) || { canUse: true, reason: '' };
+                    const cannotAfford = !accessInfo.canUse;
 
                     return (
                       <button
                         key={model.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isLocked) {
+                          if (accessInfo.canUse) {
                             onModelChange(model.id);
                             setIsOpen(false);
                           }
                         }}
-                        disabled={isLocked}
+                        disabled={cannotAfford}
                         style={{ animationDelay: `${index * 30}ms` }}
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 group/item animate-fade-in-up ${
-                          isLocked
+                          cannotAfford
                             ? 'opacity-50 cursor-not-allowed'
                             : selectedModel === model.id
                               ? theme === 'light'
@@ -261,29 +271,35 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
                               <span className="text-lg">{modelCost.icon}</span>
                             )}
                             {model.name}
-                            {isLocked && <Lock className="w-3 h-3 text-yellow-500" />}
+                            {cannotAfford && <Lock className="w-3 h-3 text-yellow-500" />}
                           </div>
-                          <div className={`text-xs mt-0.5 transition-colors flex items-center gap-2 ${
+                          <div className={`text-xs mt-0.5 transition-colors ${
                             theme === 'light'
                               ? 'text-gray-600 group-hover/item:text-gray-800'
                               : 'text-white/50 group-hover/item:text-white/70'
                           }`}>
-                            <span>{model.description}</span>
-                            {isLocked && <span>• Purchase tokens to unlock</span>}
+                            {model.description}
                           </div>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
                               getTierBadgeColor(modelCost.tier)
                             }`}>
                               {modelCost.tier === 'free' ? 'FREE' : modelCost.tier.toUpperCase()}
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-white/60">
+                            <span className={`flex items-center gap-1 text-xs ${
+                              cannotAfford ? 'text-red-400 font-semibold' : 'text-white/60'
+                            }`}>
                               <Zap className="w-3 h-3" />
                               {formatTokenDisplay(modelCost.tokensPerMessage)}/msg
                             </span>
+                            {cannotAfford && (
+                              <span className="text-[10px] text-red-400">
+                                {accessInfo.reason}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        {selectedModel === model.id && !isLocked && (
+                        {selectedModel === model.id && !cannotAfford && (
                           <Check className={`w-4 h-4 animate-fade-in ${
                             theme === 'light' ? 'text-blue-600' : 'text-cyan-400'
                           }`} />

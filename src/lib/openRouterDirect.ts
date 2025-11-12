@@ -1,10 +1,8 @@
 /**
- * OpenRouter AI Service - SECURE VERSION
- * All AI calls now route through Supabase Edge Function
- * API keys are NEVER exposed to frontend
+ * OpenRouter AI Service - DIRECT API VERSION
+ * Calls OpenRouter API directly from frontend
+ * Use this when Edge Function is not available
  */
-
-import { supabase } from './supabase';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -23,10 +21,11 @@ interface AIResponse {
   };
 }
 
-// SECURITY FIX: API keys removed from frontend
-// All API calls now go through Edge Function
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const AI_PROXY_URL = `${SUPABASE_URL}/functions/v1/ai-proxy`;
+// Direct API configuration
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+const SITE_URL = 'https://kroniq.ai';
+const SITE_NAME = 'KroniQ AI Platform';
 
 const MODEL_MAP: Record<string, string> = {
   'gpt-5-chat': 'openai/gpt-5-chat',
@@ -61,13 +60,13 @@ const MODEL_MAP: Record<string, string> = {
   'perplexity-sonar-deep': 'perplexity/sonar-deep-research',
 };
 
-function log(level: 'info' | 'success' | 'error', message: string) {
-  const emoji = { info: '🔵', success: '✅', error: '❌' }[level];
-  console.log(`${emoji} [OpenRouter] ${message}`);
+function log(level: 'info' | 'success' | 'error' | 'warning', message: string) {
+  const emoji = { info: '🔵', success: '✅', error: '❌', warning: '⚠️' }[level];
+  console.log(`${emoji} [OpenRouter Direct] ${message}`);
 }
 
 /**
- * Call OpenRouter API with the selected model
+ * Call OpenRouter API directly with the selected model
  */
 export async function callOpenRouter(
   messages: Message[],
@@ -75,32 +74,34 @@ export async function callOpenRouter(
 ): Promise<AIResponse> {
   const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';
 
-  log('info', `Calling model via Edge Function: ${openRouterModel}`);
+  log('info', `Calling model directly: ${openRouterModel}`);
+
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.');
+  }
+
+  // Known issue: OpenRouter's /auth/key endpoint may return "User not found"
+  // even with valid keys - this is an OpenRouter API bug (2025)
 
   try {
-    // SECURITY FIX: Call Edge Function instead of direct API
-    // Use Supabase anon key for Edge Function (Firebase auth handled separately)
-    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
     const requestBody = {
-      provider: 'openrouter',
       model: openRouterModel,
       messages: messages,
     };
 
-    log('info', `Calling Edge Function: ${AI_PROXY_URL}`);
+    log('info', `Calling OpenRouter API: ${OPENROUTER_BASE_URL}/chat/completions`);
 
-    // Add timeout to prevent hanging requests (5 minutes)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 300000);
 
     let response;
     try {
-      response = await fetch(AI_PROXY_URL, {
+      response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'HTTP-Referer': SITE_URL,
+          'X-Title': SITE_NAME,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
@@ -129,8 +130,20 @@ export async function callOpenRouter(
         // Ignore parse error
       }
 
-      const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
-      throw new Error(`AI Proxy Error: ${errorMessage}`);
+      const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
+
+      // Provide helpful context for common OpenRouter API issues
+      if (errorMessage.includes('User not found') || errorMessage.includes('user not found')) {
+        throw new Error(
+          `OpenRouter API Issue: Your API key appears invalid despite having credits. ` +
+          `This is a known OpenRouter API bug. Please:\n` +
+          `1. Create a NEW API key at https://openrouter.ai/settings/keys\n` +
+          `2. Contact OpenRouter support if the issue persists\n` +
+          `3. Original error: ${errorMessage}`
+        );
+      }
+
+      throw new Error(`OpenRouter Error: ${errorMessage}`);
     }
 
     const data = await response.json();
@@ -143,9 +156,6 @@ export async function callOpenRouter(
     const content = data.choices[0].message.content;
     log('success', `Response received (${content.length} chars)`);
 
-    // Extract usage data from OpenRouter response
-    console.log('🔍 Full OpenRouter response data:', JSON.stringify(data, null, 2));
-
     let usage = data.usage ? {
       prompt_tokens: data.usage.prompt_tokens || 0,
       completion_tokens: data.usage.completion_tokens || 0,
@@ -153,22 +163,17 @@ export async function callOpenRouter(
       total_cost: data.usage.total_cost || 0,
     } : undefined;
 
-    // If no total_cost but we have token counts, estimate the cost
     if (usage && !usage.total_cost && usage.total_tokens > 0) {
-      // Rough estimation: most models cost around $0.50-$5 per 1M tokens
-      // Use a conservative estimate of $2 per 1M tokens for input + output average
       const estimatedCost = (usage.total_tokens / 1000000) * 2.0;
       usage.total_cost = estimatedCost;
-      log('warning', `⚠️ No total_cost from OpenRouter, estimated: $${estimatedCost.toFixed(6)} based on ${usage.total_tokens} tokens`);
+      log('warning', `No total_cost from OpenRouter, estimated: $${estimatedCost.toFixed(6)}`);
     }
 
     if (usage && usage.total_cost > 0) {
-      log('success', `📊 Usage Data: ${usage.total_tokens} tokens, Cost: $${usage.total_cost.toFixed(6)}`);
-      log('success', `💰 User will be charged: $${(usage.total_cost * 2).toFixed(6)} (2x multiplier)`);
-      log('success', `💎 Tokens to deduct: ${Math.ceil(usage.total_cost * 2 * 1000000)}`);
+      log('success', `Usage: ${usage.total_tokens} tokens, Cost: $${usage.total_cost.toFixed(6)}`);
     } else {
-      log('error', '⚠️ No usage data in response! Will use fallback cost.');
-      usage = undefined; // Ensure we use fallback
+      log('warning', 'No usage data in response');
+      usage = undefined;
     }
 
     const providerName = openRouterModel.split('/')[0];
@@ -186,6 +191,7 @@ export async function callOpenRouter(
       'ibm-granite': 'IBM',
       'baidu': 'Baidu',
       'z-ai': 'Z.AI',
+      'perplexity': 'Perplexity',
     }[providerName] || providerName;
 
     return {
@@ -203,34 +209,6 @@ export async function callOpenRouter(
 
     throw error;
   }
-}
-
-/**
- * Main function to get AI response
- */
-export async function getOpenRouterResponse(
-  userMessage: string,
-  conversationHistory: Message[] = [],
-  systemPrompt?: string,
-  selectedModel: string = 'grok-4-fast'
-): Promise<string> {
-  log('info', `Getting response for model: ${selectedModel}`);
-  log('info', `History length: ${conversationHistory.length}`);
-
-  const messages: Message[] = [
-    {
-      role: 'system',
-      content: systemPrompt || 'You are KroniQ AI, a friendly and intelligent assistant. Be helpful, conversational, and provide accurate information.',
-    },
-    ...conversationHistory.slice(-10),
-    {
-      role: 'user',
-      content: userMessage,
-    },
-  ];
-
-  const response = await callOpenRouter(messages, selectedModel);
-  return response.content;
 }
 
 /**
@@ -261,74 +239,14 @@ export async function getOpenRouterResponseWithUsage(
 }
 
 /**
- * Check if a model supports image generation
+ * Main function to get AI response
  */
-export function supportsImageGeneration(modelId: string): boolean {
-  const imageGenModels = ['gpt-5-image', 'chatgpt-image', 'gemini', 'gemini-flash'];
-  return imageGenModels.some(m => modelId.includes(m));
-}
-
-/**
- * Check if a model supports images
- */
-export function supportsImages(modelId: string): boolean {
-  const imageModels = ['claude-sonnet', 'gpt-5-image', 'chatgpt-image', 'grok', 'gemini'];
-  return imageModels.some(m => modelId.includes(m));
-}
-
-/**
- * Generate image using AI models that support image generation (GPT-5, Gemini)
- */
-export async function generateImageWithAI(
-  prompt: string,
-  modelId: string = 'gpt-5-image'
-): Promise<{ url: string; model: string }> {
-  log('info', `Generating image with model: ${modelId}`);
-
-  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['gpt-5-image'];
-
-  try {
-    const requestBody = {
-      model: openRouterModel,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an AI image generator. When given a prompt, generate a detailed, high-quality image. Respond with a description of the generated image.',
-        },
-        {
-          role: 'user',
-          content: `Generate an image: ${prompt}`,
-        },
-      ],
-    };
-
-    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': SITE_URL,
-        'X-Title': SITE_NAME,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Image generation failed: ${errorText}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices[0].message.content;
-
-    log('success', `Image generated with ${modelId}`);
-
-    return {
-      url: content,
-      model: openRouterModel,
-    };
-  } catch (error: any) {
-    log('error', `Image generation failed: ${error.message}`);
-    throw error;
-  }
+export async function getOpenRouterResponse(
+  userMessage: string,
+  conversationHistory: Message[] = [],
+  systemPrompt?: string,
+  selectedModel: string = 'grok-4-fast'
+): Promise<string> {
+  const response = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
+  return response.content;
 }
