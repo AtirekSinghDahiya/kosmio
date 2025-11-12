@@ -963,42 +963,34 @@ export const MainChat: React.FC = () => {
                         ? 'bg-gray-100 text-gray-900 rounded-bl-md'
                         : 'bg-gray-800/50 text-gray-100 rounded-bl-md'
                     } backdrop-blur-sm shadow-lg`}>
-                      {/* Render message content */}
-                      {message.content && (
-                        message.role === 'assistant' ? (
-                          // Assistant messages with markdown support
-                          message.content.includes('#') || message.content.includes('**') || message.content.includes('```') || message.content.includes('|') ? (
-                            <div className="text-[15px] leading-[1.6]">
-                              {typingMessageId === message.id ? (
-                                <TypingEffect
-                                  text={message.content}
-                                  speed={5}
-                                  onComplete={() => setTypingMessageId(null)}
-                                />
-                              ) : (
-                                <MarkdownRenderer content={message.content} />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
-                              {typingMessageId === message.id ? (
-                                <TypingEffect
-                                  text={message.content}
-                                  speed={5}
-                                  onComplete={() => setTypingMessageId(null)}
-                                />
-                              ) : (
-                                message.content
-                              )}
-                            </div>
-                          )
+                      {/* Render content with Markdown for assistant messages */}
+                      {message.role === 'assistant' && message.content ? (
+                        message.content.includes('#') || message.content.includes('**') || message.content.includes('```') || message.content.includes('|') ? (
+                          <div className="text-[15px] leading-[1.6]">
+                            {typingMessageId === message.id ? (
+                              <TypingEffect
+                                text={message.content}
+                                speed={5}
+                                onComplete={() => setTypingMessageId(null)}
+                              />
+                            ) : (
+                              <MarkdownRenderer content={message.content} />
+                            )}
+                          </div>
                         ) : (
-                          // User messages - simple text display
                           <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
-                            {message.content}
+                            {typingMessageId === message.id ? (
+                              <TypingEffect
+                                text={message.content}
+                                speed={5}
+                                onComplete={() => setTypingMessageId(null)}
+                              />
+                            ) : (
+                              message.content
+                            )}
                           </div>
                         )
-                      )}
+                      ) : null}
 
                       {/* Display Generated Media (images, videos, audio) */}
                       {(message as any).payload?.generatedContent && (() => {
