@@ -26,10 +26,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   const { user } = useAuth();
   const { mode, setMode } = useStudioMode();
   const [showControlPanel, setShowControlPanel] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [premiumStatus, setPremiumStatus] = useState<UnifiedPremiumStatus | null>(null);
   const [selectedModel, setSelectedModel] = useState('grok-4-fast');
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   // Image controls state
   const [imageAspectRatio, setImageAspectRatio] = useState('1:1');
@@ -58,24 +56,6 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
     };
     checkAccess();
   }, [user]);
-
-  // Auto-collapse on scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsCollapsed(true);
-      } else if (currentScrollY < lastScrollY - 10) {
-        setIsCollapsed(false);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
 
   const getModelInfo = () => {
     switch (mode) {
@@ -160,10 +140,10 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
             {/* Studio Grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
-                { mode: 'image', icon: Palette, label: 'Image', desc: 'Generate images' },
-                { mode: 'video', icon: Film, label: 'Video', desc: 'Create videos' },
-                { mode: 'music', icon: MusicIcon, label: 'Music', desc: 'Compose music' },
-                { mode: 'voice', icon: Mic, label: 'Voice', desc: 'Text to speech' },
+                { mode: 'image', icon: Palette, label: 'Image', bgColor: 'bg-pink-500/10 hover:bg-pink-500/20', borderColor: 'border-pink-500/20', textColor: 'text-pink-400' },
+                { mode: 'video', icon: Film, label: 'Video', bgColor: 'bg-blue-500/10 hover:bg-blue-500/20', borderColor: 'border-blue-500/20', textColor: 'text-blue-400' },
+                { mode: 'music', icon: MusicIcon, label: 'Music', bgColor: 'bg-purple-500/10 hover:bg-purple-500/20', borderColor: 'border-purple-500/20', textColor: 'text-purple-400' },
+                { mode: 'voice', icon: Mic, label: 'Voice', bgColor: 'bg-green-500/10 hover:bg-green-500/20', borderColor: 'border-green-500/20', textColor: 'text-green-400' },
               ].map((studio) => {
                 const StudioIcon = studio.icon;
                 const isActive = mode === studio.mode;
@@ -171,42 +151,32 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
                   <button
                     key={studio.mode}
                     onClick={() => setMode(studio.mode as StudioMode)}
-                    className={`group relative p-5 rounded-xl border transition-all hover:scale-105 ${
+                    className={`group p-4 rounded-lg border transition-all ${
                       isActive
-                        ? 'bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border-[#00FFF0]/50 shadow-lg shadow-[#00FFF0]/20'
-                        : 'bg-white/5 border-white/10 hover:border-[#00FFF0]/30 hover:bg-white/10'
+                        ? `${studio.bgColor.split('hover:')[1]} ${studio.borderColor} border-2`
+                        : `bg-white/5 border-white/10 ${studio.bgColor}`
                     }`}
                   >
-                    {isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#00FFF0]/10 via-[#8A2BE2]/10 to-[#00FFF0]/10 animate-pulse" />
-                    )}
-                    <StudioIcon className={`w-12 h-12 mx-auto mb-3 relative z-10 ${
-                      isActive ? 'text-[#00FFF0]' : 'text-white/60 group-hover:text-white/90'
-                    } transition-all group-hover:scale-110`} />
-                    <div className={`text-sm font-semibold relative z-10 ${
-                      isActive ? 'text-white' : 'text-white/70'
-                    }`}>
+                    <StudioIcon className={`w-10 h-10 mx-auto mb-2 ${isActive ? studio.textColor : 'text-white/60 group-hover:text-white/80'} transition-colors`} />
+                    <div className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/70'}`}>
                       {studio.label}
                     </div>
-                    <div className="text-xs text-white/40 mt-1 relative z-10">{studio.desc}</div>
                   </button>
                 );
               })}
             </div>
 
             {/* Recent Projects */}
-            <div className="pt-4">
-              <h3 className="text-white/60 text-xs font-semibold mb-4 tracking-wide uppercase flex items-center gap-2">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#00FFF0]/30 to-transparent" />
+            <div>
+              <h3 className="text-white/40 text-xs font-medium mb-3 tracking-wide uppercase">
                 Recent Projects
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#00FFF0]/30 to-transparent" />
               </h3>
-              <div className="text-center py-10 text-white/40 rounded-lg border border-white/5 bg-white/5">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20 flex items-center justify-center">
-                  <Sparkles className="w-7 h-7 text-[#00FFF0]/60" />
+              <div className="text-center py-12 text-white/30">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/5 flex items-center justify-center">
+                  <Sparkles className="w-6 h-6" />
                 </div>
-                <p className="text-sm font-medium">No projects yet</p>
-                <p className="text-xs mt-1 text-white/30">Start creating to see your work here</p>
+                <p className="text-sm">No projects yet</p>
+                <p className="text-xs mt-1 text-white/20">Start creating to see your work here</p>
               </div>
             </div>
           </div>
@@ -235,83 +205,46 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         </button>
       )}
 
-      {/* Right Control Panel - Themed with app colors */}
+      {/* Right Control Panel - Google AI Studio Style */}
       {showControlPanel && (
-        <div className={`absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 bg-black/40 backdrop-blur-2xl border-l border-[#00FFF0]/20 flex flex-col overflow-hidden z-20 shadow-2xl transition-all duration-300 ${
-          isCollapsed ? 'translate-x-full md:translate-x-0 md:w-16 lg:w-16' : ''
-        }`}>
+        <div className="absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 bg-[#1a1a1a] border-l border-white/5 flex flex-col overflow-hidden z-20 shadow-2xl">
           {/* Close Button */}
           <button
             onClick={() => setShowControlPanel(false)}
-            className={`absolute top-4 right-4 p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/30 hover:border-[#00FFF0]/50 text-[#00FFF0] hover:scale-110 transition-all z-50 ${
-              isCollapsed ? 'md:hidden' : ''
-            }`}
+            className="absolute top-4 right-4 p-1.5 rounded-md hover:bg-white/5 text-white/60 hover:text-white transition-colors z-50"
             title="Close panel"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
 
-          {/* Expand Button (when collapsed) */}
-          {isCollapsed && (
-            <button
-              onClick={() => setIsCollapsed(false)}
-              className="hidden md:flex absolute top-4 right-4 p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/30 hover:border-[#00FFF0]/50 text-[#00FFF0] hover:scale-110 transition-all z-50"
-              title="Expand panel"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-          )}
+          {/* Header - Clean & Minimal */}
+          <div className="px-6 pt-6 pb-4">
+            <h2 className="text-white/90 text-sm font-medium tracking-wide mb-1">
+              {mode === 'chat' ? 'SELECT STUDIO' : modelInfo.name.toUpperCase()}
+            </h2>
+            {mode !== 'chat' && (
+              <p className="text-white/40 text-xs">{modelInfo.description}</p>
+            )}
+          </div>
 
-          {!isCollapsed && (
-            <>
-              {/* Header */}
-              <div className="px-6 pt-6 pb-4 border-b border-[#00FFF0]/10">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
-                    <IconComponent className="w-5 h-5 text-[#00FFF0]" />
-                  </div>
-                  <div>
-                    <h2 className="text-white font-semibold text-base">
-                      {mode === 'chat' ? 'Select Studio' : modelInfo.name}
-                    </h2>
-                    {mode !== 'chat' && (
-                      <p className="text-white/50 text-xs mt-0.5">{modelInfo.description}</p>
-                    )}
-                  </div>
+          {/* Content Area */}
+          <div className="flex-1 overflow-y-auto px-6 pb-6">
+            {renderControls()}
+          </div>
+
+          {/* Token Balance - Minimal Footer */}
+          {premiumStatus && (
+            <div className="px-6 py-4 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                <span className="text-white/40 text-xs font-medium">Balance</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-white text-lg font-semibold">
+                    {premiumStatus.totalTokens.toLocaleString()}
+                  </span>
+                  <span className="text-white/40 text-xs">tokens</span>
                 </div>
-                {premiumStatus?.isPremium && (
-                  <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
-                    <Sparkles className="w-3 h-3 text-[#00FFF0] mr-1.5" />
-                    <span className="text-[#00FFF0] text-xs font-semibold">PRO</span>
-                  </div>
-                )}
               </div>
-
-              {/* Content Area */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                {renderControls()}
-              </div>
-
-              {/* Token Balance Footer */}
-              {premiumStatus && (
-                <div className="px-6 py-4 border-t border-[#00FFF0]/10 bg-gradient-to-br from-[#00FFF0]/5 to-[#8A2BE2]/5">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-white/60 text-xs font-medium uppercase tracking-wide">Token Balance</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
-                      {premiumStatus.totalTokens.toLocaleString()}
-                    </span>
-                    <span className="text-white/40 text-sm">tokens</span>
-                  </div>
-                  {premiumStatus.paidTokens > 0 && (
-                    <div className="mt-2 text-xs text-[#00FFF0]/70">
-                      {premiumStatus.paidTokens.toLocaleString()} paid tokens available
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
+            </div>
           )}
         </div>
       )}
