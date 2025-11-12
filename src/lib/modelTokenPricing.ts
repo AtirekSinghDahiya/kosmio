@@ -8,6 +8,7 @@ export interface ModelTokenCost {
   description: string;
   icon: string;
   logoUrl?: string;
+  paidOnly?: boolean;
 }
 
 export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
@@ -381,9 +382,10 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     tokensPerMessage: 600000,
     costPerMessage: 0.45,
     tier: 'ultra-premium',
-    description: 'Premium text to video (High token cost)',
+    description: 'Premium text to video (Paid users only)',
     icon: '🎬',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg',
+    paidOnly: true
   },
   'veo3': {
     id: 'veo3',
@@ -448,9 +450,9 @@ export function isModelFree(modelId: string): boolean {
   return model?.tier === 'free';
 }
 
-export function getModelTokenCost(modelId: string): number {
+export function isModelPaidOnly(modelId: string): boolean {
   const model = MODEL_TOKEN_COSTS[modelId];
-  return model?.tokensPerMessage || 1000;
+  return model?.paidOnly === true;
 }
 
 export function estimateMixedUsage(chatMessages: number, imageGenerations: number, videoSeconds: number): number {

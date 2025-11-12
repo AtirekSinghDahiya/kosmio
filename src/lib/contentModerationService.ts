@@ -1,6 +1,4 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const AI_PROXY_URL = `${SUPABASE_URL}/functions/v1/ai-proxy`;
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const SAFETY_MODEL = 'openai/gpt-oss-safeguard-20b';
 
 export interface ModerationResult {
@@ -16,17 +14,17 @@ export async function moderateContent(content: string): Promise<ModerationResult
   }
 
   try {
-    console.log('🛡️ [MODERATION] Checking content safety via Edge Function...');
+    console.log('🛡️ [MODERATION] Checking content safety...');
 
-    const response = await fetch(AI_PROXY_URL, {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'KroniQ AI Platform',
       },
       body: JSON.stringify({
-        provider: 'openrouter',
         model: SAFETY_MODEL,
         messages: [
           {

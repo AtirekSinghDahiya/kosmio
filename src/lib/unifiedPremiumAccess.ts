@@ -102,30 +102,23 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
     console.log('📦 Profile data:', profile);
 
     const paidTokens = profile.paid_tokens_balance || 0;
-    const freeTokens = profile.free_tokens_balance || 0;
-    const totalTokens = paidTokens + freeTokens;
+    const totalTokens = profile.tokens_balance || 0;
 
-    // Premium status: CRITICAL RULE - ONLY paid_tokens_balance > 0
-    // LOOPHOLE FIX: Ignore ALL other flags (is_premium, is_paid, current_tier)
-    // When paid tokens = 0, user is FREE, period.
+    // Premium status: ONLY check paid_tokens_balance (source of truth)
+    // Free users have tokens_balance (free tokens) but paid_tokens_balance should be 0
+    // DO NOT use is_premium flag as fallback - it can be incorrect
     const isPremium = paidTokens > 0;
 
-    // Log warning if flags don't match reality
-    if (paidTokens === 0 && (profile.is_premium || profile.is_paid || profile.current_tier === 'premium')) {
-      console.warn('⚠️ LOOPHOLE DETECTED: User has premium flags but 0 paid tokens!');
-      console.warn('   User will be treated as FREE regardless of flags');
-      console.warn('   Database trigger should fix this automatically');
-    }
-
-    console.log('💎 Premium Status Check:', {
-      paidTokens: paidTokens.toLocaleString(),
-      freeTokens: freeTokens.toLocaleString(),
-      totalTokens: totalTokens.toLocaleString(),
-      isPremium: isPremium ? '✅ YES' : '❌ NO',
-      logic: 'paid_tokens_balance > 0',
+    console.log('💎 Premium calculation:', {
+      paidTokens,
+      totalTokens,
+      is_premium: profile.is_premium,
+      is_paid: profile.is_paid,
+      current_tier: profile.current_tier,
+      result: isPremium,
+      logic: paidTokens > 0 ? 'HAS_PAID_TOKENS' : (profile.is_premium ? 'IS_PREMIUM_FLAG' : 'FREE')
     });
 
-    // Sync premium flags if needed (for compatibility with old code)
     if (isPremium && paidTokens > 0) {
       await ensurePremiumFlagsSet(userId, paidTokens, profile.current_tier);
     }

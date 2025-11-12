@@ -8,7 +8,7 @@ import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-rea
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { getOpenRouterResponseWithUsage } from '../../lib/openRouterService';
+import { getOpenRouterResponse, getOpenRouterResponseWithUsage } from '../../lib/openRouterService';
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
@@ -21,10 +21,6 @@ import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
-import { PPTStudio } from '../Studio/PPTStudio';
-import { MarkdownRenderer } from './MarkdownRenderer';
-import { MediaPreview } from './MediaPreview';
-import { TypingEffect, TypingIndicator } from './TypingEffect';
 import { getModelCost, isModelFree } from '../../lib/modelTokenPricing';
 import { checkPremiumAccess } from '../../lib/premiumAccessService';
 import {
@@ -68,12 +64,7 @@ export const MainChat: React.FC = () => {
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
-  const [showPPTGenerator, setShowPPTGenerator] = useState(false);
-  const [pptTopic, setPPTTopic] = useState('');
   const [musicPrompt, setMusicPrompt] = useState('');
-  const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
-  const [isThinking, setIsThinking] = useState(false);
-  const [thinkingText, setThinkingText] = useState('Thinking...');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -191,12 +182,11 @@ export const MainChat: React.FC = () => {
   };
 
   // Send message
-  const handleSendMessage = async (messageText?: string, attachments?: File[], options?: string[]) => {
+  const handleSendMessage = async (messageText?: string, attachments?: File[]) => {
     console.log('🚀 handleSendMessage CALLED!');
     console.log('📝 messageText:', messageText);
     console.log('📝 inputValue:', inputValue);
     console.log('📎 attachments:', attachments?.length || 0);
-    console.log('⚙️ options:', options);
 
     const textToSend = messageText || inputValue.trim();
     console.log('📝 textToSend:', textToSend);
@@ -207,25 +197,7 @@ export const MainChat: React.FC = () => {
       return;
     }
 
-    // Handle chat options (Deep Research, Think Longer, Creative Mode)
-    if (options && options.length > 0) {
-      console.log('⚙️ Processing chat options:', options);
-      if (options.includes('deep-research')) {
-        console.log('🔬 Deep Research mode activated');
-        setIsThinking(true);
-        setThinkingText('Deep researching...');
-      } else if (options.includes('think-longer')) {
-        console.log('🧠 Think Longer mode activated');
-        setIsThinking(true);
-        setThinkingText('Thinking longer...');
-      } else if (options.includes('creative-mode')) {
-        console.log('🎨 Creative Mode activated');
-        setIsThinking(true);
-        setThinkingText('Being creative...');
-      }
-    }
-
-    // SECURITY FIX: Check token balance AND validate sufficient tokens for model
+    // CRITICAL: Check token balance FIRST - Block if 0 tokens
     const { data: profile } = await supabase
       .from('profiles')
       .select('tokens_balance, free_tokens_balance, paid_tokens_balance')
@@ -237,20 +209,6 @@ export const MainChat: React.FC = () => {
 
     if (totalTokens <= 0) {
       showToast('error', 'No Tokens Remaining', 'You have 0 tokens. Please purchase tokens or upgrade your plan to continue chatting.');
-      return;
-    }
-
-    // SECURITY FIX: Validate user has enough tokens for THIS specific model
-    const modelCost = getModelCost(selectedModel);
-    const estimatedCost = modelCost.tokensPerMessage;
-
-    if (totalTokens < estimatedCost) {
-      const shortfall = estimatedCost - totalTokens;
-      showToast(
-        'error',
-        'Insufficient Tokens',
-        `${modelCost.name} requires ${estimatedCost.toLocaleString()} tokens per message. You have ${totalTokens.toLocaleString()} tokens (need ${shortfall.toLocaleString()} more). Please purchase tokens or select a cheaper model.`
-      );
       return;
     }
 
@@ -430,10 +388,15 @@ export const MainChat: React.FC = () => {
     const pptDirectPattern = /\b(make|need|want|create|build)\s+(a|an)?\s*(presentation|slides?|ppt|powerpoint|slideshow)/i;
 
     if (pptKeywords.test(textToSend) || pptRequestPattern.test(textToSend) || pptDirectPattern.test(textToSend)) {
-      console.log('📊 PPT generation detected! Opening PPT modal...');
-      setPPTTopic(textToSend);
-      setShowPPTGenerator(true);
+      console.log('📊 PPT generation detected! Navigating to PPT Studio...');
       setInputValue('');
+
+      showToast('success', 'Opening PPT Studio', 'Let\'s create your presentation!');
+
+      setTimeout(() => {
+        navigateTo('ppt');
+      }, 500);
+
       return;
     }
 
@@ -538,7 +501,7 @@ export const MainChat: React.FC = () => {
         if (intent.suggestedModel && intent.suggestedModel !== selectedModel) {
           console.log(`🤖 Auto-selecting AI model: ${intent.suggestedModel}`);
           setSelectedModel(intent.suggestedModel);
-          // Don't show toast - just select the model silently
+          showToast('info', 'Model Selected', `Using ${intent.suggestedModel} as requested`);
         }
       } catch (error) {
         console.warn('⚠️ Intent classification failed, defaulting to chat:', error);
@@ -588,21 +551,14 @@ export const MainChat: React.FC = () => {
           url: f.url
         }));
 
-        const { data: newMessage, error: insertError } = await supabase.from('messages').insert({
+        await supabase.from('messages').insert({
           project_id: projectId,
           role: 'user',
           content: textToSend,
           file_attachments: fileAttachments
-        }).select().single();
-
-        if (!insertError && newMessage) {
-          setMessages(prev => [...prev, newMessage as any]);
-        }
+        });
       } else {
-        const userMessage = await addMessage(projectId, 'user', textToSend, []);
-        if (userMessage) {
-          setMessages(prev => [...prev, userMessage as any]);
-        }
+        await addMessage(projectId, 'user', textToSend, []);
       }
 
       // Get AI response
@@ -656,46 +612,11 @@ export const MainChat: React.FC = () => {
         console.log(`✅ Free model ${selectedModel} - access granted to all users`);
       }
 
-      // Step 2: Build conversation history with image support
-      const conversationHistory = messages.slice(-10).map(msg => {
-        const baseMsg = {
-          role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
-          content: msg.content as any,
-        };
-
-        // Check if message has image attachments (for vision models)
-        if (msg.file_attachments) {
-          try {
-            const attachments = typeof msg.file_attachments === 'string'
-              ? JSON.parse(msg.file_attachments)
-              : msg.file_attachments;
-
-            const imageAttachments = Array.isArray(attachments)
-              ? attachments.filter((a: any) => a.type === 'image' || a.type?.startsWith('image/'))
-              : [];
-
-            if (imageAttachments.length > 0) {
-              // Format for vision models
-              const contentArray: any[] = [
-                { type: 'text', text: msg.content }
-              ];
-
-              imageAttachments.forEach((img: any) => {
-                contentArray.push({
-                  type: 'image_url',
-                  image_url: { url: img.url }
-                });
-              });
-
-              baseMsg.content = contentArray;
-            }
-          } catch (e) {
-            console.warn('Failed to parse file attachments:', e);
-          }
-        }
-
-        return baseMsg;
-      });
+      // Step 2: Build conversation history
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role === 'user' ? 'user' as const : 'assistant' as const,
+        content: msg.content,
+      }));
 
       console.log('📝 Messages count:', conversationHistory.length);
 
@@ -707,12 +628,8 @@ export const MainChat: React.FC = () => {
       console.log('🎯 Using custom preferences:', !!systemPrompt);
 
       // Step 4: Call OpenRouter service with usage tracking
-      console.log('🤖 Calling AI model...');
       const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
       const aiContent = aiResponse.content;
-
-      // Hide thinking animation
-      setIsThinking(false);
 
       console.log('✅ AI Response received! Length:', aiContent.length);
       console.log('✅ First 100 chars:', aiContent.substring(0, 100));
@@ -786,15 +703,9 @@ export const MainChat: React.FC = () => {
         console.error('⚠️ Failed to log usage:', logErr);
       }
 
-      // Step 6: Save AI response with typing effect
+      // Step 6: Save AI response
       console.log('💾 Saving AI response to database...');
-      const savedMessage = await addMessage(projectId, 'assistant', aiContent);
-
-      // Set typing animation for this message
-      if (savedMessage && savedMessage.id) {
-        setTypingMessageId(savedMessage.id);
-      }
-
+      await addMessage(projectId, 'assistant', aiContent);
       console.log('✅ AI response saved successfully');
 
       await incrementUsage('chat_messages_daily', 1);
@@ -978,58 +889,9 @@ export const MainChat: React.FC = () => {
                         ? 'bg-gray-100 text-gray-900 rounded-bl-md'
                         : 'bg-gray-800/50 text-gray-100 rounded-bl-md'
                     } backdrop-blur-sm shadow-lg`}>
-                      {/* Render message content */}
-                      {message.content && (
-                        message.role === 'assistant' ? (
-                          // Assistant messages with markdown support
-                          message.content.includes('#') || message.content.includes('**') || message.content.includes('```') || message.content.includes('|') ? (
-                            <div className="text-[15px] leading-[1.6]">
-                              {typingMessageId === message.id ? (
-                                <TypingEffect
-                                  text={message.content}
-                                  speed={5}
-                                  onComplete={() => setTypingMessageId(null)}
-                                />
-                              ) : (
-                                <MarkdownRenderer content={message.content} />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
-                              {typingMessageId === message.id ? (
-                                <TypingEffect
-                                  text={message.content}
-                                  speed={5}
-                                  onComplete={() => setTypingMessageId(null)}
-                                />
-                              ) : (
-                                message.content
-                              )}
-                            </div>
-                          )
-                        ) : (
-                          // User messages - simple text display
-                          <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
-                            {message.content}
-                          </div>
-                        )
-                      )}
-
-                      {/* Display Generated Media (images, videos, audio) */}
-                      {(message as any).payload?.generatedContent && (() => {
-                        const generatedContent = (message as any).payload.generatedContent;
-                        if (generatedContent.url) {
-                          return (
-                            <MediaPreview
-                              type={generatedContent.type || 'image'}
-                              url={generatedContent.url}
-                              prompt={generatedContent.prompt || message.content}
-                              metadata={generatedContent.metadata}
-                            />
-                          );
-                        }
-                        return null;
-                      })()}
+                      <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
+                        {message.content}
+                      </div>
 
                       {/* Display Attachments */}
                       {message.file_attachments && (() => {
@@ -1095,6 +957,7 @@ export const MainChat: React.FC = () => {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(message.content);
+                            showToast('success', 'Copied', 'Message copied to clipboard');
                           }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Copy"
@@ -1102,20 +965,14 @@ export const MainChat: React.FC = () => {
                           <Copy className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
-                          onClick={() => {
-                            // Placeholder for feedback feature
-                            console.log('Good response feedback');
-                          }}
+                          onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Good response"
                         >
                           <ThumbsUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
-                          onClick={() => {
-                            // Placeholder for feedback feature
-                            console.log('Bad response feedback');
-                          }}
+                          onClick={() => showToast('info', 'Coming Soon', 'Feedback feature coming soon!')}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Bad response"
                         >
@@ -1135,10 +992,7 @@ export const MainChat: React.FC = () => {
                           <RotateCw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
-                          onClick={() => {
-                            // Placeholder for more actions
-                            console.log('More actions');
-                          }}
+                          onClick={() => showToast('info', 'Coming Soon', 'More actions coming soon!')}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="More actions"
                         >
@@ -1159,7 +1013,7 @@ export const MainChat: React.FC = () => {
                 </div>
               ))}
 
-              {(isLoading || isThinking) && (
+              {isLoading && (
                 <div className="flex gap-3 justify-start">
                   <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
                     <img src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png" alt="KroniQ" className="w-8 h-8 animate-pulse" />
@@ -1167,23 +1021,10 @@ export const MainChat: React.FC = () => {
                   <div className={`rounded-2xl rounded-bl-md px-4 py-3 ${
                     theme === 'light' ? 'bg-gray-100' : 'bg-gray-800/50'
                   } backdrop-blur-sm shadow-lg`}>
-                    <div className="flex flex-col gap-2">
-                      {isThinking ? (
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-2 h-2 bg-[#00FFF0] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                          </div>
-                          <span className="text-sm text-white/80">{thinkingText}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                      )}
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                     </div>
                   </div>
                 </div>
@@ -1215,7 +1056,7 @@ export const MainChat: React.FC = () => {
                 <ChatInput
                   value={inputValue}
                   onChange={setInputValue}
-                  onSend={(attachments, options) => handleSendMessage(undefined, attachments, options)}
+                  onSend={() => handleSendMessage()}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask KroniQ anything..."
                   disabled={isLoading}
@@ -1245,38 +1086,9 @@ export const MainChat: React.FC = () => {
             setShowImageGenerator(false);
             setImagePrompt('');
           }}
-          onImageGenerated={async (image) => {
+          onImageGenerated={(image) => {
+            showToast('success', 'Success', 'Image generated! You can download it now.');
             console.log('Generated image:', image);
-
-            // Add the generated image to chat
-            if (activeProjectId) {
-              const assistantMessage = await addMessage(
-                activeProjectId,
-                'assistant',
-                `Generated image: ${image.prompt}`,
-                user?.uid || '',
-                undefined,
-                {
-                  generatedContent: {
-                    type: 'image',
-                    url: image.url,
-                    prompt: image.prompt,
-                    metadata: {
-                      seed: image.seed,
-                      timestamp: image.timestamp,
-                      model: selectedModel
-                    }
-                  }
-                }
-              );
-
-              if (assistantMessage) {
-                setMessages(prev => [...prev, assistantMessage as any]);
-              }
-            }
-
-            setShowImageGenerator(false);
-            setImagePrompt('');
           }}
           initialPrompt={imagePrompt}
           selectedModel={selectedModel}
@@ -1290,35 +1102,6 @@ export const MainChat: React.FC = () => {
             setVideoPrompt('');
           }}
           initialPrompt={videoPrompt}
-          onVideoGenerated={async (video) => {
-            console.log('Generated video:', video);
-
-            // Add the generated video to chat
-            if (activeProjectId) {
-              const assistantMessage = await addMessage(
-                activeProjectId,
-                'assistant',
-                `Generated video: ${video.prompt}`,
-                user?.uid || '',
-                undefined,
-                {
-                  generatedContent: {
-                    type: 'video',
-                    url: video.url,
-                    prompt: video.prompt,
-                    metadata: video.metadata
-                  }
-                }
-              );
-
-              if (assistantMessage) {
-                setMessages(prev => [...prev, assistantMessage as any]);
-              }
-            }
-
-            setShowVideoGenerator(false);
-            setVideoPrompt('');
-          }}
         />
       )}
 
@@ -1339,17 +1122,6 @@ export const MainChat: React.FC = () => {
             setVoiceoverText('');
           }}
           initialText={voiceoverText}
-        />
-      )}
-
-      {showPPTGenerator && (
-        <PPTStudio
-          projectId={activeProjectId || undefined}
-          onClose={() => {
-            setShowPPTGenerator(false);
-            setPPTTopic('');
-          }}
-          initialTopic={pptTopic}
         />
       )}
     </div>

@@ -75,54 +75,20 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   const groupedProjects = filteredProjects.reduce((groups, project) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Parse project date - handle both Supabase timestamp and Firebase timestamp
-    let projectDate: Date;
-    if (project.updated_at) {
-      // Supabase timestamp (ISO string)
-      projectDate = new Date(project.updated_at);
-    } else if ((project as any).updatedAt?.toDate) {
-      // Firebase timestamp
-      projectDate = (project as any).updatedAt.toDate();
-    } else {
-      projectDate = new Date();
-    }
-    projectDate.setHours(0, 0, 0, 0);
-
+    const projectDate = (project as any).updatedAt?.toDate ? (project as any).updatedAt.toDate() : new Date();
     const diffDays = Math.floor((today.getTime() - projectDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    let group = '';
-    if (diffDays === 0) {
-      group = 'Today';
-    } else if (diffDays === 1) {
-      group = 'Yesterday';
-    } else if (diffDays < 7) {
-      group = 'This Week';
-    } else {
-      // Format as "1 Oct", "15 Nov", etc.
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      group = `${projectDate.getDate()} ${months[projectDate.getMonth()]}`;
-    }
+    let group = 'Older';
+    if (diffDays === 0) group = 'Today';
+    else if (diffDays === 1) group = 'Yesterday';
+    else if (diffDays < 7) group = 'This Week';
 
     if (!groups[group]) groups[group] = [];
     groups[group].push(project);
     return groups;
   }, {} as Record<string, Project[]>);
 
-  // Sort groups: Today, Yesterday, This Week, then dates in reverse chronological order
-  const groupOrder = ['Today', 'Yesterday', 'This Week', ...Object.keys(groupedProjects)
-    .filter(g => !['Today', 'Yesterday', 'This Week'].includes(g))
-    .sort((a, b) => {
-      // Parse dates like "1 Oct" and compare
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const [dayA, monthA] = a.split(' ');
-      const [dayB, monthB] = b.split(' ');
-      const dateA = new Date(new Date().getFullYear(), months.indexOf(monthA), parseInt(dayA));
-      const dateB = new Date(new Date().getFullYear(), months.indexOf(monthB), parseInt(dayB));
-      return dateB.getTime() - dateA.getTime(); // Reverse chronological
-    })
-  ];
+  const groupOrder = ['Today', 'Yesterday', 'This Week', 'Older'];
 
   return (
     <>
@@ -164,7 +130,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <img
             src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"
             alt="KroniQ"
-            className="w-16 h-16 object-contain drop-shadow-[0_0_15px_rgba(0,255,240,0.6)] transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_20px_rgba(0,255,240,0.8)]"
+            className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(0,255,240,0.5)]"
           />
         </div>
       </div>
@@ -219,7 +185,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               return (
                 <div key={group}>
                   {(isMobileOpen || isHovered) && (
-                    <div className="px-3 py-2 text-xs font-bold text-white/60 uppercase tracking-wide animate-fade-in text-center border-b border-white/5 mb-2">
+                    <div className="px-2 py-1 text-[10px] font-semibold text-white/40 uppercase tracking-wider animate-fade-in">
                       {group}
                     </div>
                   )}
