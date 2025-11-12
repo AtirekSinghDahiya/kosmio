@@ -4,7 +4,7 @@ import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getOpenRouterResponse } from '../../lib/openRouterService';
+import { getOpenRouterResponse } from '../../lib/openRouterDirect';
 import { savePPTToProject } from '../../lib/contentSaveService';
 
 interface PPTStudioProps {
