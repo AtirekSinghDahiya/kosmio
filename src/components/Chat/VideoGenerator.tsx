@@ -13,12 +13,11 @@ import { getUnifiedPremiumStatus, UnifiedPremiumStatus } from '../../lib/unified
 interface VideoGeneratorProps {
   onClose: () => void;
   initialPrompt?: string;
-  onVideoGenerated?: (video: { url: string; prompt: string; metadata?: any }) => void;
 }
 
 type VideoProvider = 'sora' | 'veo3' | 'sora2-new' | 'veo3-new';
 
-export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initialPrompt = '', onVideoGenerated }) => {
+export const VideoGenerator: React.FC<VideoGeneratorProps> = ({ onClose, initialPrompt = '' }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
   const [prompt, setPrompt] = useState(initialPrompt);

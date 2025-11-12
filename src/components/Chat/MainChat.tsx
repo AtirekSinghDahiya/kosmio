@@ -21,8 +21,6 @@ import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
-import { MarkdownRenderer } from './MarkdownRenderer';
-import { MediaPreview } from './MediaPreview';
 import { getModelCost, isModelFree } from '../../lib/modelTokenPricing';
 import { checkPremiumAccess } from '../../lib/premiumAccessService';
 import {
@@ -891,32 +889,9 @@ export const MainChat: React.FC = () => {
                         ? 'bg-gray-100 text-gray-900 rounded-bl-md'
                         : 'bg-gray-800/50 text-gray-100 rounded-bl-md'
                     } backdrop-blur-sm shadow-lg`}>
-                      {/* Render content with Markdown for assistant messages */}
-                      {message.role === 'assistant' && message.content && (message.content.includes('#') || message.content.includes('**') || message.content.includes('```') || message.content.includes('|')) ? (
-                        <div className="text-[15px] leading-[1.6]">
-                          <MarkdownRenderer content={message.content} />
-                        </div>
-                      ) : (
-                        <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
-                          {message.content}
-                        </div>
-                      )}
-
-                      {/* Display Generated Media (images, videos, audio) */}
-                      {(message as any).generatedContent && (() => {
-                        const generatedContent = (message as any).generatedContent;
-                        if (generatedContent.url) {
-                          return (
-                            <MediaPreview
-                              type={generatedContent.type || 'image'}
-                              url={generatedContent.url}
-                              prompt={generatedContent.prompt || message.content}
-                              metadata={generatedContent.metadata}
-                            />
-                          );
-                        }
-                        return null;
-                      })()}
+                      <div className="text-[15px] leading-[1.6] whitespace-pre-wrap font-normal">
+                        {message.content}
+                      </div>
 
                       {/* Display Attachments */}
                       {message.file_attachments && (() => {
@@ -1111,39 +1086,9 @@ export const MainChat: React.FC = () => {
             setShowImageGenerator(false);
             setImagePrompt('');
           }}
-          onImageGenerated={async (image) => {
-            showToast('success', 'Success', 'Image generated successfully!');
+          onImageGenerated={(image) => {
+            showToast('success', 'Success', 'Image generated! You can download it now.');
             console.log('Generated image:', image);
-
-            // Add the generated image to chat
-            if (activeProjectId) {
-              const assistantMessage = await addMessage(
-                activeProjectId,
-                'assistant',
-                `Generated image: ${image.prompt}`,
-                user?.uid || '',
-                undefined,
-                {
-                  generatedContent: {
-                    type: 'image',
-                    url: image.url,
-                    prompt: image.prompt,
-                    metadata: {
-                      seed: image.seed,
-                      timestamp: image.timestamp,
-                      model: selectedModel
-                    }
-                  }
-                }
-              );
-
-              if (assistantMessage) {
-                setMessages(prev => [...prev, assistantMessage as any]);
-              }
-            }
-
-            setShowImageGenerator(false);
-            setImagePrompt('');
           }}
           initialPrompt={imagePrompt}
           selectedModel={selectedModel}
@@ -1157,35 +1102,6 @@ export const MainChat: React.FC = () => {
             setVideoPrompt('');
           }}
           initialPrompt={videoPrompt}
-          onVideoGenerated={async (video) => {
-            console.log('Generated video:', video);
-
-            // Add the generated video to chat
-            if (activeProjectId) {
-              const assistantMessage = await addMessage(
-                activeProjectId,
-                'assistant',
-                `Generated video: ${video.prompt}`,
-                user?.uid || '',
-                undefined,
-                {
-                  generatedContent: {
-                    type: 'video',
-                    url: video.url,
-                    prompt: video.prompt,
-                    metadata: video.metadata
-                  }
-                }
-              );
-
-              if (assistantMessage) {
-                setMessages(prev => [...prev, assistantMessage as any]);
-              }
-            }
-
-            setShowVideoGenerator(false);
-            setVideoPrompt('');
-          }}
         />
       )}
 
