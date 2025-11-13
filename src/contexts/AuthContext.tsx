@@ -157,17 +157,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Automatically try to redeem FIRST100 promo for new users
-      try {
-        console.log('🎁 Attempting to auto-redeem FIRST100 promo for new user');
-        const redemption = await PromoService.redeemPromoCode(userId, 'FIRST100', email);
-        if (redemption.success) {
-          console.log(`✅ Successfully awarded ${redemption.tokensAwarded} tokens from FIRST100 promo!`);
-        } else {
-          console.log(`ℹ️ FIRST100 promo not redeemed: ${redemption.message}`);
+      setTimeout(async () => {
+        try {
+          console.log('🎁 Attempting to auto-redeem FIRST100 promo for new user:', userId);
+
+          const campaignStatus = await PromoService.checkCampaignStatus('FIRST100');
+          console.log('📊 Campaign status:', campaignStatus);
+
+          if (campaignStatus.isValid && campaignStatus.remainingSlots > 0) {
+            const redemption = await PromoService.redeemPromoCode(userId, 'FIRST100', email);
+            console.log('🎁 Redemption result:', redemption);
+
+            if (redemption.success) {
+              console.log(`✅ SUCCESS! Awarded ${redemption.tokensAwarded.toLocaleString()} tokens from FIRST100 promo!`);
+            } else {
+              console.error(`❌ FIRST100 promo redemption failed: ${redemption.message}`);
+            }
+          } else {
+            console.log(`ℹ️ FIRST100 campaign not available: ${campaignStatus.message}`);
+          }
+        } catch (promoError) {
+          console.error('❌ Error auto-redeeming promo:', promoError);
         }
-      } catch (promoError) {
-        console.log('ℹ️ Could not auto-redeem promo (campaign may be full):', promoError);
-      }
+      }, 2000);
     } catch (error) {
     }
   };
