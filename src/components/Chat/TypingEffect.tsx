@@ -23,7 +23,7 @@ export const TypingEffect: React.FC<TypingEffectProps> = ({ text, speed = 20, on
     }
   }, [currentIndex, text, speed, onComplete]);
 
-  return <span>{displayedText}</span>;
+  return <span className="whitespace-pre-wrap">{displayedText}<span className="animate-pulse">|</span></span>;
 };
 
 interface TypingIndicatorProps {

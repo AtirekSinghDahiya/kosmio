@@ -75,20 +75,54 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   const groupedProjects = filteredProjects.reduce((groups, project) => {
     const today = new Date();
-    const projectDate = (project as any).updatedAt?.toDate ? (project as any).updatedAt.toDate() : new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Parse project date - handle both Supabase timestamp and Firebase timestamp
+    let projectDate: Date;
+    if (project.updated_at) {
+      // Supabase timestamp (ISO string)
+      projectDate = new Date(project.updated_at);
+    } else if ((project as any).updatedAt?.toDate) {
+      // Firebase timestamp
+      projectDate = (project as any).updatedAt.toDate();
+    } else {
+      projectDate = new Date();
+    }
+    projectDate.setHours(0, 0, 0, 0);
+
     const diffDays = Math.floor((today.getTime() - projectDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    let group = 'Older';
-    if (diffDays === 0) group = 'Today';
-    else if (diffDays === 1) group = 'Yesterday';
-    else if (diffDays < 7) group = 'This Week';
+    let group = '';
+    if (diffDays === 0) {
+      group = 'Today';
+    } else if (diffDays === 1) {
+      group = 'Yesterday';
+    } else if (diffDays < 7) {
+      group = 'This Week';
+    } else {
+      // Format as "1 Oct", "15 Nov", etc.
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      group = `${projectDate.getDate()} ${months[projectDate.getMonth()]}`;
+    }
 
     if (!groups[group]) groups[group] = [];
     groups[group].push(project);
     return groups;
   }, {} as Record<string, Project[]>);
 
-  const groupOrder = ['Today', 'Yesterday', 'This Week', 'Older'];
+  // Sort groups: Today, Yesterday, This Week, then dates in reverse chronological order
+  const groupOrder = ['Today', 'Yesterday', 'This Week', ...Object.keys(groupedProjects)
+    .filter(g => !['Today', 'Yesterday', 'This Week'].includes(g))
+    .sort((a, b) => {
+      // Parse dates like "1 Oct" and compare
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const [dayA, monthA] = a.split(' ');
+      const [dayB, monthB] = b.split(' ');
+      const dateA = new Date(new Date().getFullYear(), months.indexOf(monthA), parseInt(dayA));
+      const dateB = new Date(new Date().getFullYear(), months.indexOf(monthB), parseInt(dayB));
+      return dateB.getTime() - dateA.getTime(); // Reverse chronological
+    })
+  ];
 
   return (
     <>
