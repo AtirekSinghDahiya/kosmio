@@ -25,6 +25,18 @@ const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const SITE_URL = 'https://kroniq.ai';
 const SITE_NAME = 'KroniQ AI Platform';
 
+// Debug logging on service initialization
+console.log('🔧 [OpenRouter Service] Initializing...');
+console.log('🔧 [OpenRouter Service] Environment:', import.meta.env.MODE);
+console.log('🔧 [OpenRouter Service] API Key present:', !!OPENROUTER_API_KEY);
+console.log('🔧 [OpenRouter Service] API Key length:', OPENROUTER_API_KEY?.length || 0);
+if (OPENROUTER_API_KEY) {
+  console.log('🔧 [OpenRouter Service] API Key prefix:', OPENROUTER_API_KEY.substring(0, 20) + '...');
+} else {
+  console.error('❌ [OpenRouter Service] API KEY IS NOT SET!');
+  console.error('❌ [OpenRouter Service] Available env vars:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
+}
+
 const MODEL_MAP: Record<string, string> = {
   'gpt-5-chat': 'openai/gpt-5-chat',
   'gpt-5-codex': 'openai/gpt-5-codex',
@@ -71,7 +83,19 @@ export async function callOpenRouter(
   modelId: string
 ): Promise<AIResponse> {
   if (!OPENROUTER_API_KEY) {
-    throw new Error('OpenRouter API key is not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.');
+    console.error('❌ [OpenRouter] API key check failed');
+    console.error('❌ [OpenRouter] Current environment:', import.meta.env.MODE);
+    console.error('❌ [OpenRouter] All VITE_ variables:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
+
+    throw new Error(
+      '🚨 OpenRouter API key is not configured!\n\n' +
+      'This appears to be an API key issue. Please check:\n\n' +
+      '1. If using bolt.new: Go to project settings and add VITE_OPENROUTER_API_KEY\n' +
+      '2. The key should start with: sk-or-v1-\n' +
+      '3. Make sure to restart/rebuild after adding the key\n\n' +
+      'Current environment: ' + import.meta.env.MODE + '\n' +
+      'Available env vars: ' + Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')).join(', ')
+    );
   }
 
   const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';

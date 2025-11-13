@@ -27,6 +27,7 @@ import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { StudioModeProvider } from './contexts/StudioModeContext';
+import { EnvDebugPanel } from './components/Debug/EnvDebugPanel';
 import { Project } from './types';
 
 const MainApp: React.FC = () => {
@@ -162,6 +163,7 @@ function App() {
                 <MainApp />
                 <CookieConsent />
                 <BugReportButton />
+                <EnvDebugPanel />
               </StudioModeProvider>
             </NavigationProvider>
           </ToastProvider>
