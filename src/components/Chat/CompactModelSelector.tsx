@@ -84,48 +84,56 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
   };
 
   return (
-    <div ref={dropdownRef} className="relative">
+    <div ref={dropdownRef} className="relative w-full">
       {/* Compact Selector Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all ${
+        className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all group ${
           theme === 'light'
-            ? 'bg-white border-2 border-gray-200 hover:border-blue-400'
-            : 'bg-slate-900/80 border-2 border-white/20 hover:border-cyan-400/50'
-        } backdrop-blur-sm shadow-lg hover:shadow-xl`}
+            ? 'bg-gradient-to-r from-white to-gray-50 border-2 border-gray-200 hover:border-blue-400 hover:shadow-blue-100'
+            : 'bg-gradient-to-r from-slate-900/95 to-slate-800/95 border-2 border-white/10 hover:border-cyan-400/50'
+        } backdrop-blur-xl shadow-lg hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99]`}
       >
         {/* Model Icon/Logo */}
-        <div className="flex items-center gap-2">
-          {selectedModelCost?.logoUrl ? (
-            <img
-              src={selectedModelCost.logoUrl}
-              alt={selectedModelData?.provider}
-              className="w-6 h-6 rounded"
-            />
-          ) : (
-            <Sparkles className="w-5 h-5 text-cyan-400" />
-          )}
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative">
+            {selectedModelCost?.logoUrl ? (
+              <img
+                src={selectedModelCost.logoUrl}
+                alt={selectedModelData?.provider}
+                className="w-7 h-7 rounded-lg shadow-md group-hover:shadow-lg transition-shadow"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+              </div>
+            )}
+          </div>
 
           {/* Model Name and Info */}
-          <div className="flex flex-col items-start">
-            <div className={`text-sm font-semibold ${
+          <div className="flex flex-col items-start min-w-0">
+            <div className={`text-sm font-bold truncate max-w-full ${
               theme === 'light' ? 'text-gray-900' : 'text-white'
             }`}>
               {selectedModelData?.name || 'Select Model'}
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs ${
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className={`text-xs font-medium ${
                 theme === 'light' ? 'text-gray-500' : 'text-white/50'
               }`}>
                 {selectedModelData?.provider}
               </span>
               {selectedModelCost && (
                 <>
-                  <span className="text-xs text-white/30">•</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                  <span className="text-xs text-white/20">•</span>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold shadow-sm ${
                     getTierBadgeColor(selectedModelCost.tier)
                   }`}>
                     {selectedModelCost.tier === 'free' ? 'FREE' : selectedModelCost.tier.toUpperCase()}
+                  </span>
+                  <span className="flex items-center gap-0.5 text-xs text-white/40">
+                    <Zap className="w-3 h-3" />
+                    {formatTokenDisplay(selectedModelCost.tokensPerMessage)}
                   </span>
                 </>
               )}
@@ -134,23 +142,23 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
         </div>
 
         {/* Dropdown Arrow */}
-        <ChevronDown className={`w-4 h-4 transition-transform ${
-          isOpen ? 'rotate-180' : ''
-        } ${theme === 'light' ? 'text-gray-600' : 'text-cyan-400'}`} />
+        <ChevronDown className={`w-5 h-5 transition-all flex-shrink-0 ${
+          isOpen ? 'rotate-180 text-cyan-400' : ''
+        } ${theme === 'light' ? 'text-gray-400 group-hover:text-blue-500' : 'text-white/40 group-hover:text-cyan-400'}`} />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-50 ${
+        <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-50 animate-fade-in ${
           theme === 'light'
-            ? 'bg-white border-gray-200'
-            : 'bg-slate-900/95 border-white/20'
-        } backdrop-blur-xl`}>
+            ? 'bg-white/95 border-gray-200'
+            : 'bg-slate-900/98 border-white/20'
+        } backdrop-blur-2xl`}>
           {modelGroups.map((group) => (
             <div key={group.provider} className="py-2">
               {/* Provider Header */}
-              <div className={`px-4 py-2 text-xs font-semibold ${
-                theme === 'light' ? 'text-gray-500' : 'text-white/40'
+              <div className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider sticky top-0 backdrop-blur-xl z-10 ${
+                theme === 'light' ? 'text-gray-600 bg-gray-50/90' : 'text-white/50 bg-slate-800/90'
               }`}>
                 {group.provider}
               </div>

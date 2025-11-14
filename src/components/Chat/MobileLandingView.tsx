@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ImageIcon, Video, Send, ArrowRight, Presentation, Music } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
-import { GroupedModelSelector } from './GroupedModelSelector';
+import { CompactModelSelector } from './CompactModelSelector';
 
 interface MobileLandingViewProps {
   onQuickAction: (prompt: string) => void;
@@ -96,7 +96,7 @@ export const MobileLandingView: React.FC<MobileLandingViewProps> = ({
             {/* AI Model Selector */}
             {onModelChange && (
               <div className="mb-3">
-                <GroupedModelSelector
+                <CompactModelSelector
                   selectedModel={selectedModel}
                   onModelChange={onModelChange}
                   category="chat"

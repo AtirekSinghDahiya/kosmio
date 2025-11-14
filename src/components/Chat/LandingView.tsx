@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { ImageIcon, Video, Send, Sparkles, ArrowRight, Presentation, Music, Paperclip, Image, File } from 'lucide-react';
-import { GroupedModelSelector } from './GroupedModelSelector';
+import { CompactModelSelector } from './CompactModelSelector';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface LandingViewProps {
@@ -110,7 +110,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
           >
             {onModelChange && (
               <div className="mb-3">
-                <GroupedModelSelector
+                <CompactModelSelector
                   selectedModel={selectedModel}
                   onModelChange={onModelChange}
                   category="chat"

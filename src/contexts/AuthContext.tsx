@@ -139,10 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('✅ Profile created successfully');
 
-      // Wait a moment for database trigger to complete, then check token allocation
-      setTimeout(async () => {
-        await ensureTokenBalance(userId);
-      }, 500);
+      // Check token allocation immediately (trigger runs synchronously)
+      await ensureTokenBalance(userId);
 
       // Automatically try to redeem FIRST100 promo for new users (separate from first 101 bonus)
       setTimeout(async () => {
