@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Bug, X, Send, Image as ImageIcon, Loader } from 'lucide-react';
+import { AlertCircle, X, Send, Image as ImageIcon, Loader } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../contexts/ToastContext';
@@ -166,13 +166,13 @@ export const BugReportButton: React.FC = () => {
           left: `${position.x}px`,
           top: `${position.y}px`,
         }}
-        className={`fixed z-50 w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group animate-pulse-slow ${
+        className={`fixed z-50 w-14 h-14 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 hover:border-red-500/60 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
           isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
         }`}
         aria-label="Report a bug"
       >
-        <Bug
-          className="w-6 h-6 text-white group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 pointer-events-none"
+        <AlertCircle
+          className="w-6 h-6 text-red-400 group-hover:scale-110 transition-all duration-300 pointer-events-none"
         />
       </button>
 
@@ -187,12 +187,9 @@ export const BugReportButton: React.FC = () => {
             >
               <div className="flex items-center gap-3">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: `${themeColors.accent}20`,
-                  }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/20"
                 >
-                  <Bug className="w-5 h-5" style={{ color: themeColors.accent }} />
+                  <AlertCircle className="w-5 h-5 text-red-400" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold" style={{ color: themeColors.text }}>Report a Bug</h3>
