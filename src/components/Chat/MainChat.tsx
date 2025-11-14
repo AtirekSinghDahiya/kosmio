@@ -936,22 +936,37 @@ export const MainChat: React.FC = () => {
                 onSelectMode={(mode, modelId) => {
                   console.log('Selected mode:', mode, 'Model:', modelId);
 
-                  // If chat mode and model selected, set the model and hide landing
+                  // Handle chat mode - set model and hide landing
                   if (mode === 'chat' && modelId) {
                     setSelectedModel(modelId);
                     setShowLanding(false);
-                  } else if (mode === 'image') {
-                    // Navigate to image studio
-                    console.log('Navigate to image studio');
-                  } else if (mode === 'video') {
-                    // Navigate to video studio
-                    console.log('Navigate to video studio');
-                  } else if (mode === 'audio') {
-                    // Navigate to audio studio
-                    console.log('Navigate to audio studio');
-                  } else if (mode === 'code') {
-                    // Navigate to code studio
-                    console.log('Navigate to code studio');
+                    // Optionally send a greeting message
+                    // handleSendMessage('Hi');
+                  }
+                  // Handle image studio
+                  else if (mode === 'image') {
+                    setStudioMode('image');
+                    setShowLanding(false);
+                  }
+                  // Handle video studio
+                  else if (mode === 'video') {
+                    setStudioMode('video');
+                    setShowLanding(false);
+                  }
+                  // Handle music/audio studio
+                  else if (mode === 'music') {
+                    setStudioMode('music');
+                    setShowLanding(false);
+                  }
+                  // Handle voice studio
+                  else if (mode === 'voice') {
+                    setStudioMode('voice');
+                    setShowLanding(false);
+                  }
+                  // Handle code studio
+                  else if (mode === 'code') {
+                    setStudioMode('chat'); // Code uses chat mode for now
+                    setShowLanding(false);
                   }
                 }}
               />

@@ -608,11 +608,23 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
   };
 
   const handleCardClick = (card: ModelCard) => {
-    // Pass both category and model ID for chat models
+    // Map card categories to studio modes
+    const categoryToMode: Record<string, string> = {
+      'chat': 'chat',
+      'image': 'image',
+      'video': 'video',
+      'audio': 'music', // Audio maps to music mode
+      'code': 'code',
+    };
+
+    const mode = categoryToMode[card.category] || card.category;
+
+    // For chat mode, pass the selected model ID
     if (card.category === 'chat') {
-      onSelectMode('chat', card.id);
+      onSelectMode(mode, card.id);
     } else {
-      onSelectMode(card.category, card.id);
+      // For other modes (image, video, audio, code), just pass the mode
+      onSelectMode(mode, card.id);
     }
   };
 
