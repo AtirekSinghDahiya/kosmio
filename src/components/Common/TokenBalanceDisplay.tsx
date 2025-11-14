@@ -101,13 +101,13 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     return null;
   }
 
-  // Determine color based on tier and balance
+  // Determine color based on tier and balance - now using gray scale
   const getBalanceColor = () => {
-    if (!balance) return 'from-gray-500 to-gray-600';
-    if (balance.tier === 'premium' || balance.paidTokens > 0) return 'from-green-500 to-emerald-600';
-    if (balance.totalTokens >= 10000) return 'from-blue-500 to-cyan-600';
-    if (balance.totalTokens >= 1000) return 'from-orange-500 to-orange-600';
-    return 'from-red-500 to-red-600';
+    if (!balance) return 'text-gray-400';
+    if (balance.tier === 'premium' || balance.paidTokens > 0) return 'text-white';
+    if (balance.totalTokens >= 10000) return 'text-gray-300';
+    if (balance.totalTokens >= 1000) return 'text-gray-400';
+    return 'text-gray-500';
   };
 
   const getTierLabel = () => {
@@ -124,32 +124,32 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     return (
       <button
         onClick={onPurchaseClick}
-        className="flex items-center gap-2 px-4 py-2.5 glass-panel rounded-full border border-white/20 hover:border-white/30 transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
+        className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in"
       >
-        <Coins className="w-4 h-4 text-orange-400" />
+        <Coins className="w-4 h-4 text-gray-400" />
         <span className="text-sm font-bold text-white">{displayBalance.toLocaleString()}</span>
       </button>
     );
   }
 
-  // Expanded view - clean, simple display
+  // Expanded view - clean, simple display with gray theme
   return (
-    <div className="glass-panel rounded-xl p-4 border-white/10 animate-fade-in">
+    <div className="bg-white/5 hover:bg-white/10 rounded-xl p-4 border border-white/10 hover:border-white/20 transition-all duration-200 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg bg-gradient-to-r ${getBalanceColor()}`}>
-            <Coins className="w-4 h-4 text-white" />
+          <div className="p-1.5 rounded-lg bg-white/10">
+            <Coins className="w-4 h-4 text-gray-400" />
           </div>
           <span className="text-sm text-white/70 font-medium">Token Balance</span>
         </div>
-        <span className={`text-xs font-bold bg-gradient-to-r ${getBalanceColor()} bg-clip-text text-transparent uppercase tracking-wide`}>
+        <span className={`text-xs font-bold ${getBalanceColor()} uppercase tracking-wide`}>
           {getTierLabel()}
         </span>
       </div>
 
       {balance && (
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-orange-400" />
+          <TrendingUp className="w-4 h-4 text-gray-400" />
           <span className="text-2xl font-bold text-white">
             {displayBalance.toLocaleString()}
           </span>

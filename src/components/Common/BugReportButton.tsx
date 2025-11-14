@@ -165,17 +165,14 @@ export const BugReportButton: React.FC = () => {
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
-          background: themeColors.gradient,
-          boxShadow: `0 20px 60px ${themeColors.shadow}`,
         }}
-        className={`fixed z-50 w-14 h-14 rounded-full shadow-2xl hover:shadow-lg transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
+        className={`fixed z-50 w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group animate-pulse-slow ${
           isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
         }`}
         aria-label="Report a bug"
       >
         <Bug
-          className="w-6 h-6 group-hover:rotate-12 transition-transform pointer-events-none"
-          style={{ color: themeColors.text }}
+          className="w-6 h-6 text-white group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 pointer-events-none"
         />
       </button>
 
