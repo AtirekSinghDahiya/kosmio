@@ -324,10 +324,22 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
   };
 
   return (
-    <div className="h-full flex flex-col bg-black justify-center">
-      <div className="flex-1 flex flex-col justify-center">
+    <div className="h-full flex flex-col bg-black">
+      {/* Fixed Header with Logo */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <img
+            src="/Black_Blue_White_Modern_Simple_Minimal_Gradient_Circle__Neon_Technology__AI_Logo__1_-removebg-preview copy.png"
+            alt="KroniQ"
+            className="h-10 w-10 object-contain"
+          />
+          <span className="text-white text-xl font-medium">KroniQ AI</span>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center overflow-hidden">
         {/* Header */}
-        <div className="text-center pb-8">
+        <div className="text-center pb-6">
           <h1 className="text-5xl font-normal text-white mb-4">
             KroniQ AI Studio
           </h1>
@@ -358,9 +370,9 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-8">
+      <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {modelCards[activeTab].map((card) => {
               const Icon = card.icon;
               return (

@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal, Share2 } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -974,7 +974,7 @@ export const MainChat: React.FC = () => {
                   )}
 
                   {/* Message Bubble */}
-                  <div className={`flex flex-col ${message.role === 'user' ? 'max-w-[75%] items-end' : 'flex-1 items-start'}`}>
+                  <div className={`flex flex-col ${message.role === 'user' ? 'max-w-[75%] items-end' : 'max-w-[85%] items-start'}`}>
                     <div className={`rounded-2xl px-4 py-3 ${
                       message.role === 'user'
                         ? theme === 'light'
@@ -1101,6 +1101,7 @@ export const MainChat: React.FC = () => {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(message.content);
+                            showToast('Copied to clipboard!', 'success');
                           }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Copy"
@@ -1109,7 +1110,7 @@ export const MainChat: React.FC = () => {
                         </button>
                         <button
                           onClick={() => {
-                            // Placeholder for feedback feature
+                            showToast('Thanks for your feedback!', 'success');
                             console.log('Good response feedback');
                           }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
@@ -1119,13 +1120,31 @@ export const MainChat: React.FC = () => {
                         </button>
                         <button
                           onClick={() => {
-                            // Placeholder for feedback feature
+                            showToast('Thanks for your feedback!', 'success');
                             console.log('Bad response feedback');
                           }}
                           className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
                           title="Bad response"
                         >
                           <ThumbsDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const shareText = `Check out this AI response:\n\n${message.content.substring(0, 200)}...`;
+                            if (navigator.share) {
+                              navigator.share({
+                                title: 'KroniQ AI Response',
+                                text: shareText,
+                              }).catch(() => {});
+                            } else {
+                              navigator.clipboard.writeText(shareText);
+                              showToast('Response copied for sharing!', 'success');
+                            }
+                          }}
+                          className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg transition-colors"
+                          title="Share"
+                        >
+                          <Share2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                         </button>
                         <button
                           onClick={() => {
