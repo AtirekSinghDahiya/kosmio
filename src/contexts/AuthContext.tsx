@@ -81,34 +81,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const ensureTokenBalance = async (userId: string) => {
     try {
+      // Check if profile exists and has tokens
       const { data: profile } = await supabase
         .from('profiles')
-        .select('tokens_balance, daily_tokens_remaining, daily_free_tokens, current_tier, is_paid, is_premium, paid_tokens_balance, free_tokens_balance, monthly_token_limit')
+        .select('tokens_balance, free_tokens_balance, paid_tokens_balance, current_tier')
         .eq('id', userId)
         .maybeSingle();
 
       if (profile) {
-        const isFreeUser = !profile.is_paid && !profile.is_premium && profile.current_tier === 'free';
-
-        // If tokens_balance is missing or 0 for a free user, initialize with 150k
-        if ((profile.tokens_balance === null || profile.tokens_balance === 0) && isFreeUser && (profile.paid_tokens_balance === null || profile.paid_tokens_balance === 0)) {
-          console.log('🔧 Fixing missing tokens_balance for user, giving 150k tokens:', userId);
-          await supabase
-            .from('profiles')
-            .update({
-              tokens_balance: 150000,
-              free_tokens_balance: 150000,
-              daily_tokens_remaining: 5000,
-              daily_token_limit: 5000,
-              monthly_token_limit: 150000,
-              last_token_refresh: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', userId);
-        }
+        // Only log token status, database trigger handles initialization
+        console.log('✅ User token status:', {
+          userId,
+          total: profile.tokens_balance,
+          free: profile.free_tokens_balance,
+          paid: profile.paid_tokens_balance,
+          tier: profile.current_tier
+        });
       }
     } catch (error) {
-      console.error('Error ensuring token balance:', error);
+      console.error('Error checking token balance:', error);
     }
   };
 
@@ -116,17 +107,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: existingProfile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, tokens_balance, free_tokens_balance, paid_tokens_balance')
         .eq('id', userId)
         .maybeSingle();
 
       if (existingProfile) {
+        console.log('✅ Profile already exists for user:', userId);
         await ensureTokenBalance(userId);
         return;
       }
 
-      console.log('🆕 Creating new profile with 150k tokens for user:', userId);
+      console.log('🆕 Creating new profile for user:', userId);
+      console.log('ℹ️ Database trigger will handle token initialization (150k base + first 101 bonus if applicable)');
 
+      // Create profile with minimal data - database trigger handles all token initialization
       const result = await supabase
         .from('profiles')
         .insert({
@@ -134,53 +128,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email,
           display_name: displayName || email.split('@')[0],
           avatar_url: null,
-          tokens_balance: 150000,
-          free_tokens_balance: 150000,
-          paid_tokens_balance: 0,
-          daily_tokens_remaining: 5000,
-          daily_token_limit: 5000,
-          monthly_token_limit: 150000,
-          current_tier: 'free',
-          is_paid: false,
-          is_premium: false,
-          last_token_refresh: new Date().toISOString(),
-          last_reset_date: new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
-
-      console.log('✅ Profile created successfully:', result);
 
       if (result.error) {
         console.error('❌ Error creating profile:', result.error);
         throw result.error;
       }
 
-      // Automatically try to redeem FIRST100 promo for new users
+      console.log('✅ Profile created successfully');
+
+      // Wait a moment for database trigger to complete, then check token allocation
+      setTimeout(async () => {
+        await ensureTokenBalance(userId);
+      }, 500);
+
+      // Automatically try to redeem FIRST100 promo for new users (separate from first 101 bonus)
       setTimeout(async () => {
         try {
-          console.log('🎁 Attempting to auto-redeem FIRST100 promo for new user:', userId);
+          console.log('🎁 Checking FIRST100 promo eligibility for new user:', userId);
 
           const campaignStatus = await PromoService.checkCampaignStatus('FIRST100');
-          console.log('📊 Campaign status:', campaignStatus);
+          console.log('📊 FIRST100 campaign status:', campaignStatus);
 
           if (campaignStatus.isValid && campaignStatus.remainingSlots > 0) {
             const redemption = await PromoService.redeemPromoCode(userId, 'FIRST100', email);
-            console.log('🎁 Redemption result:', redemption);
+            console.log('🎁 FIRST100 redemption result:', redemption);
 
             if (redemption.success) {
               console.log(`✅ SUCCESS! Awarded ${redemption.tokensAwarded.toLocaleString()} tokens from FIRST100 promo!`);
             } else {
-              console.error(`❌ FIRST100 promo redemption failed: ${redemption.message}`);
+              console.log(`ℹ️ FIRST100 promo: ${redemption.message}`);
             }
           } else {
             console.log(`ℹ️ FIRST100 campaign not available: ${campaignStatus.message}`);
           }
         } catch (promoError) {
-          console.error('❌ Error auto-redeeming promo:', promoError);
+          console.error('❌ Error auto-redeeming FIRST100 promo:', promoError);
         }
       }, 2000);
     } catch (error) {
+      console.error('❌ Error in createSupabaseProfile:', error);
+      throw error;
     }
   };
 
