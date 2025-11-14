@@ -933,9 +933,26 @@ export const MainChat: React.FC = () => {
           {showLanding ? (
             <div className="h-full">
               <StudioLandingView
-                onSelectMode={(mode) => {
-                  // Mode selected - user can start chatting or go to specific studio
-                  console.log('Selected mode:', mode);
+                onSelectMode={(mode, modelId) => {
+                  console.log('Selected mode:', mode, 'Model:', modelId);
+
+                  // If chat mode and model selected, set the model and hide landing
+                  if (mode === 'chat' && modelId) {
+                    setSelectedModel(modelId);
+                    setShowLanding(false);
+                  } else if (mode === 'image') {
+                    // Navigate to image studio
+                    console.log('Navigate to image studio');
+                  } else if (mode === 'video') {
+                    // Navigate to video studio
+                    console.log('Navigate to video studio');
+                  } else if (mode === 'audio') {
+                    // Navigate to audio studio
+                    console.log('Navigate to audio studio');
+                  } else if (mode === 'code') {
+                    // Navigate to code studio
+                    console.log('Navigate to code studio');
+                  }
                 }}
               />
             </div>

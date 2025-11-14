@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation } from 'lucide-react';
 
 interface StudioLandingViewProps {
-  onSelectMode: (mode: string) => void;
+  onSelectMode: (mode: string, modelId?: string) => void;
 }
 
 type Tab = 'featured' | 'chat' | 'images' | 'video' | 'audio' | 'code';
@@ -63,33 +63,139 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
       },
     ],
     chat: [
+      // OpenAI Models
       {
         id: 'gpt-4o',
         name: 'GPT-4o',
-        description: 'Most capable GPT-4 model optimized for chat and complex tasks',
+        description: 'OpenAI - Most capable model with vision and complex reasoning',
         icon: MessageSquare,
-        category: 'chat'
+        category: 'chat',
+        badge: 'OpenAI'
       },
+      {
+        id: 'gpt-4o-mini',
+        name: 'GPT-4o Mini',
+        description: 'OpenAI - Fast and affordable GPT-4 level intelligence',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'OpenAI'
+      },
+      {
+        id: 'o1-preview',
+        name: 'o1 Preview',
+        description: 'OpenAI - Advanced reasoning model for complex problems',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'OpenAI'
+      },
+      {
+        id: 'o1-mini',
+        name: 'o1 Mini',
+        description: 'OpenAI - Reasoning model optimized for STEM',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'OpenAI'
+      },
+      // Anthropic Models
       {
         id: 'claude-3.5-sonnet',
         name: 'Claude 3.5 Sonnet',
-        description: 'Anthropic\'s flagship model with superior reasoning',
+        description: 'Anthropic - Superior reasoning and coding capabilities',
         icon: MessageSquare,
-        category: 'chat'
+        category: 'chat',
+        badge: 'Anthropic'
       },
+      {
+        id: 'claude-3-opus',
+        name: 'Claude 3 Opus',
+        description: 'Anthropic - Most intelligent model for complex tasks',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Anthropic'
+      },
+      {
+        id: 'claude-3-haiku',
+        name: 'Claude 3 Haiku',
+        description: 'Anthropic - Fast and cost-effective responses',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Anthropic'
+      },
+      // Google Models
       {
         id: 'gemini-2.0-flash-exp',
         name: 'Gemini 2.0 Flash',
-        description: 'Google\'s fast experimental model with multimodal capabilities',
+        description: 'Google - Experimental model with multimodal capabilities',
         icon: MessageSquare,
-        category: 'chat'
+        category: 'chat',
+        badge: 'Google'
       },
+      {
+        id: 'gemini-1.5-pro',
+        name: 'Gemini 1.5 Pro',
+        description: 'Google - Long context window up to 2M tokens',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Google'
+      },
+      {
+        id: 'gemini-1.5-flash',
+        name: 'Gemini 1.5 Flash',
+        description: 'Google - Fast and efficient multimodal model',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Google'
+      },
+      // xAI Models
       {
         id: 'grok-2',
         name: 'Grok 2',
-        description: 'xAI\'s conversational model with real-time knowledge',
+        description: 'xAI - Real-time knowledge and conversational AI',
         icon: MessageSquare,
-        category: 'chat'
+        category: 'chat',
+        badge: 'xAI'
+      },
+      {
+        id: 'grok-2-vision',
+        name: 'Grok 2 Vision',
+        description: 'xAI - Vision-enabled conversational model',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'xAI'
+      },
+      // Meta Models
+      {
+        id: 'llama-3.3-70b',
+        name: 'Llama 3.3 70B',
+        description: 'Meta - Open-source model with strong performance',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Meta'
+      },
+      {
+        id: 'llama-3.1-405b',
+        name: 'Llama 3.1 405B',
+        description: 'Meta - Largest Llama model with exceptional capabilities',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Meta'
+      },
+      // Mistral Models
+      {
+        id: 'mistral-large',
+        name: 'Mistral Large',
+        description: 'Mistral - High-performance European AI model',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Mistral'
+      },
+      {
+        id: 'mixtral-8x7b',
+        name: 'Mixtral 8x7B',
+        description: 'Mistral - Efficient mixture of experts model',
+        icon: MessageSquare,
+        category: 'chat',
+        badge: 'Mistral'
       },
     ],
     images: [
@@ -209,23 +315,29 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
   };
 
   const handleCardClick = (card: ModelCard) => {
-    onSelectMode(card.category);
+    // Pass both category and model ID for chat models
+    if (card.category === 'chat') {
+      onSelectMode('chat', card.id);
+    } else {
+      onSelectMode(card.category, card.id);
+    }
   };
 
   return (
-    <div className="h-full flex flex-col bg-black">
-      {/* Header */}
-      <div className="text-center pt-12 pb-8">
-        <h1 className="text-5xl font-normal text-white mb-4">
-          KroniQ AI Studio
-        </h1>
-        <p className="text-gray-400 text-lg">
-          Create anything with AI
-        </p>
-      </div>
+    <div className="h-full flex flex-col bg-black justify-center">
+      <div className="flex-1 flex flex-col justify-center">
+        {/* Header */}
+        <div className="text-center pb-8">
+          <h1 className="text-5xl font-normal text-white mb-4">
+            KroniQ AI Studio
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Create anything with AI
+          </p>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex items-center justify-center gap-1 px-4 pb-6 border-b border-white/10">
+        {/* Tabs */}
+        <div className="flex items-center justify-center gap-1 px-4 pb-6 border-b border-white/10">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -290,6 +402,7 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
             })}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
