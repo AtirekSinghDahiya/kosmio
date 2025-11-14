@@ -90,7 +90,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                 onClick={() => onQuickAction(suggestion.prompt)}
                 className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 text-left active:scale-95"
               >
-                <div className="p-1.5 md:p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20">
+                <div className="p-1.5 md:p-2 rounded-lg bg-white/5">
                   <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
                 </div>
                 <span className="text-xs md:text-sm text-white/90 group-hover:text-white transition-colors font-medium leading-snug">
