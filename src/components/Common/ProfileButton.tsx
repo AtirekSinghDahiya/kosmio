@@ -40,7 +40,7 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: prop
 
     // Subscribe to real-time updates
     const channel = supabase
-      .channel('token-balance-updates')
+      .channel(`token-balance-${currentUser.uid}`)
       .on(
         'postgres_changes',
         {
@@ -50,12 +50,17 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: prop
           filter: `id=eq.${currentUser.uid}`
         },
         (payload) => {
+          console.log('\ud83d\udcb0 Token balance update received:', payload.new);
           if (payload.new && 'tokens_balance' in payload.new) {
-            setTokenBalance(payload.new.tokens_balance);
+            const newBalance = payload.new.tokens_balance;
+            console.log(`\u2705 Updating token balance to: ${newBalance?.toLocaleString()}`);
+            setTokenBalance(newBalance);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('\ud83d\udd14 Token balance subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);

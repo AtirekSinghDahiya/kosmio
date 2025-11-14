@@ -958,44 +958,55 @@ export const MainChat: React.FC = () => {
           {showLanding ? (
             <div className="h-full">
               <StudioLandingView
-                onSelectMode={(mode, modelId) => {
+                onSelectMode={async (mode, modelId) => {
                   console.log('🎯 Selected mode:', mode, 'Model:', modelId);
 
-                  // Handle chat mode - set model and create project
-                  if (mode === 'chat' && modelId) {
-                    console.log('💬 Setting chat model and starting chat:', modelId);
-                    setSelectedModel(modelId);
-                    setActiveProjectId(null); // Will create new project on first message
-                  }
-                  // Handle image studio
-                  else if (mode === 'image') {
-                    console.log('🎨 Opening image generator');
-                    setShowImageGenerator(true);
-                    setImagePrompt('');
-                  }
-                  // Handle video studio
-                  else if (mode === 'video') {
-                    console.log('🎬 Opening video generator');
-                    setShowVideoGenerator(true);
-                    setVideoPrompt('');
-                  }
-                  // Handle music/audio studio
-                  else if (mode === 'music') {
-                    console.log('🎵 Opening music generator');
-                    setShowMusicGenerator(true);
-                    setMusicPrompt('');
-                  }
-                  // Handle voice studio
-                  else if (mode === 'voice') {
-                    console.log('🎤 Opening voice generator');
-                    setShowVoiceoverGenerator(true);
-                    setVoiceoverText('');
-                  }
-                  // Handle code studio
-                  else if (mode === 'code') {
-                    console.log('💻 Opening PPT/Code studio');
-                    setShowPPTGenerator(true);
-                    setPPTTopic('');
+                  // Clear existing state before creating new project
+                  setMessages([]);
+                  setInputValue('');
+
+                  // For all modes, create a new empty project
+                  try {
+                    let projectName = 'New Chat';
+                    let projectType = mode;
+
+                    if (mode === 'chat') {
+                      console.log('💬 Starting chat with model:', modelId);
+                      projectName = `Chat - ${modelId}`;
+                      setSelectedModel(modelId);
+                    } else if (mode === 'image') {
+                      console.log('🎨 Starting image studio');
+                      projectName = 'Image Studio';
+                      setSelectedModel(modelId || 'flux-1.1-pro');
+                    } else if (mode === 'video') {
+                      console.log('🎬 Starting video studio');
+                      projectName = 'Video Studio';
+                      setSelectedModel(modelId || 'veo-3');
+                    } else if (mode === 'music') {
+                      console.log('🎵 Starting music studio');
+                      projectName = 'Music Studio';
+                      setSelectedModel(modelId || 'suno-ai');
+                    } else if (mode === 'voice') {
+                      console.log('🎤 Starting voice studio');
+                      projectName = 'Voice Studio';
+                      setSelectedModel(modelId || 'elevenlabs');
+                    } else if (mode === 'code') {
+                      console.log('💻 Starting code studio');
+                      projectName = 'Code Studio';
+                      setSelectedModel('gpt-4o');
+                    }
+
+                    // Create new project
+                    const project = await createProject(projectName, projectType, '');
+                    console.log('✅ Created project:', project.id, 'Name:', projectName);
+
+                    // Set as active project (this exits landing page)
+                    setActiveProjectId(project.id);
+
+                    showToast('success', 'Ready', `${projectName} is ready`);
+                  } catch (error) {
+                    console.error('❌ Error creating project:', error);
+                    showToast('error', 'Error', 'Failed to create session');
                   }
                 }}
               />
