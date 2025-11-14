@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send } from 'lucide-react';
 
 interface StudioLandingViewProps {
-  onSelectMode: (mode: string, modelId?: string) => void;
+  onSelectMode: (mode: string, modelId?: string, initialPrompt?: string) => void;
 }
 
 type Tab = 'featured' | 'chat' | 'images' | 'video' | 'audio' | 'code';
@@ -36,9 +36,9 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
 
   const handleInputSubmit = () => {
     if (inputValue.trim()) {
-      // Start a new chat with the input
-      onSelectMode('chat', 'gpt-4o');
-      // Note: You may need to pass the input text to the parent component
+      // Start a new chat with the input message
+      onSelectMode('chat', 'gpt-4o', inputValue.trim());
+      setInputValue(''); // Clear input after submit
     }
   };
 
