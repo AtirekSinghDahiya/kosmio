@@ -27,7 +27,7 @@ export function useSubscription() {
       setLoading(false)
       return
     }
-
+    
     fetchSubscription()
   }, [user])
 
