@@ -16,8 +16,175 @@ interface ModelCard {
   badge?: string;
 }
 
+interface ModelGroup {
+  provider: string;
+  models: ModelCard[];
+}
+
 export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMode }) => {
   const [activeTab, setActiveTab] = useState<Tab>('featured');
+
+  // Grouped chat models by provider
+  const chatModelGroups: ModelGroup[] = [
+    {
+      provider: 'OpenAI',
+      models: [
+        {
+          id: 'gpt-4o',
+          name: 'GPT-4o',
+          description: 'Most capable model with vision and complex reasoning',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'OpenAI'
+        },
+        {
+          id: 'gpt-4o-mini',
+          name: 'GPT-4o Mini',
+          description: 'Fast and affordable GPT-4 level intelligence',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'OpenAI'
+        },
+        {
+          id: 'o1-preview',
+          name: 'o1 Preview',
+          description: 'Advanced reasoning model for complex problems',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'OpenAI'
+        },
+        {
+          id: 'o1-mini',
+          name: 'o1 Mini',
+          description: 'Reasoning model optimized for STEM',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'OpenAI'
+        },
+      ]
+    },
+    {
+      provider: 'Anthropic',
+      models: [
+        {
+          id: 'claude-3.5-sonnet',
+          name: 'Claude 3.5 Sonnet',
+          description: 'Superior reasoning and coding capabilities',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Anthropic'
+        },
+        {
+          id: 'claude-3-opus',
+          name: 'Claude 3 Opus',
+          description: 'Most intelligent model for complex tasks',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Anthropic'
+        },
+        {
+          id: 'claude-3-haiku',
+          name: 'Claude 3 Haiku',
+          description: 'Fast and cost-effective responses',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Anthropic'
+        },
+      ]
+    },
+    {
+      provider: 'Google',
+      models: [
+        {
+          id: 'gemini-2.0-flash-exp',
+          name: 'Gemini 2.0 Flash',
+          description: 'Experimental model with multimodal capabilities',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Google'
+        },
+        {
+          id: 'gemini-1.5-pro',
+          name: 'Gemini 1.5 Pro',
+          description: 'Long context window up to 2M tokens',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Google'
+        },
+        {
+          id: 'gemini-1.5-flash',
+          name: 'Gemini 1.5 Flash',
+          description: 'Fast and efficient multimodal model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Google'
+        },
+      ]
+    },
+    {
+      provider: 'xAI',
+      models: [
+        {
+          id: 'grok-2',
+          name: 'Grok 2',
+          description: 'Real-time knowledge and conversational AI',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'xAI'
+        },
+        {
+          id: 'grok-2-vision',
+          name: 'Grok 2 Vision',
+          description: 'Vision-enabled conversational model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'xAI'
+        },
+      ]
+    },
+    {
+      provider: 'Meta',
+      models: [
+        {
+          id: 'llama-3.3-70b',
+          name: 'Llama 3.3 70B',
+          description: 'Open-source model with strong performance',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Meta'
+        },
+        {
+          id: 'llama-3.1-405b',
+          name: 'Llama 3.1 405B',
+          description: 'Largest Llama model with exceptional capabilities',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Meta'
+        },
+      ]
+    },
+    {
+      provider: 'Mistral',
+      models: [
+        {
+          id: 'mistral-large',
+          name: 'Mistral Large',
+          description: 'High-performance European AI model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Mistral'
+        },
+        {
+          id: 'mixtral-8x7b',
+          name: 'Mixtral 8x7B',
+          description: 'Efficient mixture of experts model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Mistral'
+        },
+      ]
+    },
+  ];
 
   const tabs = [
     { id: 'featured' as Tab, label: 'Featured', icon: Sparkles },
@@ -372,47 +539,108 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {modelCards[activeTab].map((card) => {
-              const Icon = card.icon;
-              return (
-                <button
-                  key={card.id}
-                  onClick={() => handleCardClick(card)}
-                  className="group relative flex items-start gap-4 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-left"
-                >
-                  {/* Icon */}
-                  <div className="flex-shrink-0 p-3 rounded-lg bg-white/10 group-hover:bg-white/15 transition-colors">
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
+          {/* Show grouped models for Chat tab */}
+          {activeTab === 'chat' ? (
+            <div className="space-y-8">
+              {chatModelGroups.map((group) => (
+                <div key={group.provider}>
+                  {/* Provider Header */}
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    {group.provider}
+                    <span className="text-sm text-gray-500 font-normal">
+                      ({group.models.length} models)
+                    </span>
+                  </h2>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-lg font-medium text-white group-hover:text-white transition-colors">
-                        {card.name}
-                      </h3>
-                      {card.badge && (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
-                          {card.badge}
-                        </span>
-                      )}
+                  {/* Models Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {group.models.map((card) => {
+                      const Icon = card.icon;
+                      return (
+                        <button
+                          key={card.id}
+                          onClick={() => handleCardClick(card)}
+                          className="group relative flex items-start gap-4 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-left"
+                        >
+                          {/* Icon */}
+                          <div className="flex-shrink-0 p-3 rounded-lg bg-white/10 group-hover:bg-white/15 transition-colors">
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-medium text-white group-hover:text-white transition-colors">
+                                {card.name}
+                              </h3>
+                              {card.badge && (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
+                                  {card.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors leading-relaxed">
+                              {card.description}
+                            </p>
+                          </div>
+
+                          {/* Arrow */}
+                          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Regular grid for other tabs */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {modelCards[activeTab].map((card) => {
+                const Icon = card.icon;
+                return (
+                  <button
+                    key={card.id}
+                    onClick={() => handleCardClick(card)}
+                    className="group relative flex items-start gap-4 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-left"
+                  >
+                    {/* Icon */}
+                    <div className="flex-shrink-0 p-3 rounded-lg bg-white/10 group-hover:bg-white/15 transition-colors">
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors leading-relaxed">
-                      {card.description}
-                    </p>
-                  </div>
 
-                  {/* Arrow */}
-                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-medium text-white group-hover:text-white transition-colors">
+                          {card.name}
+                        </h3>
+                        {card.badge && (
+                          <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
+                            {card.badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors leading-relaxed">
+                        {card.description}
+                      </p>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
       </div>
