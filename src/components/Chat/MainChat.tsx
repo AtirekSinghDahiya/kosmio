@@ -14,8 +14,8 @@ import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
 import { MobileLandingView } from './MobileLandingView';
 import { IntentDialog } from './IntentDialog';
-import { FloatingNavbar } from '../Layout/FloatingNavbar';
 import { GroupedModelSelector } from './GroupedModelSelector';
+import { ProfileButton } from '../Common/ProfileButton';
 import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
@@ -901,9 +901,7 @@ export const MainChat: React.FC = () => {
   const showLanding = !activeProjectId;
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <FloatingNavbar />
-
+    <div className="flex h-screen overflow-hidden bg-black">
       <ChatSidebar
         projects={projects}
         activeProjectId={activeProjectId}
@@ -913,20 +911,19 @@ export const MainChat: React.FC = () => {
         onRenameProject={handleRenameProject}
       />
 
-      <div className="flex-1 flex flex-col pt-0 md:pt-20 overflow-hidden">
-        {/* Compact Model Selector - Fixed at top when chat is active */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar with Model Selector and Profile */}
         {!showLanding && (
-          <div className={`ml-0 md:ml-16 px-4 py-3 border-b backdrop-blur-xl ${
-            theme === 'light'
-              ? 'bg-white/80 border-gray-200'
-              : 'bg-slate-950/80 border-white/10'
-          }`}>
-            <div className="max-w-4xl mx-auto">
+          <div className="ml-0 md:ml-16 px-4 py-3 border-b bg-[#1a1a1a] border-white/10 flex items-center justify-between">
+            <div className="max-w-4xl mx-auto flex-1">
               <CompactModelSelector
                 selectedModel={selectedModel}
                 onModelChange={setSelectedModel}
                 category="chat"
               />
+            </div>
+            <div className="ml-4">
+              <ProfileButton tokenBalance={user ? (userPreferences?.tokensLimit || 0) : 0} />
             </div>
           </div>
         )}

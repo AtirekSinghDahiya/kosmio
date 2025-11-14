@@ -119,8 +119,7 @@ const MainApp: React.FC = () => {
   // Studios render independently (no sidebar/navbar)
   if (['voice', 'code', 'design', 'video', 'ppt'].includes(currentView)) {
     return (
-      <div className="h-screen overflow-hidden relative">
-        <CosmicBackground />
+      <div className="h-screen overflow-hidden bg-black relative">
         <div className="relative z-10 h-screen">
           {renderView()}
         </div>
@@ -130,8 +129,7 @@ const MainApp: React.FC = () => {
 
   // Other views use sidebar
   return (
-    <div className={`h-screen overflow-hidden ${theme === 'light' ? 'light-gradient-background' : 'gradient-background'} relative`}>
-      <CosmicBackground />
+    <div className="h-screen overflow-hidden bg-black relative">
       <div className="relative z-10 h-screen">
         {currentView === 'chat' || currentView === 'settings' ? (
           renderView()
