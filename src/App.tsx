@@ -35,34 +35,6 @@ const MainApp: React.FC = () => {
   const { theme } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
 
-  // Add global ripple effect
-  useEffect(() => {
-    const createRipple = (event: MouseEvent) => {
-      const button = (event.target as HTMLElement).closest('button, a, [role="button"]');
-      if (!button) return;
-
-      const ripple = document.createElement('span');
-      const rect = button.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      const x = event.clientX - rect.left - size / 2;
-      const y = event.clientY - rect.top - size / 2;
-
-      ripple.style.width = ripple.style.height = `${size}px`;
-      ripple.style.left = `${x}px`;
-      ripple.style.top = `${y}px`;
-      ripple.classList.add('ripple');
-
-      button.appendChild(ripple);
-
-      setTimeout(() => {
-        ripple.remove();
-      }, 600);
-    };
-
-    document.addEventListener('click', createRipple);
-    return () => document.removeEventListener('click', createRipple);
-  }, []);
-
   useEffect(() => {
     if (currentUser) {
       checkSubscriptionExpiration();

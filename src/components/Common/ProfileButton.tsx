@@ -1,43 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User, LogOut, Settings, CreditCard } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { supabase } from '../../lib/supabase';
 
 interface ProfileButtonProps {
   tokenBalance?: number;
 }
 
-export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: externalTokenBalance }) => {
+export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance = 0 }) => {
   const { currentUser, signOut, userData } = useAuth();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
-  const [tokenBalance, setTokenBalance] = useState(externalTokenBalance || 0);
-
-  // Fetch token balance from Supabase
-  useEffect(() => {
-    const fetchTokenBalance = async () => {
-      if (!currentUser?.uid) return;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('tokens_balance')
-        .eq('id', currentUser.uid)
-        .maybeSingle();
-
-      if (data && !error) {
-        setTokenBalance(data.tokens_balance || 0);
-      }
-    };
-
-    fetchTokenBalance();
-
-    // Refresh every 10 seconds
-    const interval = setInterval(fetchTokenBalance, 10000);
-    return () => clearInterval(interval);
-  }, [currentUser]);
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {

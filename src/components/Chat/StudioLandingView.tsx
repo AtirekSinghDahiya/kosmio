@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send } from 'lucide-react';
-import { ProfileButton } from '../Common/ProfileButton';
 
 interface StudioLandingViewProps {
   onSelectMode: (mode: string, modelId?: string) => void;
@@ -659,7 +658,6 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
           />
           <span className="text-white text-xl font-medium">KroniQ AI</span>
         </div>
-        <ProfileButton />
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
