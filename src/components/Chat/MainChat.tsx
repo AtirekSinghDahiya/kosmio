@@ -13,6 +13,7 @@ import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../l
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
 import { MobileLandingView } from './MobileLandingView';
+import { StudioLandingView } from './StudioLandingView';
 import { IntentDialog } from './IntentDialog';
 import { GroupedModelSelector } from './GroupedModelSelector';
 import { ProfileButton } from '../Common/ProfileButton';
@@ -928,30 +929,18 @@ export const MainChat: React.FC = () => {
           </div>
         )}
 
-        <div className="flex-1 ml-0 md:ml-16 overflow-y-auto px-2 md:px-4">
+        <div className="flex-1 ml-0 md:ml-16 overflow-y-auto">
           {showLanding ? (
-            <>
-              {/* Mobile Landing View */}
-              <div className="md:hidden h-full">
-                <MobileLandingView
-                  onQuickAction={(text) => handleSendMessage(text)}
-                  input={inputValue}
-                  setInput={setInputValue}
-                  onSendMessage={() => handleSendMessage(inputValue)}
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                />
-              </div>
-              {/* Desktop Landing View */}
-              <div className="hidden md:block">
-                <LandingView
-                  onQuickAction={(text, files) => handleSendMessage(text, files)}
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                />
-              </div>
-            </>
+            <div className="h-full">
+              <StudioLandingView
+                onSelectMode={(mode) => {
+                  // Mode selected - user can start chatting or go to specific studio
+                  console.log('Selected mode:', mode);
+                }}
+              />
+            </div>
           ) : (
+            <div className="px-2 md:px-4">
             <>
               {/* Messages Area */}
               <div className="max-w-4xl mx-auto py-8 space-y-6 pb-32">
@@ -1192,6 +1181,7 @@ export const MainChat: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
             </>
+            </div>
           )}
         </div>
 
