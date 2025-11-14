@@ -408,6 +408,86 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     description: 'Natural voice synthesis',
     icon: '🎙️',
     logoUrl: 'https://github.com/elevenlabs.png'
+  },
+  // New OpenAI GPT-5 Models
+  'openai/gpt-5.1': {
+    id: 'openai/gpt-5.1',
+    name: 'GPT-5.1',
+    provider: 'OpenAI',
+    tokensPerMessage: 28000,
+    costPerMessage: 0.07,
+    tier: 'premium',
+    description: 'Latest GPT with reasoning',
+    icon: '🤖',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
+  },
+  'openai/gpt-5.1-chat': {
+    id: 'openai/gpt-5.1-chat',
+    name: 'GPT-5.1 Chat',
+    provider: 'OpenAI',
+    tokensPerMessage: 24000,
+    costPerMessage: 0.06,
+    tier: 'premium',
+    description: 'Chat-optimized GPT-5.1 with vision',
+    icon: '💬',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
+  },
+  'openai/gpt-5.1-codex': {
+    id: 'openai/gpt-5.1-codex',
+    name: 'GPT-5.1 Codex',
+    provider: 'OpenAI',
+    tokensPerMessage: 30000,
+    costPerMessage: 0.075,
+    tier: 'premium',
+    description: 'Code-specialized GPT-5.1 with reasoning',
+    icon: '💻',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
+  },
+  'openai/gpt-5.1-codex-mini': {
+    id: 'openai/gpt-5.1-codex-mini',
+    name: 'GPT-5.1 Codex Mini',
+    provider: 'OpenAI',
+    tokensPerMessage: 12000,
+    costPerMessage: 0.03,
+    tier: 'mid',
+    description: 'Fast code model with vision',
+    icon: '⚡',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
+  },
+  // Amazon Nova Premier
+  'amazon/nova-premier-v1': {
+    id: 'amazon/nova-premier-v1',
+    name: 'Nova Premier 1.0',
+    provider: 'Amazon',
+    tokensPerMessage: 18000,
+    costPerMessage: 0.045,
+    tier: 'mid',
+    description: 'Amazon\'s multimodal AI with vision',
+    icon: '🌟',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg'
+  },
+  // MoonshotAI Kimi Models
+  'moonshotai/kimi-linear-48b-a3b-instruct': {
+    id: 'moonshotai/kimi-linear-48b-a3b-instruct',
+    name: 'Kimi Linear 48B',
+    provider: 'MoonshotAI',
+    tokensPerMessage: 14000,
+    costPerMessage: 0.035,
+    tier: 'mid',
+    description: 'Long context linear model',
+    icon: '🌙',
+    logoUrl: 'https://github.com/moonshot-ai.png'
+  },
+  'moonshotai/kimi-k2-thinking': {
+    id: 'moonshotai/kimi-k2-thinking',
+    name: 'Kimi K2 Thinking',
+    provider: 'MoonshotAI',
+    tokensPerMessage: 32000,
+    costPerMessage: 0.08,
+    tier: 'premium',
+    description: 'Advanced reasoning model',
+    icon: '🧠',
+    logoUrl: 'https://github.com/moonshot-ai.png'
   }
 };
 
