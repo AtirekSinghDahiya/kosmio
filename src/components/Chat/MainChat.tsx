@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal, Share2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal, Share2, Square } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -76,6 +76,7 @@ export const MainChat: React.FC = () => {
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingText, setThinkingText] = useState('Thinking...');
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -190,6 +191,17 @@ export const MainChat: React.FC = () => {
     name = name.charAt(0).toUpperCase() + name.slice(1);
 
     return name || 'New Chat';
+  };
+
+  // Stop generation
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    setIsThinking(false);
+    showToast('info', 'Response Stopped', 'AI response generation has been stopped');
   };
 
   // Send message
@@ -695,8 +707,14 @@ export const MainChat: React.FC = () => {
       console.log('🎯 Using custom preferences:', !!systemPrompt);
 
       // Step 4: Call OpenRouter service with usage tracking
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       const aiResponse = await getOpenRouterResponseWithUsage(userMessage, conversationHistory, systemPrompt, selectedModel);
       const aiContent = aiResponse.content;
+
+      // Clear abort controller after successful completion
+      abortControllerRef.current = null;
 
       // Hide thinking animation
       setIsThinking(false);
@@ -975,11 +993,15 @@ export const MainChat: React.FC = () => {
             <div className="px-2 md:px-4">
             <>
               {/* Messages Area */}
-              <div className="max-w-5xl ml-0 md:ml-4 py-8 space-y-6 pb-32">
+              <div className="py-8 space-y-6 pb-32">
               {messages.map((message, index) => (
                 <div
                   key={message.id}
-                  className={`group flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`group flex gap-3 ${
+                    message.role === 'user'
+                      ? 'justify-end max-w-5xl ml-auto mr-4'
+                      : 'justify-start max-w-5xl ml-0 md:ml-4 mr-auto'
+                  }`}
                 >
                   {/* Avatar - Left for AI, Right for User */}
                   {message.role === 'assistant' && (
@@ -1244,6 +1266,19 @@ export const MainChat: React.FC = () => {
               : 'border-white/10 bg-transparent'
           }`}>
             <div className="max-w-4xl mx-auto">
+              {/* Stop Button - Show when generating */}
+              {isLoading && (
+                <div className="flex justify-center mb-4">
+                  <button
+                    onClick={handleStopGeneration}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 hover:text-red-300 transition-all"
+                  >
+                    <Square className="w-4 h-4" fill="currentColor" />
+                    <span className="text-sm font-medium">Stop Generating</span>
+                  </button>
+                </div>
+              )}
+
               <ChatInput
                 value={inputValue}
                 onChange={setInputValue}
