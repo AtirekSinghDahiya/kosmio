@@ -488,6 +488,135 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     description: 'Advanced reasoning model',
     icon: '🧠',
     logoUrl: 'https://github.com/moonshot-ai.png'
+  },
+
+  // MiniMax Models
+  'minimax/minimax-01': {
+    id: 'minimax/minimax-01',
+    name: 'MiniMax-01',
+    provider: 'MiniMax',
+    tokensPerMessage: 2500,
+    costPerMessage: 0.008,
+    tier: 'budget',
+    description: 'Multimodal model with vision',
+    icon: '🎯',
+    logoUrl: 'https://avatars.githubusercontent.com/u/149157846'
+  },
+  'minimax/minimax-m2': {
+    id: 'minimax/minimax-m2',
+    name: 'MiniMax M2',
+    provider: 'MiniMax',
+    tokensPerMessage: 4500,
+    costPerMessage: 0.012,
+    tier: 'mid',
+    description: 'Advanced reasoning model',
+    icon: '🧠',
+    logoUrl: 'https://avatars.githubusercontent.com/u/149157846'
+  },
+  'minimax/minimax-m1': {
+    id: 'minimax/minimax-m1',
+    name: 'MiniMax M1',
+    provider: 'MiniMax',
+    tokensPerMessage: 3000,
+    costPerMessage: 0.009,
+    tier: 'budget',
+    description: 'General purpose model',
+    icon: '⚡',
+    logoUrl: 'https://avatars.githubusercontent.com/u/149157846'
+  },
+
+  // Amazon Nova Additional Models
+  'amazon/nova-lite-v1': {
+    id: 'amazon/nova-lite-v1',
+    name: 'Nova Lite 1.0',
+    provider: 'Amazon',
+    tokensPerMessage: 2000,
+    costPerMessage: 0.006,
+    tier: 'budget',
+    description: 'Fast multimodal with vision',
+    icon: '🚀',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg'
+  },
+  'amazon/nova-micro-v1': {
+    id: 'amazon/nova-micro-v1',
+    name: 'Nova Micro 1.0',
+    provider: 'Amazon',
+    tokensPerMessage: 1200,
+    costPerMessage: 0.004,
+    tier: 'free',
+    description: 'Ultra-fast text model',
+    icon: '⚡',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg'
+  },
+  'amazon/nova-pro-v1': {
+    id: 'amazon/nova-pro-v1',
+    name: 'Nova Pro 1.0',
+    provider: 'Amazon',
+    tokensPerMessage: 8000,
+    costPerMessage: 0.02,
+    tier: 'mid',
+    description: 'Professional multimodal AI',
+    icon: '💼',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg'
+  },
+
+  // Baidu ERNIE Models
+  'baidu/ernie-4.5-21b-a3b': {
+    id: 'baidu/ernie-4.5-21b-a3b',
+    name: 'ERNIE 4.5 21B A3B',
+    provider: 'Baidu',
+    tokensPerMessage: 3500,
+    costPerMessage: 0.01,
+    tier: 'budget',
+    description: 'Efficient reasoning model',
+    icon: '🧠',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Baidu_logo.svg'
+  },
+  'baidu/ernie-4.5-vl-28b-a3b': {
+    id: 'baidu/ernie-4.5-vl-28b-a3b',
+    name: 'ERNIE 4.5 VL 28B A3B',
+    provider: 'Baidu',
+    tokensPerMessage: 4500,
+    costPerMessage: 0.012,
+    tier: 'mid',
+    description: 'Vision-language model',
+    icon: '👁️',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Baidu_logo.svg'
+  },
+  'baidu/ernie-4.5-vl-424b-a47b': {
+    id: 'baidu/ernie-4.5-vl-424b-a47b',
+    name: 'ERNIE 4.5 VL 424B A47B',
+    provider: 'Baidu',
+    tokensPerMessage: 12000,
+    costPerMessage: 0.03,
+    tier: 'premium',
+    description: 'Large vision-language model',
+    icon: '🎯',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Baidu_logo.svg'
+  },
+  'baidu/ernie-4.5-300b-a47b': {
+    id: 'baidu/ernie-4.5-300b-a47b',
+    name: 'ERNIE 4.5 300B A47B',
+    provider: 'Baidu',
+    tokensPerMessage: 15000,
+    costPerMessage: 0.038,
+    tier: 'premium',
+    description: 'Massive reasoning model',
+    icon: '🚀',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Baidu_logo.svg'
+  },
+
+  // OpenRouter Auto
+  'openrouter/auto': {
+    id: 'openrouter/auto',
+    name: 'Auto Router',
+    provider: 'OpenRouter',
+    tokensPerMessage: 2000,
+    costPerMessage: 0.006,
+    tier: 'budget',
+    description: 'Automatically picks best model',
+    icon: '🎛️',
+    logoUrl: 'https://openrouter.ai/favicon-32x32.png'
   }
 };
 

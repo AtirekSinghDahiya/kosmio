@@ -10,6 +10,7 @@ import { HelpModal } from '../Pages/HelpModal';
 import { CareersModal } from '../Pages/CareersModal';
 import { CustomSolutionsModal } from '../Pages/CustomSolutionsModal';
 import { TokenBalanceDisplay } from '../Common/TokenBalanceDisplay';
+import { ProfileButton } from '../Common/ProfileButton';
 
 interface FloatingNavbarProps {
   onProfileOpen?: () => void;
@@ -110,10 +111,7 @@ export const FloatingNavbar: React.FC<FloatingNavbarProps> = ({ onProfileOpen })
       </nav>
 
       <div className="fixed top-14 md:top-6 right-2 md:right-6 z-30 flex items-center gap-2 md:gap-3 animate-fade-in-up">
-        <TokenBalanceDisplay
-          onPurchaseClick={() => setShowPricing(true)}
-          showDetails={false}
-        />
+        <ProfileButton tokenBalance={userData?.tokensLimit || 0} />
       </div>
 
       {showProfile && <ProfilePage onClose={() => setShowProfile(false)} />}

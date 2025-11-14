@@ -23,8 +23,27 @@ export const AI_MODELS: AIModel[] = [
   { id: 'kimi-k2-free', name: 'Kimi K2 Free', provider: 'Moonshot', description: 'Long context', category: 'chat' },
   { id: 'llama-4-maverick-free', name: 'Llama 4 Maverick Free', provider: 'Meta', description: 'Latest Llama', category: 'chat' },
   { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding', category: 'chat' },
-  { id: 'lfm2-8b', name: 'LiquidAI LFM2-8B', provider: 'LiquidAI', description: 'Efficient model', category: 'chat' },
   { id: 'granite-4.0', name: 'Granite 4.0 Micro', provider: 'IBM', description: 'Micro model', category: 'chat' },
+
+  // MiniMax Models
+  { id: 'minimax/minimax-01', name: 'MiniMax-01', provider: 'MiniMax', description: 'Multimodal model with vision', category: 'chat' },
+  { id: 'minimax/minimax-m2', name: 'MiniMax M2', provider: 'MiniMax', description: 'Advanced reasoning model', category: 'chat' },
+  { id: 'minimax/minimax-m1', name: 'MiniMax M1', provider: 'MiniMax', description: 'General purpose model', category: 'chat' },
+
+  // Amazon Nova Models
+  { id: 'amazon/nova-lite-v1', name: 'Nova Lite 1.0', provider: 'Amazon', description: 'Fast multimodal with vision', category: 'chat' },
+  { id: 'amazon/nova-micro-v1', name: 'Nova Micro 1.0', provider: 'Amazon', description: 'Ultra-fast text model', category: 'chat' },
+  { id: 'amazon/nova-pro-v1', name: 'Nova Pro 1.0', provider: 'Amazon', description: 'Professional multimodal AI', category: 'chat' },
+
+  // Baidu ERNIE Models
+  { id: 'baidu/ernie-4.5-21b-a3b', name: 'ERNIE 4.5 21B A3B', provider: 'Baidu', description: 'Efficient reasoning model', category: 'chat' },
+  { id: 'baidu/ernie-4.5-vl-28b-a3b', name: 'ERNIE 4.5 VL 28B A3B', provider: 'Baidu', description: 'Vision-language model', category: 'chat' },
+  { id: 'baidu/ernie-4.5-vl-424b-a47b', name: 'ERNIE 4.5 VL 424B A47B', provider: 'Baidu', description: 'Large vision-language model', category: 'chat' },
+  { id: 'baidu/ernie-4.5-300b-a47b', name: 'ERNIE 4.5 300B A47B', provider: 'Baidu', description: 'Massive reasoning model', category: 'chat' },
+
+  // OpenRouter Auto
+  { id: 'openrouter/auto', name: 'Auto Router', provider: 'OpenRouter', description: 'Automatically picks best model', category: 'chat' },
+
   { id: 'ernie-4.5', name: 'ERNIE 4.5 21B Thinking', provider: 'Baidu', description: 'Thinking model', category: 'chat' },
   { id: 'perplexity-sonar', name: 'Perplexity Sonar', provider: 'Perplexity', description: 'Web search enabled AI', category: 'chat' },
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
