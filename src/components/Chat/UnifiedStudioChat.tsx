@@ -5,7 +5,7 @@ import { ImageControls } from './Controls/ImageControls';
 import { VideoControls } from './Controls/VideoControls';
 import { MusicControls } from './Controls/MusicControls';
 import { VoiceControls } from './Controls/VoiceControls';
-import { AIModelSelector } from './AIModelSelector';
+import { GroupedModelSelector } from './GroupedModelSelector';
 import { useAuth } from '../../hooks/useAuth';
 import { getUnifiedPremiumStatus, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
 import { useStudioMode } from '../../contexts/StudioModeContext';

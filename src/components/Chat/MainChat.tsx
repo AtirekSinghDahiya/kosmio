@@ -15,7 +15,7 @@ import { LandingView } from './LandingView';
 import { MobileLandingView } from './MobileLandingView';
 import { IntentDialog } from './IntentDialog';
 import { FloatingNavbar } from '../Layout/FloatingNavbar';
-import { AIModelSelector } from './AIModelSelector';
+import { GroupedModelSelector } from './GroupedModelSelector';
 import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
@@ -1189,7 +1189,7 @@ export const MainChat: React.FC = () => {
           }`}>
             <div className="max-w-4xl mx-auto">
               <div className="mb-4">
-                <AIModelSelector
+                <GroupedModelSelector
                   selectedModel={selectedModel}
                   onModelChange={setSelectedModel}
                   category="chat"
