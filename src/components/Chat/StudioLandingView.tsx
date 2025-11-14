@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation } from 'lucide-react';
+import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send } from 'lucide-react';
 
 interface StudioLandingViewProps {
   onSelectMode: (mode: string, modelId?: string) => void;
@@ -23,6 +23,24 @@ interface ModelGroup {
 
 export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMode }) => {
   const [activeTab, setActiveTab] = useState<Tab>('featured');
+  const [expandedProviders, setExpandedProviders] = useState<string[]>(['OpenAI', 'Anthropic', 'Google']);
+  const [inputValue, setInputValue] = useState('');
+
+  const toggleProvider = (provider: string) => {
+    setExpandedProviders(prev =>
+      prev.includes(provider)
+        ? prev.filter(p => p !== provider)
+        : [...prev, provider]
+    );
+  };
+
+  const handleInputSubmit = () => {
+    if (inputValue.trim()) {
+      // Start a new chat with the input
+      onSelectMode('chat', 'gpt-4o');
+      // Note: You may need to pass the input text to the parent component
+    }
+  };
 
   // Grouped chat models by provider
   const chatModelGroups: ModelGroup[] = [
@@ -679,59 +697,71 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         <div className="max-w-6xl mx-auto">
           {/* Show grouped models for Chat tab */}
           {activeTab === 'chat' ? (
-            <div className="space-y-8">
+            <div className="space-y-4">
               {chatModelGroups.map((group) => (
-                <div key={group.provider}>
-                  {/* Provider Header */}
-                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                    {group.provider}
-                    <span className="text-sm text-gray-500 font-normal">
-                      ({group.models.length} models)
-                    </span>
-                  </h2>
+                <div key={group.provider} className="border border-white/10 rounded-xl overflow-hidden bg-white/5">
+                  {/* Provider Header - Clickable */}
+                  <button
+                    onClick={() => toggleProvider(group.provider)}
+                    className="w-full flex items-center justify-between px-6 py-4 hover:bg-white/5 transition-colors"
+                  >
+                    <h3 className="text-base font-semibold text-white">
+                      {group.provider}
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-white/50">{group.models.length} models</span>
+                      {expandedProviders.includes(group.provider) ? (
+                        <ChevronDown className="w-5 h-5 text-white/50" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-white/50" />
+                      )}
+                    </div>
+                  </button>
 
-                  {/* Models Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {group.models.map((card) => {
-                      const Icon = card.icon;
-                      return (
-                        <button
-                          key={card.id}
-                          onClick={() => handleCardClick(card)}
-                          className="group relative flex items-start gap-4 p-6 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-left"
-                        >
-                          {/* Icon */}
-                          <div className="flex-shrink-0 p-3 rounded-lg bg-white/10 group-hover:bg-white/15 transition-colors">
-                            <Icon className="w-6 h-6 text-white" />
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-lg font-medium text-white group-hover:text-white transition-colors">
-                                {card.name}
-                              </h3>
-                              {card.badge && (
-                                <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
-                                  {card.badge}
-                                </span>
-                              )}
+                  {/* Models Grid - Collapsible */}
+                  {expandedProviders.includes(group.provider) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border-t border-white/10">
+                      {group.models.map((card) => {
+                        const Icon = card.icon;
+                        return (
+                          <button
+                            key={card.id}
+                            onClick={() => handleCardClick(card)}
+                            className="group relative flex items-start gap-3 p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-200 text-left"
+                          >
+                            {/* Icon */}
+                            <div className="flex-shrink-0 p-2 rounded-lg bg-white/10 group-hover:bg-white/15 transition-colors">
+                              <Icon className="w-5 h-5 text-white" />
                             </div>
-                            <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors leading-relaxed">
-                              {card.description}
-                            </p>
-                          </div>
 
-                          {/* Arrow */}
-                          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-base font-medium text-white group-hover:text-white transition-colors">
+                                  {card.name}
+                                </h3>
+                                {card.badge && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
+                                    {card.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors leading-relaxed">
+                                {card.description}
+                              </p>
+                            </div>
+
+                            {/* Arrow */}
+                            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -779,6 +809,34 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
               })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Bottom Input */}
+      <div className="border-t border-white/10 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleInputSubmit();
+                }
+              }}
+              placeholder="Ask KroniQ anything..."
+              className="w-full px-6 py-4 pr-14 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-all"
+            />
+            <button
+              onClick={handleInputSubmit}
+              disabled={!inputValue.trim()}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <Send className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
       </div>
       </div>

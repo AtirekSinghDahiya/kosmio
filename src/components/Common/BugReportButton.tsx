@@ -339,20 +339,7 @@ export const BugReportButton: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || !description.trim()}
-                className="w-full py-3 rounded-xl font-semibold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                style={{
-                  background: themeColors.gradient,
-                  color: themeColors.text,
-                  boxShadow: `0 10px 40px ${themeColors.shadow}`,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSubmitting && description.trim()) {
-                    e.currentTarget.style.boxShadow = `0 20px 60px ${themeColors.shadow}`;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = `0 10px 40px ${themeColors.shadow}`;
-                }}
+                className="w-full py-3 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-[#00FFF0] text-black hover:bg-[#00E6D8]"
               >
                 {isSubmitting ? (
                   <>

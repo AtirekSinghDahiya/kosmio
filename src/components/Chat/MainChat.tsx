@@ -975,7 +975,7 @@ export const MainChat: React.FC = () => {
             <div className="px-2 md:px-4">
             <>
               {/* Messages Area */}
-              <div className="max-w-4xl mx-auto py-8 space-y-6 pb-32">
+              <div className="max-w-5xl ml-0 md:ml-4 py-8 space-y-6 pb-32">
               {messages.map((message, index) => (
                 <div
                   key={message.id}
