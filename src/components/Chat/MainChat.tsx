@@ -16,6 +16,7 @@ import { MobileLandingView } from './MobileLandingView';
 import { IntentDialog } from './IntentDialog';
 import { FloatingNavbar } from '../Layout/FloatingNavbar';
 import { GroupedModelSelector } from './GroupedModelSelector';
+import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
 import { ImageGenerator } from './ImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
@@ -913,6 +914,23 @@ export const MainChat: React.FC = () => {
       />
 
       <div className="flex-1 flex flex-col pt-0 md:pt-20 overflow-hidden">
+        {/* Compact Model Selector - Fixed at top when chat is active */}
+        {!showLanding && (
+          <div className={`ml-0 md:ml-16 px-4 py-3 border-b backdrop-blur-xl ${
+            theme === 'light'
+              ? 'bg-white/80 border-gray-200'
+              : 'bg-slate-950/80 border-white/10'
+          }`}>
+            <div className="max-w-4xl mx-auto">
+              <CompactModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                category="chat"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 ml-0 md:ml-16 overflow-y-auto px-2 md:px-4">
           {showLanding ? (
             <>
@@ -1188,25 +1206,15 @@ export const MainChat: React.FC = () => {
               : 'border-white/10 bg-transparent'
           }`}>
             <div className="max-w-4xl mx-auto">
-              <div className="mb-4">
-                <GroupedModelSelector
-                  selectedModel={selectedModel}
-                  onModelChange={setSelectedModel}
-                  category="chat"
-                />
-              </div>
-              {/* Hide chat input on mobile when landing view is active (it has its own input) */}
-              <div className={showLanding ? 'hidden md:block' : ''}>
-                <ChatInput
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onSend={(attachments, options) => handleSendMessage(undefined, attachments, options)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask KroniQ anything..."
-                  disabled={isLoading}
-                  selectedModel={selectedModel}
-                />
-              </div>
+              <ChatInput
+                value={inputValue}
+                onChange={setInputValue}
+                onSend={(attachments, options) => handleSendMessage(undefined, attachments, options)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask KroniQ anything..."
+                disabled={isLoading}
+                selectedModel={selectedModel}
+              />
             </div>
           </div>
         )}
