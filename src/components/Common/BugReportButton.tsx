@@ -166,20 +166,20 @@ export const BugReportButton: React.FC = () => {
           left: `${position.x}px`,
           top: `${position.y}px`,
         }}
-        className={`fixed z-50 w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group animate-pulse-slow ${
+        className={`fixed z-50 w-14 h-14 rounded-full bg-black/80 hover:bg-black border-2 border-white/20 hover:border-red-500/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group ${
           isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab'
         }`}
         aria-label="Report a bug"
       >
         <Bug
-          className="w-6 h-6 text-white group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 pointer-events-none"
+          className="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300 pointer-events-none"
         />
       </button>
 
       {/* Bug Report Popup */}
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg glass-panel rounded-2xl border border-white/20 shadow-2xl animate-fade-in-up">
+          <div className="relative w-full max-w-lg bg-black/95 rounded-2xl border border-white/20 shadow-2xl animate-fade-in-up backdrop-blur-xl">
             {/* Header */}
             <div
               className="flex items-center justify-between p-6 border-b"

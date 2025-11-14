@@ -942,8 +942,15 @@ export const MainChat: React.FC = () => {
               />
             </div>
             <div className="ml-4">
-              <ProfileButton tokenBalance={user ? (userPreferences?.tokensLimit || 0) : 0} />
+              <ProfileButton />
             </div>
+          </div>
+        )}
+
+        {/* Profile Button on Landing View */}
+        {showLanding && (
+          <div className="absolute top-4 right-4 z-10">
+            <ProfileButton />
           </div>
         )}
 
@@ -952,39 +959,43 @@ export const MainChat: React.FC = () => {
             <div className="h-full">
               <StudioLandingView
                 onSelectMode={(mode, modelId) => {
-                  console.log('Selected mode:', mode, 'Model:', modelId);
+                  console.log('🎯 Selected mode:', mode, 'Model:', modelId);
 
-                  // Handle chat mode - set model and hide landing
+                  // Handle chat mode - set model and create project
                   if (mode === 'chat' && modelId) {
+                    console.log('💬 Setting chat model and starting chat:', modelId);
                     setSelectedModel(modelId);
-                    setShowLanding(false);
-                    // Optionally send a greeting message
-                    // handleSendMessage('Hi');
+                    setActiveProjectId(null); // Will create new project on first message
                   }
                   // Handle image studio
                   else if (mode === 'image') {
-                    setStudioMode('image');
-                    setShowLanding(false);
+                    console.log('🎨 Opening image generator');
+                    setShowImageGenerator(true);
+                    setImagePrompt('');
                   }
                   // Handle video studio
                   else if (mode === 'video') {
-                    setStudioMode('video');
-                    setShowLanding(false);
+                    console.log('🎬 Opening video generator');
+                    setShowVideoGenerator(true);
+                    setVideoPrompt('');
                   }
                   // Handle music/audio studio
                   else if (mode === 'music') {
-                    setStudioMode('music');
-                    setShowLanding(false);
+                    console.log('🎵 Opening music generator');
+                    setShowMusicGenerator(true);
+                    setMusicPrompt('');
                   }
                   // Handle voice studio
                   else if (mode === 'voice') {
-                    setStudioMode('voice');
-                    setShowLanding(false);
+                    console.log('🎤 Opening voice generator');
+                    setShowVoiceoverGenerator(true);
+                    setVoiceoverText('');
                   }
                   // Handle code studio
                   else if (mode === 'code') {
-                    setStudioMode('chat'); // Code uses chat mode for now
-                    setShowLanding(false);
+                    console.log('💻 Opening PPT/Code studio');
+                    setShowPPTGenerator(true);
+                    setPPTTopic('');
                   }
                 }}
               />

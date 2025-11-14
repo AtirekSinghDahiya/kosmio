@@ -1,18 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, LogOut, Settings, CreditCard } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { supabase } from '../../lib/supabase';
 
 interface ProfileButtonProps {
   tokenBalance?: number;
 }
 
-export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance = 0 }) => {
+export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: propTokenBalance = 0 }) => {
   const { currentUser, signOut, userData } = useAuth();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState(propTokenBalance);
+
+  // Fetch real-time token balance from Supabase
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+
+    const fetchTokenBalance = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('tokens_balance')
+          .eq('id', currentUser.uid)
+          .maybeSingle();
+
+        if (!error && data) {
+          setTokenBalance(data.tokens_balance || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching token balance:', err);
+      }
+    };
+
+    fetchTokenBalance();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('token-balance-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${currentUser.uid}`
+        },
+        (payload) => {
+          if (payload.new && 'tokens_balance' in payload.new) {
+            setTokenBalance(payload.new.tokens_balance);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.uid]);
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {
