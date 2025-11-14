@@ -184,6 +184,132 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         },
       ]
     },
+    {
+      provider: 'Cohere',
+      models: [
+        {
+          id: 'command-r-plus',
+          name: 'Command R+',
+          description: 'Advanced enterprise model with RAG capabilities',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Cohere'
+        },
+        {
+          id: 'command-r',
+          name: 'Command R',
+          description: 'Scalable model for production workloads',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Cohere'
+        },
+      ]
+    },
+    {
+      provider: 'DeepSeek',
+      models: [
+        {
+          id: 'deepseek-chat',
+          name: 'DeepSeek Chat',
+          description: 'High-performance Chinese AI model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'DeepSeek'
+        },
+        {
+          id: 'deepseek-coder',
+          name: 'DeepSeek Coder',
+          description: 'Specialized coding assistant model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'DeepSeek'
+        },
+      ]
+    },
+    {
+      provider: 'Qwen',
+      models: [
+        {
+          id: 'qwen-2.5-72b',
+          name: 'Qwen 2.5 72B',
+          description: 'Alibaba\'s powerful multilingual model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Qwen'
+        },
+        {
+          id: 'qwen-2-vl',
+          name: 'Qwen 2 VL',
+          description: 'Vision-language model with image understanding',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Qwen'
+        },
+      ]
+    },
+    {
+      provider: 'Amazon',
+      models: [
+        {
+          id: 'amazon-nova-pro',
+          name: 'Nova Pro',
+          description: 'Amazon\'s multimodal foundation model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Amazon'
+        },
+        {
+          id: 'amazon-nova-lite',
+          name: 'Nova Lite',
+          description: 'Fast and cost-effective AWS model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Amazon'
+        },
+      ]
+    },
+    {
+      provider: 'Perplexity',
+      models: [
+        {
+          id: 'perplexity-llama-3.1-sonar-large',
+          name: 'Sonar Large',
+          description: 'Real-time web search powered responses',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Perplexity'
+        },
+        {
+          id: 'perplexity-llama-3.1-sonar-small',
+          name: 'Sonar Small',
+          description: 'Fast online search integration',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'Perplexity'
+        },
+      ]
+    },
+    {
+      provider: 'AI21',
+      models: [
+        {
+          id: 'jamba-1.5-large',
+          name: 'Jamba 1.5 Large',
+          description: 'Long context hybrid architecture model',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'AI21'
+        },
+        {
+          id: 'jamba-1.5-mini',
+          name: 'Jamba 1.5 Mini',
+          description: 'Efficient model with strong performance',
+          icon: MessageSquare,
+          category: 'chat',
+          badge: 'AI21'
+        },
+      ]
+    },
   ];
 
   const tabs = [
@@ -504,9 +630,9 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="text-center pb-6">
+        <div className="text-center pt-8 pb-6">
           <h1 className="text-5xl font-normal text-white mb-4">
             KroniQ AI Studio
           </h1>
