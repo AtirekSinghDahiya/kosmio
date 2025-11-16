@@ -970,7 +970,20 @@ export const MainChat: React.FC = () => {
               }}
               onImageGenerated={async (image) => {
                 console.log('Generated image:', image);
-                if (activeProjectId) {
+
+                // Create project if none exists
+                let projectId = activeProjectId;
+                if (!projectId) {
+                  const newProject = await createProject(
+                    image.prompt?.substring(0, 50) || 'Image Generation',
+                    'chat',
+                    image.prompt || ''
+                  );
+                  projectId = newProject.id;
+                  setActiveProjectId(projectId);
+                }
+
+                if (projectId) {
                   const assistantMessage = await addMessage(
                     activeProjectId,
                     'assistant',
@@ -1009,7 +1022,20 @@ export const MainChat: React.FC = () => {
               initialPrompt={videoPrompt}
               onVideoGenerated={async (video) => {
                 console.log('Generated video:', video);
-                if (activeProjectId) {
+
+                // Create project if none exists
+                let projectId = activeProjectId;
+                if (!projectId) {
+                  const newProject = await createProject(
+                    video.prompt?.substring(0, 50) || 'Video Generation',
+                    'chat',
+                    video.prompt || ''
+                  );
+                  projectId = newProject.id;
+                  setActiveProjectId(projectId);
+                }
+
+                if (projectId) {
                   const assistantMessage = await addMessage(
                     activeProjectId,
                     'assistant',
@@ -1040,12 +1066,30 @@ export const MainChat: React.FC = () => {
                 setPPTTopic('');
               }}
               initialTopic={pptTopic}
+              onSlidesGenerated={async (slides, topic) => {
+                // Create project if none exists
+                if (!activeProjectId) {
+                  const newProject = await createProject(
+                    topic.substring(0, 50) || 'Presentation',
+                    'chat',
+                    topic
+                  );
+                  setActiveProjectId(newProject.id);
+                }
+              }}
             />
           ) : showCodeStudio ? (
             <CodeStudioView
               onClose={() => {
                 setShowCodeStudio(false);
                 setCodePrompt('');
+              }}
+            />
+          ) : showMusicGenerator ? (
+            <MusicStudioView
+              onClose={() => {
+                setShowMusicGenerator(false);
+                setMusicPrompt('');
               }}
             />
           ) : showLanding ? (

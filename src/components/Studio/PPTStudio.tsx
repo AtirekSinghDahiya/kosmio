@@ -9,6 +9,7 @@ interface PPTStudioProps {
   projectId?: string;
   onClose?: () => void;
   initialTopic?: string;
+  onSlidesGenerated?: (slides: Slide[], topic: string) => void;
 }
 
 interface Slide {
@@ -28,7 +29,7 @@ const TEMPLATES = [
   { id: 'education', name: 'Educational Playful', desc: 'Bright and engaging for learning', color: 'bg-gradient-to-br from-amber-300 via-orange-300 to-yellow-200' },
 ];
 
-export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initialTopic = '' }) => {
+export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initialTopic = '', onSlidesGenerated }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
   const [topic, setTopic] = useState(initialTopic);
@@ -62,6 +63,11 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initia
 
         if (user && projectId) {
           await savePPTToProject(user.uid, topic, parsedSlides, selectedTemplate);
+        }
+
+        // Call callback if provided
+        if (onSlidesGenerated) {
+          onSlidesGenerated(parsedSlides, topic);
         }
       } else {
         throw new Error('Failed to parse slides from response');
@@ -98,10 +104,10 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initia
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto flex items-center justify-center p-6">
-        <div className="w-full max-w-4xl space-y-8">
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="w-full max-w-5xl mx-auto space-y-10 py-8">
           {/* Presentation Topic */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <label className="flex items-center gap-2 text-sm font-medium text-white/70">
               <FileText className="w-4 h-4" />
               Presentation Topic
@@ -117,7 +123,7 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initia
           </div>
 
           {/* Number of Slides */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm font-medium text-white/70">
                 <Sparkles className="w-4 h-4" />
@@ -140,12 +146,12 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initia
           </div>
 
           {/* Choose Template */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-2 text-sm font-medium text-white/70">
-              <Sparkles className="w-4 h-4" />
+          <div className="space-y-4">
+            <label className="flex items-center gap-2 text-base font-medium text-white">
+              <Sparkles className="w-5 h-5" />
               Choose Template
             </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {TEMPLATES.map((template) => (
                 <button
                   key={template.id}
