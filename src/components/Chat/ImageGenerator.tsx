@@ -1,18 +1,10 @@
-/**
- * Image Generator Component - Enhanced
- * Beautiful AI image generation interface
- */
-
 import React, { useState, useEffect } from 'react';
-import { Image, Download, Wand2, X, Loader, Sparkles, RefreshCw } from 'lucide-react';
+import { Image, Download, Wand2, X, Loader, Sparkles } from 'lucide-react';
 import { generateImage, isKieImageAvailable, ImageModel } from '../../lib/kieImageService';
 import { useToast } from '../../contexts/ToastContext';
-import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveImageToProject } from '../../lib/contentSaveService';
-import { DynamicTokenEstimator } from '../../lib/dynamicTokenEstimator';
 
-// Legacy type for compatibility
 interface GeneratedImage {
   url: string;
   model?: string;
@@ -29,14 +21,12 @@ interface ImageGeneratorProps {
 }
 
 export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImageGenerated, initialPrompt = '', selectedModel }) => {
-  const { theme } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<GeneratedImage | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
-  const [estimatedCost, setEstimatedCost] = useState<number>(0);
   const [selectedImageModel, setSelectedImageModel] = useState<ImageModel>(
     (selectedModel as ImageModel) || 'nano-banana'
   );
@@ -52,15 +42,6 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
       setSelectedImageModel(selectedModel as ImageModel);
     }
   }, [selectedModel]);
-
-  useEffect(() => {
-    if (prompt.trim()) {
-      const tokens = DynamicTokenEstimator.estimateImageCost(prompt);
-      setEstimatedCost(tokens);
-    } else {
-      setEstimatedCost(0);
-    }
-  }, [prompt]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -111,28 +92,8 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
       }
     } catch (error: any) {
       console.error('Image generation error:', error);
-
-      let errorMessage = 'Could not generate image';
-
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.body?.detail) {
-        errorMessage = error.body.detail;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-
-      // Check for specific error types
-      if (errorMessage.includes('credentials') || errorMessage.includes('API key')) {
-        errorMessage = 'API configuration error. Please check your settings.';
-      } else if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
-        errorMessage = 'Service quota exceeded. Please try again later.';
-      } else if (errorMessage.includes('timeout')) {
-        errorMessage = 'Request timed out. Please try again.';
-      } else if (errorMessage.includes('network')) {
-        errorMessage = 'Network error. Please check your connection.';
-      }
-
+      let errorMessage = error?.message || 'Could not generate image';
+      showToast('error', 'Generation Failed', errorMessage);
       setImageLoading(false);
     } finally {
       setIsGenerating(false);
@@ -141,14 +102,12 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
 
   const handleDownload = () => {
     if (!generatedImage) return;
-
     const link = document.createElement('a');
     link.href = generatedImage.url;
     link.download = `kroniq-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Silent download
   };
 
   const handleRegenerate = () => {
@@ -158,237 +117,173 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className={`rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-hidden shadow-2xl animate-scale-in ${
-        theme === 'light'
-          ? 'bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-gray-200'
-          : 'bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 border border-white/20'
-      }`}>
-        {/* Header */}
-        <div className={`relative p-6 ${
-          theme === 'light'
-            ? 'bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-b border-gray-200'
-            : 'bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-purple-600/20 border-b border-white/10'
-        }`}>
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNIDQwIDAgTCAwIDAgMCA0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className={`text-2xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AI Image Studio</h2>
-                <p className={`text-sm mt-1 ${theme === 'light' ? 'text-gray-600' : 'text-white/70'}`}>Transform your imagination into reality</p>
-              </div>
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-black">
+      {/* Header */}
+      <div className="bg-black border-b border-white/10 px-6 py-4">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-purple-500/10">
+              <Sparkles className="w-5 h-5 text-purple-400" />
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl hover:bg-white/10 text-white/60 hover:text-white transition-all"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Image Generation</h2>
+              <p className="text-xs text-white/50">Powered by Kie AI</p>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-white/5 text-white/60 hover:text-white transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Left: Input */}
-            <div className="space-y-6">
-              {/* Model Selector */}
-              <div>
-                <label className="block text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-400" />
-                  Image Model
-                </label>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-6xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: Controls */}
+            <div className="space-y-4">
+              {/* Model Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/70">Model</label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setSelectedImageModel('nano-banana')}
                     disabled={isGenerating}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                    className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
                       selectedImageModel === 'nano-banana'
-                        ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200'
-                        : 'bg-slate-700/50 border border-white/20 text-white/60 hover:border-purple-400/50'
+                        ? 'bg-white/10 border border-white/20 text-white'
+                        : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'
                     }`}
                   >
-                    <div className="font-bold">Nano Banana</div>
-                    <div className="text-xs opacity-75">Google</div>
+                    <div className="font-semibold">Nano Banana</div>
+                    <div className="text-xs opacity-60">Google</div>
                   </button>
                   <button
                     onClick={() => setSelectedImageModel('seedreem')}
                     disabled={isGenerating}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                    className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
                       selectedImageModel === 'seedreem'
-                        ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200'
-                        : 'bg-slate-700/50 border border-white/20 text-white/60 hover:border-purple-400/50'
+                        ? 'bg-white/10 border border-white/20 text-white'
+                        : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'
                     }`}
                   >
-                    <div className="font-bold">Seedreem</div>
-                    <div className="text-xs opacity-75">Flux</div>
+                    <div className="font-semibold">Seedreem</div>
+                    <div className="text-xs opacity-60">Flux</div>
                   </button>
                   <button
                     onClick={() => setSelectedImageModel('gpt-4o-image')}
                     disabled={isGenerating}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                    className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
                       selectedImageModel === 'gpt-4o-image'
-                        ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200'
-                        : 'bg-slate-700/50 border border-white/20 text-white/60 hover:border-purple-400/50'
+                        ? 'bg-white/10 border border-white/20 text-white'
+                        : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'
                     }`}
                   >
-                    <div className="font-bold">GPT-4o</div>
-                    <div className="text-xs opacity-75">OpenAI</div>
+                    <div className="font-semibold">GPT-4o</div>
+                    <div className="text-xs opacity-60">OpenAI</div>
                   </button>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                  <Wand2 className="w-4 h-4 text-purple-400" />
-                  Describe your vision
-                </label>
+
+              {/* Prompt */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/70">Prompt</label>
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="A majestic dragon soaring through stormy clouds, lightning strikes in background, epic fantasy art, highly detailed, 8k quality"
-                  className="w-full px-4 py-4 rounded-xl bg-slate-700/50 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 min-h-[180px] resize-none transition-all"
+                  placeholder="Describe your image... e.g., 'A majestic dragon soaring through stormy clouds'"
+                  className="w-full h-40 px-4 py-3 bg-white/5 border border-white/10 focus:border-white/20 rounded-lg text-white placeholder-white/30 focus:outline-none resize-none transition-all text-sm"
                   disabled={isGenerating}
                   autoFocus
                 />
-                <div className="flex items-center justify-between mt-3">
-                  <p className="text-xs text-white/40 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    Be specific: include style, mood, lighting, and quality keywords
-                  </p>
-                  {estimatedCost > 0 && (
-                    <div className={`text-xs font-semibold ${DynamicTokenEstimator.getCostColorClass(estimatedCost)}`}>
-                      Est: {DynamicTokenEstimator.formatCostEstimate(estimatedCost)}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Tips */}
-              <div className="glass-panel rounded-xl p-4 border border-purple-500/20 bg-purple-500/5">
-                <h3 className="text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Pro Tips
-                </h3>
-                <ul className="text-xs text-white/60 space-y-1.5">
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    <span>Add style keywords: "photorealistic", "oil painting", "anime", "3D render"</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    <span>Describe lighting: "golden hour", "dramatic shadows", "soft diffused light"</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    <span>Include quality: "highly detailed", "8k", "sharp focus", "masterpiece"</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-purple-400 mt-0.5">•</span>
-                    <span>Try different models: Nano Banana for quality, Seedreem for artistic, GPT-4o for realistic</span>
-                  </li>
-                </ul>
+                <div className="text-xs text-white/30 text-right">{prompt.length} / 2000</div>
               </div>
 
               {/* Generate Button */}
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating || !prompt.trim()}
-                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 active:scale-95 flex items-center justify-center gap-3 text-lg"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-white/5 text-white font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm"
               >
                 {isGenerating ? (
                   <>
-                    <Loader className="w-6 h-6 animate-spin" />
+                    <Loader className="w-4 h-4 animate-spin" />
                     Generating...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-6 h-6" />
+                    <Sparkles className="w-4 h-4" />
                     Generate Image
                   </>
                 )}
               </button>
+
+              {/* Tips */}
+              <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+                <h3 className="text-sm font-semibold text-white/70 mb-2">Tips</h3>
+                <ul className="text-xs text-white/50 space-y-1.5">
+                  <li>• Add style keywords: "photorealistic", "oil painting", "anime"</li>
+                  <li>• Describe lighting: "golden hour", "dramatic shadows"</li>
+                  <li>• Include quality: "highly detailed", "8k", "sharp focus"</li>
+                </ul>
+              </div>
             </div>
 
-            {/* Right: Output */}
+            {/* Right: Preview */}
             <div className="space-y-4">
               {generatedImage ? (
-                <div className="space-y-4">
-                  <div className="relative rounded-xl overflow-hidden border-2 border-white/20 group shadow-2xl">
+                <>
+                  <div className="relative rounded-lg overflow-hidden border border-white/10 bg-black">
                     {imageLoading && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-10">
-                        <div className="text-center space-y-3">
-                          <Loader className="w-8 h-8 text-purple-400 animate-spin mx-auto" />
-                          <p className="text-white text-sm">Loading image...</p>
-                        </div>
+                        <Loader className="w-8 h-8 text-purple-400 animate-spin" />
                       </div>
                     )}
                     <img
                       src={generatedImage.url}
                       alt={generatedImage.prompt}
-                      className="w-full h-auto min-h-[300px] object-contain bg-slate-900/50"
+                      className="w-full h-auto min-h-[300px] object-contain"
                       crossOrigin="anonymous"
-                      onLoad={() => {
-                        console.log('✅ Image loaded successfully');
-                        setImageLoading(false);
-                      }}
-                      onError={(e) => {
-                        console.error('❌ Image load error:', e);
-                        setImageLoading(false);
-                      }}
+                      onLoad={() => setImageLoading(false)}
+                      onError={() => setImageLoading(false)}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
-                        <button
-                          onClick={handleDownload}
-                          className="px-4 py-2 rounded-lg bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all flex items-center gap-2 shadow-lg"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download
-                        </button>
-                        <button
-                          onClick={handleRegenerate}
-                          className="px-4 py-2 rounded-lg bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-all flex items-center gap-2 shadow-lg"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                          Regenerate
-                        </button>
-                      </div>
-                    </div>
                   </div>
-
-                  <div className="glass-panel rounded-xl p-4 border border-white/10">
-                    <p className="text-xs text-white/50 mb-1 uppercase tracking-wide">Prompt Used</p>
-                    <p className="text-white text-sm leading-relaxed">{generatedImage.prompt}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDownload}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-lg transition-all text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download
+                    </button>
+                    <button
+                      onClick={handleRegenerate}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-lg transition-all text-sm"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      Regenerate
+                    </button>
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="h-full min-h-[400px] rounded-xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center p-8 text-center">
+                <div className="h-full min-h-[400px] rounded-lg border border-white/10 flex flex-col items-center justify-center p-8 text-center bg-black">
                   {isGenerating ? (
-                    <div className="space-y-6">
-                      <div className="relative w-24 h-24 mx-auto">
-                        <div className="absolute inset-0 border-4 border-purple-500/30 rounded-full"></div>
-                        <div className="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 rounded-full animate-spin"></div>
-                        <Sparkles className="absolute inset-0 m-auto w-10 h-10 text-purple-400 animate-pulse" />
-                      </div>
+                    <div className="space-y-4">
+                      <Loader className="w-12 h-12 text-purple-400 animate-spin mx-auto" />
                       <div className="space-y-2">
-                        <p className="text-white font-semibold text-lg">Creating your masterpiece...</p>
-                        <p className="text-white/60 text-sm">This usually takes 3-5 seconds</p>
+                        <p className="text-white font-medium text-sm">Creating your masterpiece...</p>
+                        <p className="text-white/50 text-xs">This usually takes 3-5 seconds</p>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                        <Image className="w-10 h-10 text-purple-400" />
+                      <div className="p-4 rounded-full bg-white/5">
+                        <Image className="w-8 h-8 text-white/40" />
                       </div>
-                      <div className="space-y-2">
-                        <p className="text-white font-medium">Your image will appear here</p>
-                        <p className="text-white/50 text-sm">Enter a prompt and click generate</p>
-                      </div>
+                      <p className="text-white/40 text-sm">Image preview</p>
                     </div>
                   )}
                 </div>
