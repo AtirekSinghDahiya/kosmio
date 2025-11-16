@@ -76,6 +76,8 @@ export const MainChat: React.FC = () => {
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
   const [showPPTGenerator, setShowPPTGenerator] = useState(false);
   const [pptTopic, setPPTTopic] = useState('');
+  const [showCodeStudio, setShowCodeStudio] = useState(false);
+  const [codePrompt, setCodePrompt] = useState('');
   const [musicPrompt, setMusicPrompt] = useState('');
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
@@ -959,7 +961,94 @@ export const MainChat: React.FC = () => {
         )}
 
         <div className="flex-1 ml-0 md:ml-16 overflow-y-auto">
-          {showLanding ? (
+          {/* Show generators fullscreen when active */}
+          {showImageGenerator ? (
+            <ImageGenerator
+              onClose={() => {
+                setShowImageGenerator(false);
+                setImagePrompt('');
+              }}
+              onImageGenerated={async (image) => {
+                console.log('Generated image:', image);
+                if (activeProjectId) {
+                  const assistantMessage = await addMessage(
+                    activeProjectId,
+                    'assistant',
+                    `Generated image: ${image.prompt}`,
+                    user?.uid || '',
+                    undefined,
+                    {
+                      generatedContent: {
+                        type: 'image',
+                        url: image.url,
+                        prompt: image.prompt,
+                        metadata: {
+                          seed: image.seed,
+                          timestamp: image.timestamp,
+                          model: selectedModel
+                        }
+                      }
+                    }
+                  );
+                  if (assistantMessage) {
+                    setMessages(prev => [...prev, assistantMessage as any]);
+                  }
+                }
+                setShowImageGenerator(false);
+                setImagePrompt('');
+              }}
+              initialPrompt={imagePrompt}
+              selectedModel={selectedModel}
+            />
+          ) : showVideoGenerator ? (
+            <VideoGenerator
+              onClose={() => {
+                setShowVideoGenerator(false);
+                setVideoPrompt('');
+              }}
+              initialPrompt={videoPrompt}
+              onVideoGenerated={async (video) => {
+                console.log('Generated video:', video);
+                if (activeProjectId) {
+                  const assistantMessage = await addMessage(
+                    activeProjectId,
+                    'assistant',
+                    `Generated video: ${video.prompt}`,
+                    user?.uid || '',
+                    undefined,
+                    {
+                      generatedContent: {
+                        type: 'video',
+                        url: video.url,
+                        prompt: video.prompt,
+                        metadata: video.metadata
+                      }
+                    }
+                  );
+                  if (assistantMessage) {
+                    setMessages(prev => [...prev, assistantMessage as any]);
+                  }
+                }
+                setShowVideoGenerator(false);
+                setVideoPrompt('');
+              }}
+            />
+          ) : showPPTGenerator ? (
+            <PPTStudio
+              onClose={() => {
+                setShowPPTGenerator(false);
+                setPPTTopic('');
+              }}
+              initialTopic={pptTopic}
+            />
+          ) : showCodeStudio ? (
+            <CodeStudioView
+              onClose={() => {
+                setShowCodeStudio(false);
+                setCodePrompt('');
+              }}
+            />
+          ) : showLanding ? (
             <div className="h-full">
               <StudioLandingView
                 onSelectMode={async (mode, modelId, initialPrompt) => {
@@ -1022,8 +1111,9 @@ export const MainChat: React.FC = () => {
                       if (modelId === 'ppt-studio') {
                         setPPTTopic(initialPrompt || '');
                         setShowPPTGenerator(true);
-                      } else {
-                        showToast('info', 'Coming Soon', 'Code studio will open here');
+                      } else if (modelId === 'code-studio') {
+                        setCodePrompt(initialPrompt || '');
+                        setShowCodeStudio(true);
                       }
                     }
                     else {
@@ -1346,120 +1436,6 @@ export const MainChat: React.FC = () => {
             setPendingIntent(null);
             setIsLoading(false);
           }}
-        />
-      )}
-
-      {showImageGenerator && (
-        <ImageGenerator
-          onClose={() => {
-            setShowImageGenerator(false);
-            setImagePrompt('');
-          }}
-          onImageGenerated={async (image) => {
-            console.log('Generated image:', image);
-
-            // Add the generated image to chat
-            if (activeProjectId) {
-              const assistantMessage = await addMessage(
-                activeProjectId,
-                'assistant',
-                `Generated image: ${image.prompt}`,
-                user?.uid || '',
-                undefined,
-                {
-                  generatedContent: {
-                    type: 'image',
-                    url: image.url,
-                    prompt: image.prompt,
-                    metadata: {
-                      seed: image.seed,
-                      timestamp: image.timestamp,
-                      model: selectedModel
-                    }
-                  }
-                }
-              );
-
-              if (assistantMessage) {
-                setMessages(prev => [...prev, assistantMessage as any]);
-              }
-            }
-
-            setShowImageGenerator(false);
-            setImagePrompt('');
-          }}
-          initialPrompt={imagePrompt}
-          selectedModel={selectedModel}
-        />
-      )}
-
-      {showVideoGenerator && (
-        <VideoGenerator
-          onClose={() => {
-            setShowVideoGenerator(false);
-            setVideoPrompt('');
-          }}
-          initialPrompt={videoPrompt}
-          onVideoGenerated={async (video) => {
-            console.log('Generated video:', video);
-
-            // Add the generated video to chat
-            if (activeProjectId) {
-              const assistantMessage = await addMessage(
-                activeProjectId,
-                'assistant',
-                `Generated video: ${video.prompt}`,
-                user?.uid || '',
-                undefined,
-                {
-                  generatedContent: {
-                    type: 'video',
-                    url: video.url,
-                    prompt: video.prompt,
-                    metadata: video.metadata
-                  }
-                }
-              );
-
-              if (assistantMessage) {
-                setMessages(prev => [...prev, assistantMessage as any]);
-              }
-            }
-
-            setShowVideoGenerator(false);
-            setVideoPrompt('');
-          }}
-        />
-      )}
-
-      {showMusicGenerator && (
-        <MusicGenerator
-          onClose={() => {
-            setShowMusicGenerator(false);
-            setMusicPrompt('');
-          }}
-          initialPrompt={musicPrompt}
-        />
-      )}
-
-      {showVoiceoverGenerator && (
-        <VoiceoverGenerator
-          onClose={() => {
-            setShowVoiceoverGenerator(false);
-            setVoiceoverText('');
-          }}
-          initialText={voiceoverText}
-        />
-      )}
-
-      {showPPTGenerator && (
-        <PPTStudio
-          projectId={activeProjectId || undefined}
-          onClose={() => {
-            setShowPPTGenerator(false);
-            setPPTTopic('');
-          }}
-          initialTopic={pptTopic}
         />
       )}
     </div>
