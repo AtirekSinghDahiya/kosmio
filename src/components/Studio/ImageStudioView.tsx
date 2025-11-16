@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Image, Play, ChevronDown, Sparkles } from 'lucide-react';
+import { Image, Play, ChevronDown, Sparkles, Download } from 'lucide-react';
+import { generateImage, ImageModel } from '../../lib/kieImageService';
+import { useAuth } from '../../hooks/useAuth';
 
 interface ImageStudioViewProps {
   initialModel?: string;
@@ -7,22 +9,56 @@ interface ImageStudioViewProps {
 }
 
 export const ImageStudioView: React.FC<ImageStudioViewProps> = ({ initialModel = 'gemini-2.5-flash-image', onBack }) => {
+  const { user } = useAuth();
   const [prompt, setPrompt] = useState('Generate an image of a banana wearing a costume.');
-  const [model, setModel] = useState(initialModel);
+  const [imageModel, setImageModel] = useState<ImageModel>('nano-banana');
   const [temperature, setTemperature] = useState(1);
-  const [aspectRatio, setAspectRatio] = useState('auto');
+  const [aspectRatio, setAspectRatio] = useState('1:1');
   const [outputLength, setOutputLength] = useState(32768);
   const [topP, setTopP] = useState(0.95);
   const [generating, setGenerating] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(true);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [progressStatus, setProgressStatus] = useState('');
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || !user) return;
     setGenerating(true);
-    // TODO: Call actual image generation API
-    setTimeout(() => {
+    setProgressStatus('Initializing...');
+
+    try {
+      const dimensions = getImageDimensions(aspectRatio);
+      const images = await generateImage(
+        {
+          model: imageModel,
+          prompt: prompt,
+          width: dimensions.width,
+          height: dimensions.height,
+          steps: 28,
+          guidance: 3.5,
+        },
+        (status) => setProgressStatus(status)
+      );
+
+      setGeneratedImages(images);
+      setProgressStatus('Completed!');
+    } catch (error: any) {
+      console.error('Image generation error:', error);
+      setProgressStatus(`Error: ${error.message}`);
+    } finally {
       setGenerating(false);
-    }, 3000);
+    }
+  };
+
+  const getImageDimensions = (ratio: string) => {
+    switch (ratio) {
+      case '1:1': return { width: 1024, height: 1024 };
+      case '16:9': return { width: 1344, height: 768 };
+      case '9:16': return { width: 768, height: 1344 };
+      case '4:3': return { width: 1152, height: 896 };
+      case '3:4': return { width: 896, height: 1152 };
+      default: return { width: 1024, height: 1024 };
+    }
   };
 
   return (
@@ -108,23 +144,54 @@ export const ImageStudioView: React.FC<ImageStudioViewProps> = ({ initialModel =
           </div>
 
           {/* Center Content Area */}
-          <div className="flex-1 flex items-center justify-center p-12 bg-black overflow-y-auto">
-            <div className="text-center max-w-2xl">
-              <h1 className="text-5xl font-normal mb-8">Google AI Studio</h1>
-              <div className="mb-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Gemini 2.5 Flash Native Audio Preview 09-2025</span>
-                  <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">New</span>
-                </div>
-                <p className="mt-3 text-sm text-white/50">
-                  Our native audio models optimized for higher quality audio outputs with better pacing,
-                  voice naturalness, verbosity, and mood.
-                </p>
+          <div className="flex-1 p-12 bg-black overflow-y-auto">
+            {generatedImages.length > 0 ? (
+              <div className="grid grid-cols-2 gap-6 max-w-6xl mx-auto">
+                {generatedImages.map((imageUrl, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={imageUrl}
+                      alt={`Generated ${index + 1}`}
+                      className="w-full h-auto rounded-lg border border-white/10"
+                    />
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => window.open(imageUrl, '_blank')}
+                        className="p-2 bg-black/70 hover:bg-black rounded-lg transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center max-w-2xl">
+                  <h1 className="text-5xl font-normal mb-8">Image Studio</h1>
+                  <div className="mb-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm">
+                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>Powered by Kie AI - {imageModel}</span>
+                      <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs rounded">New</span>
+                    </div>
+                    <p className="mt-3 text-sm text-white/50">
+                      High-quality image generation with Nano Banana, Seedreem, and GPT-4o models.
+                    </p>
+                  </div>
+                  {generating && (
+                    <div className="mt-6">
+                      <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-lg">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="text-sm">{progressStatus}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Bottom Input Bar */}
@@ -162,8 +229,19 @@ export const ImageStudioView: React.FC<ImageStudioViewProps> = ({ initialModel =
 
         {/* Right Settings Panel */}
         <div className="w-80 border-l border-white/10 p-6 overflow-y-auto bg-[#1a1a1a]">
-          <h3 className="text-base font-medium mb-4">Nano Banana</h3>
-          <p className="text-xs text-white/50 mb-6">gemini-2.5-flash-image<br />State-of-the-art image generation and editing model.</p>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Model</label>
+            <select
+              value={imageModel}
+              onChange={(e) => setImageModel(e.target.value as ImageModel)}
+              className="w-full px-3 py-2 bg-[#2a2a2a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
+            >
+              <option value="nano-banana">Nano Banana</option>
+              <option value="seedreem">Seedreem</option>
+              <option value="gpt-4o-image">GPT-4o Image</option>
+            </select>
+          </div>
+          <p className="text-xs text-white/50 mb-6">State-of-the-art image generation and editing model.</p>
 
           {/* System Instructions */}
           <div className="mb-6">
@@ -200,10 +278,11 @@ export const ImageStudioView: React.FC<ImageStudioViewProps> = ({ initialModel =
               onChange={(e) => setAspectRatio(e.target.value)}
               className="w-full px-3 py-2 bg-[#2a2a2a] border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-white/20"
             >
-              <option value="auto">Auto</option>
               <option value="1:1">1:1 (Square)</option>
               <option value="16:9">16:9 (Landscape)</option>
               <option value="9:16">9:16 (Portrait)</option>
+              <option value="4:3">4:3</option>
+              <option value="3:4">3:4</option>
             </select>
           </div>
 

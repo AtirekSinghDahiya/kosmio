@@ -1,84 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronDown, Lock, Zap, RefreshCw } from 'lucide-react';
+import { Check, ChevronDown, Lock, Zap, RefreshCw, Search } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUnifiedPremiumStatus, clearUnifiedCache, forceRefreshPremiumStatus, subscribeToProfileChanges, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
+import { AI_MODELS, AIModel, searchModels } from '../../lib/aiModels';
 
-export interface AIModel {
-  id: string;
-  name: string;
-  provider: string;
-  description: string;
-  category: 'chat' | 'code' | 'image' | 'video' | 'audio';
-}
-
-export const AI_MODELS: AIModel[] = [
-  { id: 'grok-4-fast', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images (Recommended)', category: 'chat' },
-  { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Efficient and smart', category: 'chat' },
-  { id: 'nemotron-nano-free', name: 'Nemotron Nano 9B V2', provider: 'NVIDIA', description: 'Fast nano model', category: 'chat' },
-  { id: 'qwen-vl-30b-free', name: 'Qwen3 VL 30B Thinking', provider: 'Qwen', description: 'Visual & thinking model', category: 'chat' },
-  { id: 'claude-3-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic', description: 'Fast Claude 3 model', category: 'chat' },
-  { id: 'gemini-flash-lite-free', name: 'Gemini 2.5 Flash Lite', provider: 'Google', description: 'Fast multimodal AI', category: 'chat' },
-  { id: 'kimi-k2-free', name: 'Kimi K2 Free', provider: 'Moonshot', description: 'Long context', category: 'chat' },
-  { id: 'llama-4-maverick-free', name: 'Llama 4 Maverick Free', provider: 'Meta', description: 'Latest Llama', category: 'chat' },
-  { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding', category: 'chat' },
-  { id: 'granite-4.0', name: 'Granite 4.0 Micro', provider: 'IBM', description: 'Micro model', category: 'chat' },
-
-  // MiniMax Models
-  { id: 'minimax/minimax-01', name: 'MiniMax-01', provider: 'MiniMax', description: 'Multimodal model with vision', category: 'chat' },
-  { id: 'minimax/minimax-m2', name: 'MiniMax M2', provider: 'MiniMax', description: 'Advanced reasoning model', category: 'chat' },
-  { id: 'minimax/minimax-m1', name: 'MiniMax M1', provider: 'MiniMax', description: 'General purpose model', category: 'chat' },
-
-  // Amazon Nova Models
-  { id: 'amazon/nova-lite-v1', name: 'Nova Lite 1.0', provider: 'Amazon', description: 'Fast multimodal with vision', category: 'chat' },
-  { id: 'amazon/nova-micro-v1', name: 'Nova Micro 1.0', provider: 'Amazon', description: 'Ultra-fast text model', category: 'chat' },
-  { id: 'amazon/nova-pro-v1', name: 'Nova Pro 1.0', provider: 'Amazon', description: 'Professional multimodal AI', category: 'chat' },
-
-  // Baidu ERNIE Models
-  { id: 'baidu/ernie-4.5-21b-a3b', name: 'ERNIE 4.5 21B A3B', provider: 'Baidu', description: 'Efficient reasoning model', category: 'chat' },
-  { id: 'baidu/ernie-4.5-vl-28b-a3b', name: 'ERNIE 4.5 VL 28B A3B', provider: 'Baidu', description: 'Vision-language model', category: 'chat' },
-  { id: 'baidu/ernie-4.5-vl-424b-a47b', name: 'ERNIE 4.5 VL 424B A47B', provider: 'Baidu', description: 'Large vision-language model', category: 'chat' },
-  { id: 'baidu/ernie-4.5-300b-a47b', name: 'ERNIE 4.5 300B A47B', provider: 'Baidu', description: 'Massive reasoning model', category: 'chat' },
-
-  // OpenRouter Auto
-  { id: 'openrouter/auto', name: 'Auto Router', provider: 'OpenRouter', description: 'Automatically picks best model', category: 'chat' },
-
-  { id: 'ernie-4.5', name: 'ERNIE 4.5 21B Thinking', provider: 'Baidu', description: 'Thinking model', category: 'chat' },
-  { id: 'perplexity-sonar', name: 'Perplexity Sonar', provider: 'Perplexity', description: 'Web search enabled AI', category: 'chat' },
-  { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT with images', category: 'chat' },
-  { id: 'openai/gpt-5.1', name: 'GPT-5.1', provider: 'OpenAI', description: 'Latest GPT with reasoning', category: 'chat' },
-  { id: 'openai/gpt-5.1-chat', name: 'GPT-5.1 Chat', provider: 'OpenAI', description: 'Chat-optimized GPT-5.1 with vision', category: 'chat' },
-  { id: 'amazon/nova-premier-v1', name: 'Nova Premier 1.0', provider: 'Amazon', description: 'Amazon multimodal AI with vision', category: 'chat' },
-  { id: 'moonshotai/kimi-linear-48b-a3b-instruct', name: 'Kimi Linear 48B', provider: 'MoonshotAI', description: 'Long context linear model', category: 'chat' },
-  { id: 'moonshotai/kimi-k2-thinking', name: 'Kimi K2 Thinking', provider: 'MoonshotAI', description: 'Advanced reasoning model', category: 'chat' },
-  { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Most advanced DeepSeek', category: 'chat' },
-  { id: 'nemotron-super', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning', category: 'chat' },
-  { id: 'qwen-vl-32b', name: 'Qwen3 VL 32B Instruct', provider: 'Qwen', description: 'Visual model', category: 'chat' },
-  { id: 'kimi-k2-0905', name: 'Kimi K2 0905', provider: 'MoonshotAI', description: 'Latest Kimi model', category: 'chat' },
-  { id: 'claude-haiku-4.5', name: 'Claude Haiku 4.5', provider: 'Anthropic', description: 'Fast Claude 4.5', category: 'chat' },
-  { id: 'perplexity-sonar-pro', name: 'Perplexity Sonar Pro', provider: 'Perplexity', description: 'Pro web search with vision', category: 'chat' },
-  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Advanced reasoning', category: 'chat' },
-  { id: 'perplexity-sonar-reasoning', name: 'Perplexity Sonar Reasoning Pro', provider: 'Perplexity', description: 'Advanced reasoning with search', category: 'chat' },
-  { id: 'perplexity-sonar-deep', name: 'Perplexity Sonar Deep Research', provider: 'Perplexity', description: 'Deep research capabilities', category: 'chat' },
-  { id: 'gemini-flash-image', name: 'Gemini 2.5 Flash Image', provider: 'Google', description: 'Image focused', category: 'chat' },
-  { id: 'llama-4-maverick', name: 'Llama 4 Maverick', provider: 'Meta', description: 'Latest Llama', category: 'chat' },
-  { id: 'glm-4.6', name: 'GLM 4.6', provider: 'Z.AI', description: 'Advanced model', category: 'chat' },
-  { id: 'claude-opus-4', name: 'Claude Opus 4', provider: 'Anthropic', description: 'Powerful Opus model', category: 'chat' },
-  { id: 'claude-opus-4.1', name: 'Claude Opus 4.1', provider: 'Anthropic', description: 'Ultimate AI model', category: 'chat' },
-  { id: 'gpt-5-codex', name: 'GPT-5 Codex', provider: 'OpenAI', description: 'Best for coding (Paid)', category: 'code' },
-  { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex', provider: 'OpenAI', description: 'Code-specialized GPT-5.1 with reasoning', category: 'code' },
-  { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini', provider: 'OpenAI', description: 'Fast code model with vision', category: 'code' },
-  { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding (Free)', category: 'code' },
-  { id: 'claude-sonnet', name: 'Claude Sonnet 4.5', provider: 'Anthropic', description: 'Excellent for code (Paid)', category: 'code' },
-  { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Specialized for code (Paid)', category: 'code' },
-  { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Code model (Free)', category: 'code' },
-  { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', description: 'High quality images', category: 'image' },
-  { id: 'stable-diffusion-xl', name: 'Stable Diffusion XL', provider: 'Stability AI', description: 'Open source image gen', category: 'image' },
-  { id: 'firefly', name: 'Firefly', provider: 'Adobe', description: 'Commercial safe images', category: 'image' },
-  { id: 'sora', name: 'Sora', provider: 'OpenAI', description: 'Text to video', category: 'video' },
-  { id: 'eleven-labs', name: 'ElevenLabs', provider: 'ElevenLabs', description: 'Natural voice synthesis', category: 'audio' },
-];
+export type { AIModel };
 
 interface AIModelSelectorProps {
   selectedModel: string;
@@ -96,6 +24,7 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [premiumAccess, setPremiumAccess] = useState<UnifiedPremiumStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const checkAccess = async () => {
     if (!currentUser) {
@@ -148,10 +77,12 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
     setPremiumAccess(status);
   };
 
-  const availableModels = useMemo(() =>
-    AI_MODELS.filter(m => m.category === category),
-    [category]
-  );
+  const availableModels = useMemo(() => {
+    if (searchQuery.trim()) {
+      return searchModels(searchQuery, category);
+    }
+    return AI_MODELS.filter(m => m.category === category);
+  }, [category, searchQuery]);
 
   const modelLockStatus = useMemo(() => {
     const status = new Map<string, boolean>();
@@ -246,6 +177,33 @@ export const AIModelSelector: React.FC<AIModelSelectorProps> = ({
               </div>
             ) : (
               <>
+                {/* Search Bar */}
+                <div className="p-3 border-b border-white/10">
+                  <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                    theme === 'light' ? 'bg-gray-100' : 'bg-white/5'
+                  }`}>
+                    <Search className="w-4 h-4 text-white/50" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search models..."
+                      className={`flex-1 bg-transparent outline-none text-sm ${
+                        theme === 'light' ? 'text-gray-900 placeholder-gray-500' : 'text-white placeholder-white/50'
+                      }`}
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="text-white/50 hover:text-white"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
                 <div className="p-2 max-h-[50vh] sm:max-h-72 overflow-y-auto scrollbar-thin">
                   {availableModels.map((model, index) => {
                     const modelCost = getModelCost(model.id);

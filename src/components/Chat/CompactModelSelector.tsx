@@ -4,7 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
-import { AI_MODELS, AIModel } from './AIModelSelector';
+import { AI_MODELS, AIModel } from '../../lib/aiModels';
 
 interface CompactModelSelectorProps {
   selectedModel: string;
