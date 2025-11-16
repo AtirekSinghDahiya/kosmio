@@ -511,63 +511,46 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     ],
     images: [
       {
-        id: 'flux-1.1-pro',
-        name: 'Flux 1.1 Pro',
-        description: 'Professional-grade image generation with stunning quality',
+        id: 'nano-banana',
+        name: 'Nano Banana',
+        description: 'Google\'s high-quality image generation model',
         icon: Image,
-        category: 'image'
+        category: 'image',
+        badge: 'Kie AI'
       },
       {
-        id: 'dalle-3',
-        name: 'DALL-E 3',
-        description: 'OpenAI\'s image generation with precise prompt following',
+        id: 'seedreem',
+        name: 'Seedreem V4',
+        description: 'ByteDance\'s advanced text-to-image model',
         icon: Image,
-        category: 'image'
+        category: 'image',
+        badge: 'Kie AI'
       },
       {
-        id: 'midjourney',
-        name: 'Midjourney',
-        description: 'Artistic image generation with unique visual style',
+        id: 'gpt-4o-image',
+        name: 'GPT-4o Image',
+        description: 'OpenAI\'s multimodal image generation',
         icon: Image,
-        category: 'image'
-      },
-      {
-        id: 'stable-diffusion',
-        name: 'Stable Diffusion XL',
-        description: 'Open-source image generation with customization',
-        icon: Image,
-        category: 'image'
+        category: 'image',
+        badge: 'Kie AI'
       },
     ],
     video: [
       {
-        id: 'sora',
-        name: 'Sora (OpenAI)',
-        description: 'Generate realistic videos up to 1 minute from text',
+        id: 'sora-2',
+        name: 'Sora 2',
+        description: 'Generate 10-15s videos with OpenAI Sora 2',
         icon: Video,
         category: 'video',
-        badge: 'Premium'
+        badge: 'Kie AI'
       },
       {
-        id: 'runway-gen3',
-        name: 'Runway Gen-3',
-        description: 'High-quality video generation and editing',
+        id: 'veo-3',
+        name: 'Veo 3',
+        description: 'Google\'s fast video generation model',
         icon: Video,
-        category: 'video'
-      },
-      {
-        id: 'pika',
-        name: 'Pika Labs',
-        description: 'Create and edit videos with AI',
-        icon: Video,
-        category: 'video'
-      },
-      {
-        id: 'heygen',
-        name: 'HeyGen',
-        description: 'AI avatar videos with natural speech',
-        icon: Video,
-        category: 'video'
+        category: 'video',
+        badge: 'Kie AI'
       },
     ],
     audio: [
@@ -583,13 +566,6 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         name: 'ElevenLabs',
         description: 'Professional voice synthesis and cloning',
         icon: Mic,
-        category: 'audio'
-      },
-      {
-        id: 'udio',
-        name: 'Udio',
-        description: 'Create music in any style with AI',
-        icon: Music,
         category: 'audio'
       },
     ],
