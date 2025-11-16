@@ -1,165 +1,141 @@
 /**
- * Kie.ai Sora 2 Text-to-Video Service
- * Official API integration for Sora 2 video generation
+ * Kie AI Sora 2 Service
+ * Complete implementation matching Kie AI API documentation
  */
 
 const KIE_API_KEY = '8241daa7e6b6271fc75b5a2ecc85e428';
-const KIE_API_BASE = 'https://api.kie.ai/api/v1/jobs';
+const KIE_API_BASE = 'https://api.kie.ai/api/v1';
 
-export interface SoraVideoRequest {
+export interface Sora2GenerateParams {
   prompt: string;
   aspect_ratio?: 'landscape' | 'portrait';
   n_frames?: '10' | '15';
   remove_watermark?: boolean;
-  callBackUrl?: string;
 }
 
-interface SoraTaskResponse {
+export interface Sora2TaskResponse {
   code: number;
-  message: string;
+  message?: string;
+  msg?: string;
   data: {
     taskId: string;
-  };
-}
-
-interface SoraStatusResponse {
-  code: number;
-  msg: string;
-  data: {
-    taskId: string;
-    state: 'pending' | 'processing' | 'success' | 'fail';
-    createTime: number;
-    updateTime: number;
-    completeTime?: number;
+    state?: 'success' | 'fail' | 'processing';
     resultJson?: string;
     failMsg?: string;
-    consumeCredits?: number;
-    remainedCredits?: number;
+    resultUrls?: string[];
   };
 }
 
 /**
- * Create a video generation task
+ * Create Sora 2 video generation task
  */
-export async function createSoraVideoTask(
-  request: SoraVideoRequest
-): Promise<string> {
-  console.log('🎬 [Kie Sora] Creating video task...');
-  console.log('📝 Prompt:', request.prompt.substring(0, 100) + '...');
-
+export async function createSora2Task(params: Sora2GenerateParams): Promise<string> {
   const requestBody = {
     model: 'sora-2-text-to-video',
-    callBackUrl: request.callBackUrl,
     input: {
-      prompt: request.prompt,
-      aspect_ratio: request.aspect_ratio || 'landscape',
-      n_frames: request.n_frames || '10',
-      remove_watermark: request.remove_watermark ?? true,
+      prompt: params.prompt,
+      aspect_ratio: params.aspect_ratio || 'landscape',
+      n_frames: params.n_frames || '10',
+      remove_watermark: params.remove_watermark !== false,
     },
   };
 
-  const response = await fetch(`${KIE_API_BASE}/createTask`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${KIE_API_KEY}`,
-    },
-    body: JSON.stringify(requestBody),
-  });
+  try {
+    const response = await fetch(`${KIE_API_BASE}/jobs/createTask`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${KIE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => response.statusText);
-    console.error('❌ [Kie Sora] API error:', response.status, errorText);
-    throw new Error(`API Error (${response.status}): ${errorText}`);
-  }
-
-  const data: SoraTaskResponse = await response.json();
-
-  if (data.code !== 200) {
-    console.error('❌ Sora video generation failed:', data);
-    throw new Error(data.message || 'Failed to create video generation task');
-  }
-
-  console.log('✅ [Kie Sora] Task created:', data.data.taskId);
-  return data.data.taskId;
-}
-
-/**
- * Check the status of a video generation task
- */
-export async function checkSoraTaskStatus(
-  taskId: string
-): Promise<SoraStatusResponse['data']> {
-  const response = await fetch(`${KIE_API_BASE}/queryTask`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${KIE_API_KEY}`,
-    },
-    body: JSON.stringify({ taskId }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => response.statusText);
-    console.error('❌ Sora status check error:', response.status, errorText);
-    throw new Error(`Status Check Error (${response.status}): ${errorText}`);
-  }
-
-  const data: SoraStatusResponse = await response.json();
-
-  if (data.code !== 200 && data.code !== 501) {
-    console.error('❌ Sora status check failed:', data);
-    throw new Error(data.msg || 'Failed to check task status');
-  }
-
-  return data.data;
-}
-
-/**
- * Generate video and poll for completion
- */
-export async function generateAndWaitForSoraVideo(
-  request: SoraVideoRequest,
-  onProgress?: (status: string, percent: number) => void
-): Promise<string> {
-  const taskId = await createSoraVideoTask(request);
-  onProgress?.('Video generation started...', 10);
-
-  const maxAttempts = 60; // 5 minutes max (60 * 5s)
-  let attempts = 0;
-
-  while (attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 5000));
-
-    const status = await checkSoraTaskStatus(taskId);
-    const progressPercent = 10 + (attempts / maxAttempts) * 80;
-
-    console.log(`🔄 [Kie Sora] Attempt ${attempts + 1}/${maxAttempts} - Status: ${status.state}`);
-
-    if (status.state === 'success' && status.resultJson) {
-      try {
-        const result = JSON.parse(status.resultJson);
-        const videoUrl = result.resultUrls?.[0];
-
-        if (videoUrl) {
-          onProgress?.('Video generation complete!', 100);
-          console.log('✅ [Kie Sora] Video URL:', videoUrl);
-          console.log('💰 Credits used:', status.consumeCredits);
-          console.log('💳 Credits remaining:', status.remainedCredits);
-          return videoUrl;
-        }
-      } catch (e) {
-        console.error('❌ Error parsing result JSON:', e);
-      }
-      throw new Error('Video generation completed but no URL found');
-    } else if (status.state === 'fail') {
-      throw new Error(status.failMsg || 'Video generation failed');
-    } else {
-      onProgress?.(`Generating video... (${status.state})`, progressPercent);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    attempts++;
+    const data: Sora2TaskResponse = await response.json();
+
+    if (data.code !== 200) {
+      throw new Error(data.message || data.msg || 'Task creation failed');
+    }
+
+    return data.data.taskId;
+  } catch (error) {
+    console.error('Error creating Sora 2 task:', error);
+    throw error;
+  }
+}
+
+/**
+ * Check Sora 2 task status
+ */
+export async function checkSora2TaskStatus(taskId: string): Promise<Sora2TaskResponse> {
+  try {
+    const response = await fetch(`${KIE_API_BASE}/jobs/queryTask/${taskId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${KIE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data: Sora2TaskResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error checking Sora 2 task status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate Sora 2 video with polling
+ */
+export async function generateSora2Video(
+  params: Sora2GenerateParams,
+  onProgress?: (status: string) => void
+): Promise<string[]> {
+  onProgress?.('Creating Sora 2 task...');
+  const taskId = await createSora2Task(params);
+
+  onProgress?.('Processing video...');
+
+  const maxAttempts = 180; // 3 minutes max
+  const pollInterval = 1000;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+    const status = await checkSora2TaskStatus(taskId);
+
+    if (status.data.state === 'success') {
+      if (status.data.resultJson) {
+        const result = JSON.parse(status.data.resultJson);
+        if (result.resultUrls && result.resultUrls.length > 0) {
+          onProgress?.('Video generated successfully!');
+          return result.resultUrls;
+        }
+      }
+      if (status.data.resultUrls && status.data.resultUrls.length > 0) {
+        onProgress?.('Video generated successfully!');
+        return status.data.resultUrls;
+      }
+    }
+
+    if (status.data.state === 'fail') {
+      throw new Error(status.data.failMsg || 'Video generation failed');
+    }
+
+    onProgress?.(`Processing... (${attempt + 1}/${maxAttempts})`);
   }
 
-  throw new Error('Video generation timed out after 5 minutes');
+  throw new Error('Video generation timed out');
+}
+
+export function isSora2Available(): boolean {
+  return !!KIE_API_KEY;
 }
