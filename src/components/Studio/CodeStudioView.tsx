@@ -1,15 +1,53 @@
 import React, { useState } from 'react';
-import { Code, FileCode, FolderOpen, Sparkles, Play } from 'lucide-react';
+import { Code, FileCode, FolderOpen, Sparkles, Play, Loader } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../hooks/useAuth';
+import { getOpenRouterResponse } from '../../lib/openRouterService';
 
 interface CodeStudioViewProps {
   initialModel?: string;
   onBack?: () => void;
+  onClose?: () => void;
 }
 
-export const CodeStudioView: React.FC<CodeStudioViewProps> = ({ initialModel, onBack }) => {
+export const CodeStudioView: React.FC<CodeStudioViewProps> = ({ initialModel, onBack, onClose }) => {
+  const { showToast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
   const [prompt, setPrompt] = useState('');
   const [selectedFile, setSelectedFile] = useState('index.tsx');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+
+  const handleGenerateCode = async (userPrompt: string) => {
+    if (!userPrompt.trim()) {
+      showToast('warning', 'Prompt Required', 'Please describe what you want to build');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const systemPrompt = `You are an expert React developer. Generate clean, production-ready React code based on the user's request. Include TypeScript types, proper styling with Tailwind CSS, and follow best practices.`;
+
+      const response = await getOpenRouterResponse(
+        'anthropic/claude-3.5-sonnet',
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        user?.uid
+      );
+
+      setGeneratedCode(response);
+      setActiveTab('code');
+      showToast('success', 'Code Generated!', 'Your code has been generated successfully');
+    } catch (error: any) {
+      console.error('Code generation error:', error);
+      showToast('error', 'Generation Failed', error.message || 'Could not generate code');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const codeContent = `import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -34,7 +72,7 @@ root.render(
         {/* Header */}
         <div className="p-4 border-b border-white/10">
           <button
-            onClick={onBack}
+            onClick={onClose || onBack}
             className="flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors mb-4"
           >
             ← Back to start
@@ -65,19 +103,31 @@ root.render(
 
           {/* Suggestion Buttons */}
           <div className="space-y-2">
-            <button className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <button
+              onClick={() => handleGenerateCode('Add AI-powered features to this portfolio website')}
+              disabled={isGenerating}
+              className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors disabled:opacity-50"
+            >
               <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0" />
               <span className="text-sm">AI Features</span>
             </button>
 
-            <button className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <button
+              onClick={() => handleGenerateCode('Add a modern contact form with validation')}
+              disabled={isGenerating}
+              className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors disabled:opacity-50"
+            >
               <svg className="w-4 h-4 text-white/50 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span className="text-sm">Add Contact Form</span>
             </button>
 
-            <button className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors">
+            <button
+              onClick={() => handleGenerateCode('Add an eye-catching call-to-action button section')}
+              disabled={isGenerating}
+              className="w-full flex items-center gap-3 p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors disabled:opacity-50"
+            >
               <svg className="w-4 h-4 text-white/50 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -116,8 +166,16 @@ root.render(
               placeholder="Make changes, add new features, ask for anything"
               className="w-full px-4 py-3 pr-12 bg-[#2a2a2a] border border-white/10 rounded-lg text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/20"
             />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded transition-colors">
-              <Play className="w-4 h-4" />
+            <button
+              onClick={() => handleGenerateCode(prompt)}
+              disabled={isGenerating || !prompt.trim()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGenerating ? (
+                <Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -308,9 +366,22 @@ root.render(
               </div>
 
               <div className="flex-1 overflow-auto p-4 font-mono text-sm bg-black">
-                <pre className="text-gray-300 leading-relaxed">
-                  <code>{codeContent}</code>
-                </pre>
+                {isGenerating ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-4">
+                      <Loader className="w-8 h-8 text-blue-400 animate-spin mx-auto" />
+                      <p className="text-white/60 text-sm">Generating code...</p>
+                    </div>
+                  </div>
+                ) : generatedCode ? (
+                  <pre className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    <code>{generatedCode}</code>
+                  </pre>
+                ) : (
+                  <pre className="text-gray-300 leading-relaxed">
+                    <code>{codeContent}</code>
+                  </pre>
+                )}
               </div>
             </div>
           </div>
