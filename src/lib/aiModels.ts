@@ -104,12 +104,13 @@ export const AI_MODELS: AIModel[] = [
   { id: 'zhipuai/glm-4-long', name: 'GLM-4 Long', provider: 'Z.AI', description: 'Extended context', category: 'chat' },
   { id: 'glm-4.6', name: 'GLM 4.6', provider: 'Z.AI', description: 'Latest GLM', category: 'chat' },
 
-  // Grok Models (5)
+  // Grok Models (6)
   { id: 'x-ai/grok-beta', name: 'Grok Beta', provider: 'X.AI', description: 'Beta release', category: 'chat' },
   { id: 'x-ai/grok-vision-beta', name: 'Grok Vision Beta', provider: 'X.AI', description: 'Vision beta', category: 'chat' },
   { id: 'x-ai/grok-2-vision-1212', name: 'Grok 2 Vision 1212', provider: 'X.AI', description: 'December vision', category: 'chat' },
   { id: 'x-ai/grok-2-1212', name: 'Grok 2 1212', provider: 'X.AI', description: 'December release', category: 'chat' },
   { id: 'grok-4-fast', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images', category: 'chat' },
+  { id: 'x-ai/grok-2-code-fast', name: 'Grok 2 Code Fast', provider: 'X.AI', description: 'Ultra-fast code generation', category: 'code' },
 
   // Perplexity Models (6)
   { id: 'perplexity/llama-3.1-sonar-small-128k-online', name: 'Sonar Small Online', provider: 'Perplexity', description: 'Small web search', category: 'chat' },
@@ -173,6 +174,13 @@ export const AI_MODELS: AIModel[] = [
   { id: 'amazon/nova-micro-v1', name: 'Nova Micro 1.0', provider: 'Amazon', description: 'Ultra-fast text', category: 'chat' },
   { id: 'amazon/nova-pro-v1', name: 'Nova Pro 1.0', provider: 'Amazon', description: 'Professional multimodal', category: 'chat' },
   { id: 'amazon/nova-premier-v1', name: 'Nova Premier 1.0', provider: 'Amazon', description: 'Premier multimodal AI', category: 'chat' },
+
+  // Cohere Models
+  { id: 'cohere/command-r-plus', name: 'Command R+', provider: 'Cohere', description: 'Enhanced reasoning', category: 'chat' },
+  { id: 'cohere/command-r', name: 'Command R', provider: 'Cohere', description: 'Balanced reasoning', category: 'chat' },
+  { id: 'cohere/command', name: 'Command', provider: 'Cohere', description: 'General purpose', category: 'chat' },
+  { id: 'cohere/command-light', name: 'Command Light', provider: 'Cohere', description: 'Fast and efficient', category: 'chat' },
+  { id: 'cohere/command-nightly', name: 'Command Nightly', provider: 'Cohere', description: 'Latest features', category: 'chat' },
 
   // Baidu Models
   { id: 'baidu/ernie-4.5-21b-a3b', name: 'ERNIE 4.5 21B A3B', provider: 'Baidu', description: 'Efficient reasoning', category: 'chat' },
