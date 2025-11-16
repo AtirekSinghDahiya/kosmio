@@ -998,16 +998,36 @@ export const MainChat: React.FC = () => {
                       showToast('error', 'Error', 'Failed to create chat session');
                     }
                   }
-                  // For other modes (image, video, music), just set model and show message
+                  // For other modes (image, video, music, code), open the studio
                   else {
                     console.log(`🎨 Selected ${mode} mode with model:`, modelId);
-                    showToast('info', 'Coming Soon', `${mode.charAt(0).toUpperCase() + mode.slice(1)} studio will open here`);
-                    // For now, create a basic project so user can type prompts
-                    try {
-                      const project = await createProject(`${mode} Studio`, mode, '');
-                      setActiveProjectId(project.id);
-                    } catch (error) {
-                      console.error('❌ Error creating project:', error);
+
+                    // Handle video generation
+                    if (mode === 'video' || modelId === 'sora-2' || modelId === 'veo-3') {
+                      setVideoPrompt(initialPrompt || '');
+                      setShowVideoGenerator(true);
+                    }
+                    // Handle image generation
+                    else if (mode === 'image' || modelId === 'nano-banana' || modelId === 'seedreem' || modelId === 'gpt-4o-image') {
+                      setImagePrompt(initialPrompt || '');
+                      setShowImageGenerator(true);
+                    }
+                    // Handle music generation
+                    else if (mode === 'music' || modelId === 'suno' || modelId === 'elevenlabs') {
+                      setMusicPrompt(initialPrompt || '');
+                      setShowMusicGenerator(true);
+                    }
+                    // Handle code/PPT generation
+                    else if (mode === 'code' || modelId === 'code-studio' || modelId === 'ppt-studio') {
+                      if (modelId === 'ppt-studio') {
+                        setPPTTopic(initialPrompt || '');
+                        setShowPPTGenerator(true);
+                      } else {
+                        showToast('info', 'Coming Soon', 'Code studio will open here');
+                      }
+                    }
+                    else {
+                      showToast('info', 'Coming Soon', `${mode.charAt(0).toUpperCase() + mode.slice(1)} studio will open here`);
                     }
                   }
                 }}

@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Image, Download, Wand2, X, Loader, Sparkles, RefreshCw } from 'lucide-react';
-import { generateNanoBananaImage, isNanoBananaAvailable } from '../../lib/nanoBananaService';
+import { generateImage, isKieImageAvailable, ImageModel } from '../../lib/kieImageService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
@@ -37,12 +37,21 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
   const [generatedImage, setGeneratedImage] = useState<GeneratedImage | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number>(0);
+  const [selectedImageModel, setSelectedImageModel] = useState<ImageModel>(
+    (selectedModel as ImageModel) || 'nano-banana'
+  );
 
   useEffect(() => {
     if (initialPrompt) {
       setPrompt(initialPrompt);
     }
   }, [initialPrompt]);
+
+  useEffect(() => {
+    if (selectedModel) {
+      setSelectedImageModel(selectedModel as ImageModel);
+    }
+  }, [selectedModel]);
 
   useEffect(() => {
     if (prompt.trim()) {
@@ -62,21 +71,22 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
     setImageLoading(true);
 
     try {
-      const imageUrls = await generateNanoBananaImage(
+      const imageUrls = await generateImage(
         {
+          model: selectedImageModel,
           prompt: prompt,
-          aspect_ratio: '1:1',
-          num_images: 1,
-          output_format: 'jpeg'
+          width: 1024,
+          height: 1024,
+          num_outputs: 1,
         },
-        (status, progress) => {
-          console.log(`Image generation: ${status} - ${progress}%`);
+        (status) => {
+          console.log(`Image generation: ${status}`);
         }
       );
 
       const image: GeneratedImage = {
         url: imageUrls[0],
-        model: 'nano-banana',
+        model: selectedImageModel,
         prompt: prompt,
         timestamp: new Date()
       };
@@ -86,9 +96,9 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
       if (user) {
         try {
           await saveImageToProject(user.uid, prompt, image.url, {
-            model: 'nano-banana',
+            model: selectedImageModel,
             dimensions: '1024x1024',
-            provider: 'fal-ai'
+            provider: 'kie-ai'
           });
           console.log('✅ Image saved to project');
         } catch (saveError) {
@@ -185,6 +195,51 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Left: Input */}
             <div className="space-y-6">
+              {/* Model Selector */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  Image Model
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setSelectedImageModel('nano-banana')}
+                    disabled={isGenerating}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                      selectedImageModel === 'nano-banana'
+                        ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200'
+                        : 'bg-slate-700/50 border border-white/20 text-white/60 hover:border-purple-400/50'
+                    }`}
+                  >
+                    <div className="font-bold">Nano Banana</div>
+                    <div className="text-xs opacity-75">Google</div>
+                  </button>
+                  <button
+                    onClick={() => setSelectedImageModel('seedreem')}
+                    disabled={isGenerating}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                      selectedImageModel === 'seedreem'
+                        ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200'
+                        : 'bg-slate-700/50 border border-white/20 text-white/60 hover:border-purple-400/50'
+                    }`}
+                  >
+                    <div className="font-bold">Seedreem</div>
+                    <div className="text-xs opacity-75">Flux</div>
+                  </button>
+                  <button
+                    onClick={() => setSelectedImageModel('gpt-4o-image')}
+                    disabled={isGenerating}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 ${
+                      selectedImageModel === 'gpt-4o-image'
+                        ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200'
+                        : 'bg-slate-700/50 border border-white/20 text-white/60 hover:border-purple-400/50'
+                    }`}
+                  >
+                    <div className="font-bold">GPT-4o</div>
+                    <div className="text-xs opacity-75">OpenAI</div>
+                  </button>
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-white mb-3 flex items-center gap-2">
                   <Wand2 className="w-4 h-4 text-purple-400" />
@@ -231,6 +286,10 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ onClose, onImage
                   <li className="flex items-start gap-2">
                     <span className="text-purple-400 mt-0.5">•</span>
                     <span>Include quality: "highly detailed", "8k", "sharp focus", "masterpiece"</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-purple-400 mt-0.5">•</span>
+                    <span>Try different models: Nano Banana for quality, Seedreem for artistic, GPT-4o for realistic</span>
                   </li>
                 </ul>
               </div>
