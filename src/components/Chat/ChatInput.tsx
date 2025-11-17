@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { ArrowUp, Paperclip, Mic, Image as ImageIcon, MoreHorizontal, Brain, Zap, Search, X } from 'lucide-react';
+import { ArrowUp, Paperclip, Mic, Image as ImageIcon, MoreHorizontal, Brain, Zap, Search, X, Sparkles } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
+import { enhancePrompt, isPromptEnhancementAvailable } from '../../lib/promptEnhancer';
 
 interface ChatInputProps {
   value: string;
@@ -35,6 +36,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [attachedFiles, setAttachedFiles] = useState<File[]>(externalFiles || []);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [showMoreActions, setShowMoreActions] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
 
   const chatOptions = [
     { id: 'deep-research', label: 'Deep Research', icon: Search, color: 'cyan' },
@@ -92,6 +94,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         onFilesChange(newFiles);
       }
       showToast('success', 'Image Pasted', `${files.length} image(s) pasted from clipboard`);
+    }
+  };
+
+  const handleEnhancePrompt = async () => {
+    if (!value.trim() || isEnhancing) return;
+
+    if (!isPromptEnhancementAvailable()) {
+      showToast('error', 'Feature Unavailable', 'Prompt enhancement requires API configuration');
+      return;
+    }
+
+    setIsEnhancing(true);
+    try {
+      const enhanced = await enhancePrompt(value);
+      onChange(enhanced);
+      showToast('success', 'Prompt Enhanced!', 'Your prompt has been improved');
+    } catch (error: any) {
+      showToast('error', 'Enhancement Failed', error.message || 'Could not enhance prompt');
+    } finally {
+      setIsEnhancing(false);
     }
   };
 
@@ -204,6 +226,28 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               >
                 <ImageIcon className="w-4 h-4" />
               </button>
+
+              {/* Enhance Prompt Button */}
+              {isPromptEnhancementAvailable() && (
+                <button
+                  onClick={handleEnhancePrompt}
+                  disabled={disabled || isEnhancing || !value.trim()}
+                  className={`p-2 rounded-lg transition-all ${
+                    isEnhancing
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse'
+                      : disabled || !value.trim()
+                      ? theme === 'light'
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 cursor-not-allowed'
+                      : theme === 'light'
+                      ? 'hover:bg-purple-100 text-purple-600'
+                      : 'hover:bg-purple-500/20 text-purple-400'
+                  }`}
+                  title={isEnhancing ? 'Enhancing...' : 'Enhance prompt with AI'}
+                >
+                  <Sparkles className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`} />
+                </button>
+              )}
 
               {/* More Actions Button */}
               <div className="relative">

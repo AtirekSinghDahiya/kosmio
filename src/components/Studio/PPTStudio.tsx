@@ -90,7 +90,7 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ projectId, onClose, initia
               <FileText className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Kimi Slides</h2>
+              <h2 className="text-lg font-semibold text-white">KroniQ Slides</h2>
               <p className="text-xs text-white/50">AI-powered presentation creation</p>
             </div>
           </div>
