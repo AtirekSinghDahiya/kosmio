@@ -23,6 +23,13 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
   const [aspectRatio, setAspectRatio] = useState<'square' | 'landscape' | 'portrait' | '4:3' | '3:4'>('square');
   const [numImages, setNumImages] = useState(1);
   const [outputFormat, setOutputFormat] = useState<'JPEG' | 'PNG' | 'WebP'>('JPEG');
+  const [selectedModel, setSelectedModel] = useState('flux-schnell');
+
+  const models = [
+    { id: 'flux-schnell', name: 'Flux Schnell', description: 'Fast, high-quality generation', speed: 'Fast' },
+    { id: 'flux-dev', name: 'Flux Dev', description: 'Higher quality, slower', speed: 'Medium' },
+    { id: 'flux-pro', name: 'Flux Pro', description: 'Best quality, premium', speed: 'Slow' },
+  ];
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -35,17 +42,51 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
     setProgress('Starting...');
 
     try {
-      const imageUrl = await generateImageSimple(prompt, (status) => {
-        setProgress(status);
+      const modelMap: Record<string, string> = {
+        'flux-schnell': 'fal-ai/flux/schnell',
+        'flux-dev': 'fal-ai/flux/dev',
+        'flux-pro': 'fal-ai/flux-pro'
+      };
+
+      const falModel = modelMap[selectedModel] || 'fal-ai/flux/schnell';
+
+      setProgress('Initializing...');
+      const { fal } = await import('../../lib/falClient');
+
+      const result = await fal.subscribe(falModel, {
+        input: {
+          prompt,
+          image_size: 'square_hd',
+          num_inference_steps: selectedModel === 'flux-schnell' ? 4 : 28,
+          num_images: 1,
+          enable_safety_checker: true,
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === 'IN_PROGRESS') {
+            setProgress('Generating your image...');
+          } else if (update.status === 'IN_QUEUE') {
+            const position = (update as any).position || 0;
+            setProgress(`Position in queue: ${position}`);
+          }
+        },
       });
 
+      const output = result.data as any;
+
+      if (!output?.images?.[0]?.url) {
+        throw new Error('No image URL in response');
+      }
+
+      const imageUrl = output.images[0].url;
       setGeneratedImageUrl(imageUrl);
+      setProgress('Complete!');
       showToast('success', 'Image Generated!', 'Your image is ready');
 
       if (user) {
         try {
           await saveImageToProject(user.uid, prompt, imageUrl, {
-            model: 'flux-schnell',
+            model: selectedModel,
             dimensions: 'square_hd',
             provider: 'fal-ai'
           });
@@ -55,10 +96,11 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
       }
     } catch (error: any) {
       console.error('Image generation error:', error);
-      showToast('error', 'Generation Failed', error.message || 'Failed to generate image');
+      const errorMessage = error.message || 'Failed to generate image. Please check your API key and try again.';
+      showToast('error', 'Generation Failed', errorMessage);
+      setProgress('');
     } finally {
       setIsGenerating(false);
-      setProgress('');
     }
   };
 
@@ -126,13 +168,28 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
 
         {/* Right Side - Controls */}
         <div className="w-[420px] border-l border-white/10 flex flex-col bg-black">
-          {/* Model Info */}
+          {/* Model Selector */}
           <div className="p-6 border-b border-white/10">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-teal-400"></div>
-              <span className="text-sm font-semibold text-white">Flux Schnell</span>
+            <div className="text-sm font-semibold text-white mb-3">Model</div>
+            <div className="space-y-2">
+              {models.map((model) => (
+                <button
+                  key={model.id}
+                  onClick={() => setSelectedModel(model.id)}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                    selectedModel === model.id
+                      ? 'border-teal-500/40 bg-teal-500/10'
+                      : 'border-white/10 bg-white/5 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-white">{model.name}</span>
+                    <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-white/60">{model.speed}</span>
+                  </div>
+                  <p className="text-xs text-white/50">{model.description}</p>
+                </button>
+              ))}
             </div>
-            <p className="text-xs text-white/50">Fast, high-quality image generation</p>
           </div>
 
           {/* Aspect Ratio */}

@@ -6,6 +6,12 @@ interface SimpleCodeStudioProps {
   onClose?: () => void;
 }
 
+interface ConversationItem {
+  prompt: string;
+  timestamp: Date;
+  id: string;
+}
+
 export const SimpleCodeStudio: React.FC<SimpleCodeStudioProps> = ({ onClose }) => {
   const { showToast } = useToast();
   const [showLanding, setShowLanding] = useState(true);
@@ -13,6 +19,8 @@ export const SimpleCodeStudio: React.FC<SimpleCodeStudioProps> = ({ onClose }) =
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
   const [activeTab, setActiveTab] = useState<'preview' | 'code'>('preview');
+  const [conversationHistory, setConversationHistory] = useState<ConversationItem[]>([]);
+  const [currentProjectName, setCurrentProjectName] = useState('Untitled Project');
 
   const exampleApps = [
     {
@@ -53,6 +61,23 @@ export const SimpleCodeStudio: React.FC<SimpleCodeStudioProps> = ({ onClose }) =
 
     setIsGenerating(true);
     setShowLanding(false);
+
+    // Add to conversation history
+    const newItem: ConversationItem = {
+      prompt: prompt.trim(),
+      timestamp: new Date(),
+      id: Date.now().toString()
+    };
+    setConversationHistory(prev => [newItem, ...prev]);
+
+    // Extract project name from prompt if possible
+    if (prompt.toLowerCase().includes('portfolio') || prompt.toLowerCase().includes('website')) {
+      setCurrentProjectName('Portfolio Website');
+    } else if (prompt.toLowerCase().includes('dashboard')) {
+      setCurrentProjectName('Dashboard UI');
+    } else {
+      setCurrentProjectName('Generated App');
+    }
 
     try {
       // Simulate code generation
@@ -312,7 +337,7 @@ export default function Portfolio() {
           >
             ← Back to start
           </button>
-          <div className="text-lg font-semibold">KroniQ Code Generator</div>
+          <div className="text-lg font-semibold">{currentProjectName}</div>
         </div>
         <div className="flex items-center gap-3">
           <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">⚙️</button>
@@ -346,6 +371,32 @@ export default function Portfolio() {
                   <span className="font-medium text-blue-300">AI Features</span>
                 </div>
               </button>
+
+              {/* Conversation History */}
+              {conversationHistory.length > 0 && (
+                <>
+                  <div className="px-2 py-3 text-xs font-semibold text-white/40">
+                    Recent Prompts
+                  </div>
+                  {conversationHistory.map((item) => (
+                    <button
+                      key={item.id}
+                      className="w-full text-left px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-white/70 transition-colors"
+                      title={item.prompt}
+                    >
+                      <div className="truncate">{item.prompt}</div>
+                      <div className="text-xs text-white/40 mt-1">
+                        {item.timestamp.toLocaleTimeString()}
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {/* Suggestions */}
+              <div className="px-2 py-3 text-xs font-semibold text-white/40">
+                Suggestions
+              </div>
               {[
                 'Add aspect ratio options',
                 'Add negative prompt input',

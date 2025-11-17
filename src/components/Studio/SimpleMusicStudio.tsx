@@ -16,6 +16,7 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
   const [progress, setProgress] = useState('');
   const [duration, setDuration] = useState<30 | 60 | 120>(30);
   const [musicType, setMusicType] = useState<'vocals' | 'instrumental'>('vocals');
+  const [audioMode, setAudioMode] = useState<'music' | 'speech'>('music');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -115,18 +116,58 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
 
         {/* Right Side - Controls */}
         <div className="w-[420px] border-l border-white/10 flex flex-col bg-black">
+          {/* Mode Selector */}
+          <div className="p-6 border-b border-white/10">
+            <label className="text-sm font-medium text-white/80 mb-3 block">Audio Mode</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setAudioMode('music')}
+                disabled={isGenerating}
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${
+                  audioMode === 'music'
+                    ? 'bg-pink-500/20 border-pink-500/50 text-white'
+                    : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                <Music className="w-4 h-4" />
+                <span>Text to Music</span>
+              </button>
+              <button
+                onClick={() => setAudioMode('speech')}
+                disabled={isGenerating}
+                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-lg border text-sm font-medium transition-all ${
+                  audioMode === 'speech'
+                    ? 'bg-pink-500/20 border-pink-500/50 text-white'
+                    : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <span>Text to Speech</span>
+              </button>
+            </div>
+          </div>
+
           {/* Model Info */}
           <div className="p-6 border-b border-white/10">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-pink-400"></div>
-              <span className="text-sm font-semibold text-white">Gemini 2.5 Pro Preview TTS</span>
+              <span className="text-sm font-semibold text-white">
+                {audioMode === 'music' ? 'KroniQ Lyria' : 'KroniQ TTS Pro'}
+              </span>
             </div>
-            <p className="text-xs text-white/50">Our top-tier text-to-speech audio model</p>
+            <p className="text-xs text-white/50">
+              {audioMode === 'music'
+                ? 'AI-powered music generation with real-time control'
+                : 'Natural text-to-speech with 30 voice options'}
+            </p>
           </div>
 
-          {/* Music Type */}
-          <div className="p-6 border-b border-white/10">
-            <label className="text-sm font-medium text-white/80 mb-3 block">Music Type</label>
+          {/* Music Type - Only for Music Mode */}
+          {audioMode === 'music' && (
+            <div className="p-6 border-b border-white/10">
+              <label className="text-sm font-medium text-white/80 mb-3 block">Music Type</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setMusicType('vocals')}
@@ -153,9 +194,11 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
                 <span>Instrumental</span>
               </button>
             </div>
-          </div>
+            </div>
+          )}
 
-          {/* Duration */}
+          {/* Duration - Only for Music Mode */}
+          {audioMode === 'music' && (
           <div className="p-6 border-b border-white/10">
             <label className="text-sm font-medium text-white/80 mb-3 block">Duration: {duration}s</label>
             <div className="grid grid-cols-3 gap-2">
@@ -175,6 +218,7 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
               ))}
             </div>
           </div>
+          )}
 
           {/* Spacer */}
           <div className="flex-1"></div>
