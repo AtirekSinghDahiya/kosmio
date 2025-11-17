@@ -19,7 +19,7 @@ import { GroupedModelSelector } from './GroupedModelSelector';
 import { ProfileButton } from '../Common/ProfileButton';
 import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
-import { ImageGenerator } from './ImageGenerator';
+import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { VideoGenerator } from './VideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
@@ -963,55 +963,12 @@ export const MainChat: React.FC = () => {
         <div className="flex-1 ml-0 md:ml-16 overflow-y-auto">
           {/* Show generators fullscreen when active */}
           {showImageGenerator ? (
-            <ImageGenerator
+            <SimpleImageGenerator
               onClose={() => {
                 setShowImageGenerator(false);
                 setImagePrompt('');
               }}
-              onImageGenerated={async (image) => {
-                console.log('Generated image:', image);
-
-                // Create project if none exists
-                let projectId = activeProjectId;
-                if (!projectId) {
-                  const newProject = await createProject(
-                    image.prompt?.substring(0, 50) || 'Image Generation',
-                    'chat',
-                    image.prompt || ''
-                  );
-                  projectId = newProject.id;
-                  setActiveProjectId(projectId);
-                }
-
-                if (projectId) {
-                  const assistantMessage = await addMessage(
-                    activeProjectId,
-                    'assistant',
-                    `Generated image: ${image.prompt}`,
-                    user?.uid || '',
-                    undefined,
-                    {
-                      generatedContent: {
-                        type: 'image',
-                        url: image.url,
-                        prompt: image.prompt,
-                        metadata: {
-                          seed: image.seed,
-                          timestamp: image.timestamp,
-                          model: selectedModel
-                        }
-                      }
-                    }
-                  );
-                  if (assistantMessage) {
-                    setMessages(prev => [...prev, assistantMessage as any]);
-                  }
-                }
-                setShowImageGenerator(false);
-                setImagePrompt('');
-              }}
               initialPrompt={imagePrompt}
-              selectedModel={selectedModel}
             />
           ) : showVideoGenerator ? (
             <VideoGenerator
@@ -1087,7 +1044,7 @@ export const MainChat: React.FC = () => {
             />
           ) : showMusicGenerator ? (
             <MusicStudioView
-              onClose={() => {
+              onBack={() => {
                 setShowMusicGenerator(false);
                 setMusicPrompt('');
               }}
