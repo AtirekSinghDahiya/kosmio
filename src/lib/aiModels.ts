@@ -194,6 +194,10 @@ export const AI_MODELS: AIModel[] = [
   { id: 'minimax/minimax-m2', name: 'MiniMax M2', provider: 'MiniMax', description: 'Advanced reasoning', category: 'chat' },
   { id: 'minimax/minimax-m1', name: 'MiniMax M1', provider: 'MiniMax', description: 'General purpose', category: 'chat' },
 
+  // Sherlock AI Models
+  { id: 'openrouter/sherlock-dash-alpha', name: 'Sherlock Dash Alpha', provider: 'Sherlock AI', description: 'Fast multimodal with vision', category: 'chat' },
+  { id: 'openrouter/sherlock-think-alpha', name: 'Sherlock Think Alpha', provider: 'Sherlock AI', description: 'Advanced reasoning model', category: 'chat' },
+
   // Other Models
   { id: 'openrouter/auto', name: 'Auto Router', provider: 'OpenRouter', description: 'Auto-selects best model', category: 'chat' },
   { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding', category: 'code' },

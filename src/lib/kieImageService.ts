@@ -119,42 +119,6 @@ export async function checkImageTaskStatus(taskId: string, model: ImageModel): P
   }
 }
 
-/**
- * Generate image with polling
- */
-export async function generateImage(
-  params: ImageGenerateParams,
-  onProgress?: (status: string) => void
-): Promise<string[]> {
-  onProgress?.('Creating task...');
-  const taskResponse = await createImageTask(params);
-  const taskId = taskResponse.task_id;
-
-  onProgress?.('Processing...');
-
-  // Poll for completion
-  const maxAttempts = 120; // 2 minutes max
-  const pollInterval = 1000; // 1 second
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    await new Promise(resolve => setTimeout(resolve, pollInterval));
-
-    const status = await checkImageTaskStatus(taskId, params.model);
-
-    if (status.status === 'completed' && status.image_urls && status.image_urls.length > 0) {
-      onProgress?.('Completed!');
-      return status.image_urls;
-    }
-
-    if (status.status === 'failed') {
-      throw new Error(status.error || 'Image generation failed');
-    }
-
-    onProgress?.(`Processing... (${attempt + 1}/${maxAttempts})`);
-  }
-
-  throw new Error('Image generation timed out');
-}
 
 /**
  * Helper functions
@@ -205,4 +169,77 @@ function calculateAspectRatio(width: number, height: number): string {
 
 export function isKieImageAvailable(): boolean {
   return !!KIE_API_KEY;
+}
+
+/**
+ * Legacy compatibility wrapper for generateImage
+ * Matches the old API signature: (prompt: string, model: ImageModel, userId?: string)
+ */
+export async function generateImage(
+  promptOrParams: string | ImageGenerateParams,
+  modelOrProgress?: ImageModel | ((status: string) => void),
+  userIdOrUndefined?: string
+): Promise<{ url: string; seed?: number }> {
+  let params: ImageGenerateParams;
+  let onProgress: ((status: string) => void) | undefined;
+
+  // Handle both old and new API signatures
+  if (typeof promptOrParams === 'string') {
+    // Old API: generateImage(prompt, model, userId)
+    params = {
+      prompt: promptOrParams,
+      model: (modelOrProgress as ImageModel) || 'nano-banana',
+      width: 1024,
+      height: 1024,
+    };
+  } else {
+    // New API: generateImage(params, onProgress)
+    params = promptOrParams;
+    onProgress = modelOrProgress as ((status: string) => void) | undefined;
+  }
+
+  // Call the actual implementation
+  const images = await generateImageTask(params, onProgress);
+
+  return {
+    url: images[0],
+    seed: params.seed,
+  };
+}
+
+/**
+ * Internal implementation with correct signature
+ */
+async function generateImageTask(
+  params: ImageGenerateParams,
+  onProgress?: (status: string) => void
+): Promise<string[]> {
+  onProgress?.('Creating task...');
+  const taskResponse = await createImageTask(params);
+  const taskId = taskResponse.task_id;
+
+  onProgress?.('Processing...');
+
+  // Poll for completion
+  const maxAttempts = 120; // 2 minutes max
+  const pollInterval = 1000; // 1 second
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+    const status = await checkImageTaskStatus(taskId, params.model);
+
+    if (status.status === 'completed' && status.image_urls && status.image_urls.length > 0) {
+      onProgress?.('Completed!');
+      return status.image_urls;
+    }
+
+    if (status.status === 'failed') {
+      throw new Error(status.error || 'Image generation failed');
+    }
+
+    onProgress?.(`Processing... (${attempt + 1}/${maxAttempts})`);
+  }
+
+  throw new Error('Image generation timed out');
 }
