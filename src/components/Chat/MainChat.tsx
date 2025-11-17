@@ -20,13 +20,13 @@ import { ProfileButton } from '../Common/ProfileButton';
 import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
 import { SimpleImageGenerator } from './SimpleImageGenerator';
-import { VideoGenerator } from './VideoGenerator';
+import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
 import { PPTStudio } from '../Studio/PPTStudio';
 import { ImageStudioView } from '../Studio/ImageStudioView';
 import { VideoStudioView } from '../Studio/VideoStudioView';
-import { MusicStudioView } from '../Studio/MusicStudioView';
+import { SimpleMusicStudio } from '../Studio/SimpleMusicStudio';
 import { CodeStudioView } from '../Studio/CodeStudioView';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MediaPreview } from './MediaPreview';
@@ -971,50 +971,12 @@ export const MainChat: React.FC = () => {
               initialPrompt={imagePrompt}
             />
           ) : showVideoGenerator ? (
-            <VideoGenerator
+            <SimpleVideoGenerator
               onClose={() => {
                 setShowVideoGenerator(false);
                 setVideoPrompt('');
               }}
               initialPrompt={videoPrompt}
-              onVideoGenerated={async (video) => {
-                console.log('Generated video:', video);
-
-                // Create project if none exists
-                let projectId = activeProjectId;
-                if (!projectId) {
-                  const newProject = await createProject(
-                    video.prompt?.substring(0, 50) || 'Video Generation',
-                    'chat',
-                    video.prompt || ''
-                  );
-                  projectId = newProject.id;
-                  setActiveProjectId(projectId);
-                }
-
-                if (projectId) {
-                  const assistantMessage = await addMessage(
-                    activeProjectId,
-                    'assistant',
-                    `Generated video: ${video.prompt}`,
-                    user?.uid || '',
-                    undefined,
-                    {
-                      generatedContent: {
-                        type: 'video',
-                        url: video.url,
-                        prompt: video.prompt,
-                        metadata: video.metadata
-                      }
-                    }
-                  );
-                  if (assistantMessage) {
-                    setMessages(prev => [...prev, assistantMessage as any]);
-                  }
-                }
-                setShowVideoGenerator(false);
-                setVideoPrompt('');
-              }}
             />
           ) : showPPTGenerator ? (
             <PPTStudio
@@ -1043,7 +1005,7 @@ export const MainChat: React.FC = () => {
               }}
             />
           ) : showMusicGenerator ? (
-            <MusicStudioView
+            <SimpleMusicStudio
               onBack={() => {
                 setShowMusicGenerator(false);
                 setMusicPrompt('');
