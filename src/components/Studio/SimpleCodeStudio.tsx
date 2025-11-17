@@ -17,32 +17,32 @@ export const SimpleCodeStudio: React.FC<SimpleCodeStudioProps> = ({ onClose }) =
   const exampleApps = [
     {
       icon: '🎨',
-      title: 'Nano banana powered app',
-      description: 'Add powerful photo editing to your app. Allow users to add objects, remove backgrounds, or change a photo\'s style just by typing.'
+      title: 'KroniQ Image Studio',
+      description: 'Add powerful AI image generation to your app. Create stunning visuals from text prompts with advanced control over style and composition.'
     },
     {
       icon: '🎙️',
-      title: 'Create conversational voice apps',
-      description: 'Use the Gemini Live API to give your app a voice and make your own conversational experiences.'
+      title: 'KroniQ Audio Studio',
+      description: 'Generate AI-powered music and speech. Create custom soundtracks, voiceovers, and audio content for any application.'
     },
     {
       icon: '🎬',
-      title: 'Animate images with Veo',
-      description: 'Bring images to life with Veo 3. Let users upload a product photo and turn it into a dynamic video ad, or animate a character\'s portrait.'
+      title: 'KroniQ Video Studio',
+      description: 'Bring ideas to life with AI video generation. Create high-quality videos from text descriptions with cinematic control.'
     },
     {
-      icon: 'G',
-      title: 'Use Google Search data',
-      description: 'Connect your app to real-time Google Search results. Build an agent that can discuss current events, cite recent news, or fact-check information.'
+      icon: '💼',
+      title: 'Business AI Solutions',
+      description: 'Build enterprise-grade AI applications with KroniQ. Automate workflows, analyze data, and enhance productivity with advanced AI.'
     }
   ];
 
   const recentProjects = [
-    'Jane Doe - Developer & F...',
-    'Gemini Image Generator',
-    'Randomizer Hub',
-    'Veo Studio',
-    'SolidCraft AI'
+    'Portfolio Website',
+    'E-commerce Platform',
+    'Dashboard UI',
+    'Landing Page',
+    'Mobile App'
   ];
 
   const handleGenerate = async () => {
@@ -212,9 +212,9 @@ export default function Portfolio() {
               {/* Hero Section */}
               <div className="text-center mb-12">
                 <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                  Build your ideas with Gemini
+                  Build your ideas with KroniQ
                 </h1>
-                <p className="text-white/60 text-lg">Create powerful applications with AI assistance</p>
+                <p className="text-white/60 text-lg">Create powerful applications with advanced AI assistance</p>
               </div>
 
               {/* Input Section */}
@@ -230,7 +230,7 @@ export default function Portfolio() {
                   />
                   <div className="absolute bottom-4 right-4 flex items-center gap-2">
                     <button className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-white/60 transition-colors">
-                      Model: Gemini 2.5 Pro
+                      Model: KroniQ AI Pro
                     </button>
                     <button className="p-2 hover:bg-white/10 rounded-lg text-white/60 transition-colors">
                       🎤
@@ -312,7 +312,7 @@ export default function Portfolio() {
           >
             ← Back to start
           </button>
-          <div className="text-lg font-semibold">Gemini Image Generator</div>
+          <div className="text-lg font-semibold">KroniQ Code Generator</div>
         </div>
         <div className="flex items-center gap-3">
           <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">⚙️</button>
