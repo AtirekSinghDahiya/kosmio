@@ -3,7 +3,7 @@
  * Complete implementation matching Kie AI API documentation
  */
 
-const KIE_API_KEY = '8241daa7e6b6271fc75b5a2ecc85e428';
+const KIE_API_KEY = import.meta.env.VITE_KIE_API_KEY || '862c447ed6c7380e8b26df05c475ec0c';
 const KIE_API_BASE = 'https://api.kie.ai/api/v1';
 
 export interface Veo3GenerateParams {

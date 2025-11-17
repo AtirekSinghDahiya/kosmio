@@ -3,7 +3,7 @@
  * Supports: Nano Banana, Seedreem, GPT-4o Image
  */
 
-const KIE_API_KEY = '8241daa7e6b6271fc75b5a2ecc85e428';
+const KIE_API_KEY = import.meta.env.VITE_KIE_API_KEY || '862c447ed6c7380e8b26df05c475ec0c';
 const KIE_API_BASE = 'https://api.kie.art';
 
 export type ImageModel = 'nano-banana' | 'seedreem' | 'gpt-4o-image';
