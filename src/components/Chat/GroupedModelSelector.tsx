@@ -261,7 +261,7 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
                             </span>
                             <span className="flex items-center gap-1 text-xs text-white/60">
                               <Zap className="w-3 h-3" />
-                              {formatTokenDisplay(modelCost.tokensPerMessage)}/msg
+                              {modelCost.pricePerMillion || formatTokenDisplay(modelCost.tokensPerMessage)}
                             </span>
                           </div>
                         </div>

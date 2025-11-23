@@ -27,7 +27,7 @@ import { PPTStudio } from '../Studio/PPTStudio';
 import { ImageStudioView } from '../Studio/ImageStudioView';
 import { VideoStudioView } from '../Studio/VideoStudioView';
 import { SimpleMusicStudio } from '../Studio/SimpleMusicStudio';
-import { SimpleCodeStudio } from '../Studio/SimpleCodeStudio';
+import { CodeStudio } from '../Studio/CodeStudio';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MediaPreview } from './MediaPreview';
 import { TypingEffect, TypingIndicator } from './TypingEffect';
@@ -998,7 +998,7 @@ export const MainChat: React.FC = () => {
               }}
             />
           ) : showCodeStudio ? (
-            <SimpleCodeStudio
+            <CodeStudio
               onClose={() => {
                 setShowCodeStudio(false);
                 setCodePrompt('');

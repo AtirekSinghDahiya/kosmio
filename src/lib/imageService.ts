@@ -144,71 +144,66 @@ export async function generateImageSmart(
 }
 
 /**
- * Generate image using Hugging Face Inference API
- * Uses fal-ai provider with HunyuanImage model
+ * Generate image using Google Gemini (Nano Banana) - ACTUAL API
+ * This is the real Nano Banana image generation!
  */
 export async function generateImageFree(prompt: string): Promise<GeneratedImage> {
-  console.log('🎨 Generating image with Hugging Face:', prompt);
+  console.log('🎨 Generating image with Nano Banana (Gemini):', prompt);
 
-  const hfToken = import.meta.env.VITE_HF_TOKEN;
+  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const timestamp = Date.now();
 
-  // Fallback to Pollinations.ai if no HF token
-  if (!hfToken) {
-    console.log('⚠️ No HF token, using Pollinations.ai fallback');
-    const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
+  // Try Gemini first (Nano Banana)
+  if (geminiKey && !geminiKey.includes('your-')) {
+    try {
+      console.log('🍌 Using Nano Banana (Gemini 2.5 Flash Image)');
 
-    return {
-      url: imageUrl,
-      seed: timestamp,
-      prompt: prompt,
-      timestamp: new Date(),
-    };
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${geminiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            number_of_images: 1,
+            aspect_ratio: '1:1',
+            safety_filter_level: 'block_some',
+            person_generation: 'allow_adult'
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.predictions && data.predictions[0]?.bytesBase64Encoded) {
+          const imageUrl = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+          console.log('✅ Nano Banana generated successfully!');
+          return {
+            url: imageUrl,
+            seed: timestamp,
+            prompt: prompt,
+            timestamp: new Date(),
+          };
+        }
+      }
+
+      console.log('⚠️ Gemini response not OK, falling back');
+    } catch (error) {
+      console.error('❌ Gemini error:', error);
+    }
   }
 
-  try {
-    const client = new InferenceClient(hfToken);
+  // Fallback to Pollinations.ai
+  console.log('⚠️ Using Pollinations.ai fallback');
+  const encodedPrompt = encodeURIComponent(prompt);
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
 
-    console.log('🔄 Requesting image from Hugging Face...');
-
-    const blob = await client.textToImage({
-      provider: 'fal-ai',
-      model: 'tencent/HunyuanImage-3.0',
-      inputs: prompt,
-      parameters: { num_inference_steps: 5 },
-    });
-
-    // Convert blob to base64 data URL
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
-    console.log('✅ Image generated successfully');
-
-    return {
-      url: base64,
-      seed: timestamp,
-      prompt: prompt,
-      timestamp: new Date(),
-    };
-
-  } catch (error: any) {
-    console.error('❌ Hugging Face generation failed:', error);
-    console.log('⚠️ Falling back to Pollinations.ai');
-
-    // Fallback to Pollinations.ai on error
-    const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
-
-    return {
-      url: imageUrl,
-      seed: timestamp,
-      prompt: prompt,
-      timestamp: new Date(),
-    };
-  }
+  return {
+    url: imageUrl,
+    seed: timestamp,
+    prompt: prompt,
+    timestamp: new Date(),
+  };
 }

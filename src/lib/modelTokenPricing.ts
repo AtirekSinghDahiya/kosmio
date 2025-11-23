@@ -1,9 +1,12 @@
+import { getPricePerMillionTokens, getModelPricing } from './modelPricing';
+
 export interface ModelTokenCost {
   id: string;
   name: string;
   provider: string;
   tokensPerMessage: number;
   costPerMessage: number;
+  pricePerMillion?: string; // Actual price per 1M tokens with our margin
   tier: 'free' | 'budget' | 'mid' | 'premium' | 'ultra-premium';
   description: string;
   icon: string;
@@ -621,7 +624,7 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
 };
 
 export function getModelCost(modelId: string): ModelTokenCost {
-  return MODEL_TOKEN_COSTS[modelId] || {
+  const cost = MODEL_TOKEN_COSTS[modelId] || {
     id: modelId,
     name: modelId,
     provider: 'Unknown',
@@ -631,6 +634,11 @@ export function getModelCost(modelId: string): ModelTokenCost {
     description: 'Unknown model',
     icon: '❓',
   };
+
+  // Add actual pricing from OpenRouter with our margin
+  cost.pricePerMillion = getPricePerMillionTokens(modelId);
+
+  return cost;
 }
 
 export function getTierBadgeColor(tier: ModelTokenCost['tier']): string {
