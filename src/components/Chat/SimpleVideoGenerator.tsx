@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Video, Loader, Play } from 'lucide-react';
 import { generateWithVeo3 } from '../../lib/googleVeo3Service';
 import { generateWithSora2 } from '../../lib/openaiSora2Service';
+import { generateWithVeo2 } from '../../lib/veo2Service';
+import { generateWithHailuo } from '../../lib/minimaxHailuoService';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveVideoToProject } from '../../lib/contentSaveService';
@@ -21,7 +23,7 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState('');
-  const [selectedModel, setSelectedModel] = useState<'veo-3' | 'sora-2'>('veo-3');
+  const [selectedModel, setSelectedModel] = useState<'veo-2' | 'veo-3' | 'sora-2' | 'hailuo'>('veo-2');
   const [aspectRatio, setAspectRatio] = useState<'landscape' | 'portrait' | 'square'>('landscape');
   const [duration, setDuration] = useState<4 | 6 | 8>(8);
 
@@ -38,9 +40,19 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
     try {
       let videoUrl: string;
 
-      if (selectedModel === 'veo-3') {
+      if (selectedModel === 'veo-2') {
+        videoUrl = await generateWithVeo2(
+          { prompt },
+          (status) => setProgress(status)
+        );
+      } else if (selectedModel === 'veo-3') {
         videoUrl = await generateWithVeo3(
           { prompt, aspectRatio, duration, resolution: '1080p' },
+          (status) => setProgress(status)
+        );
+      } else if (selectedModel === 'hailuo') {
+        videoUrl = await generateWithHailuo(
+          { prompt, duration: duration === 4 ? 6 : duration, resolution: '768P' },
           (status) => setProgress(status)
         );
       } else {
@@ -55,10 +67,16 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
 
       if (user) {
         try {
+          const providerMap = {
+            'veo-2': 'veo-2',
+            'veo-3': 'google-veo',
+            'sora-2': 'openai-sora',
+            'hailuo': 'minimax-hailuo'
+          };
           await saveVideoToProject(user.uid, prompt, videoUrl, {
             model: selectedModel,
             duration,
-            provider: selectedModel === 'veo-3' ? 'google-veo' : 'openai-sora'
+            provider: providerMap[selectedModel]
           });
         } catch (saveError) {
           console.error('Failed to save video:', saveError);
@@ -81,6 +99,8 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
   };
 
   const models = [
+    { id: 'veo-2' as const, label: 'Google Veo 2', subtitle: 'Fast and reliable video generation', provider: 'google' },
+    { id: 'hailuo' as const, label: 'MiniMax Hailuo', subtitle: 'High-quality video with camera control', provider: 'minimax' },
     { id: 'veo-3' as const, label: 'Google Veo 3.1', subtitle: 'Latest Google video model', provider: 'google' },
     { id: 'sora-2' as const, label: 'OpenAI Sora 2', subtitle: 'OpenAI\'s advanced video model', provider: 'openai' }
   ];
