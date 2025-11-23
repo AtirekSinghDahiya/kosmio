@@ -61,51 +61,45 @@ export async function generateWithGeminiTTS(
 
     onProgress?.('Initializing Gemini TTS...');
 
-    const voice = params.voice || 'en-US-Neural2-A';
-    const language = params.language || 'en-US';
+    // Use AIMLAPI for text-to-speech (supports multiple TTS providers)
+    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
 
-    // Call Google Cloud Text-to-Speech API
-    const response = await fetch(
-      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          input: { text: params.text },
-          voice: {
-            languageCode: language,
-            name: voice,
-          },
-          audioConfig: {
-            audioEncoding: 'MP3',
-            speakingRate: params.speed || 1.0,
-            pitch: params.pitch || 0.0,
-            volumeGainDb: 0.0,
-            sampleRateHertz: 24000,
-            effectsProfileId: ['small-bluetooth-speaker-class-device']
-          },
-        }),
-      }
-    );
+    if (!AIML_KEY) {
+      throw new Error('AIMLAPI key not configured');
+    }
+
+    onProgress?.('Generating speech...');
+
+    const response = await fetch('https://api.aimlapi.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AIML_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'tts-1-hd',
+        input: params.text,
+        voice: 'nova',
+      }),
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini TTS Error:', errorText);
-      throw new Error(`Gemini TTS Error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`TTS generation error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
-    const data = await response.json();
+    // Convert audio blob to base64
+    const audioBlob = await response.blob();
+    const reader = new FileReader();
 
-    if (!data.audioContent) {
-      throw new Error('No audio content in response');
-    }
-
-    onProgress?.('Speech generated successfully!');
-
-    // Return as data URL
-    return `data:audio/mp3;base64,${data.audioContent}`;
+    return new Promise((resolve, reject) => {
+      reader.onloadend = () => {
+        onProgress?.('Speech generated successfully!');
+        resolve(reader.result as string);
+      };
+      reader.onerror = () => reject(new Error('Failed to read audio data'));
+      reader.readAsDataURL(audioBlob);
+    });
 
   } catch (error: any) {
     console.error('Gemini TTS error:', error);

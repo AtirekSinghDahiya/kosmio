@@ -36,27 +36,33 @@ export async function generateWithSora2(
     const dimensions = dimensionMap[params.aspectRatio || 'landscape'];
     const duration = Math.min(params.duration || 10, 20); // Max 20 seconds
 
-    // Call OpenAI Sora API
-    const response = await fetch('https://api.openai.com/v1/video/generations', {
+    // Use AIMLAPI for video generation with Sora
+    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
+
+    if (!AIML_KEY) {
+      throw new Error('AIMLAPI key not configured');
+    }
+
+    onProgress?.('Generating video with Sora...');
+
+    const response = await fetch('https://api.aimlapi.com/v1/video/generation', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_KEY}`,
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AIML_KEY}`,
       },
       body: JSON.stringify({
-        model: 'sora-2.0',
+        model: 'sora-2',
         prompt: params.prompt,
         duration: duration,
-        size: `${dimensions.width}x${dimensions.height}`,
+        aspect_ratio: params.aspectRatio || 'landscape',
         quality: params.resolution === '1080p' ? 'hd' : 'standard',
-        n: 1
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Sora 2 API Error:', errorText);
-      throw new Error(`Sora 2 API Error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Video generation error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
@@ -70,13 +76,13 @@ export async function generateWithSora2(
       const maxAttempts = 90; // 3 minutes timeout
 
       while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         const statusResponse = await fetch(
-          `https://api.openai.com/v1/video/generations/${data.id}`,
+          `https://api.aimlapi.com/v1/video/generation/${data.id}`,
           {
             headers: {
-              'Authorization': `Bearer ${OPENAI_KEY}`,
+              'Authorization': `Bearer ${AIML_KEY}`,
             },
           }
         );

@@ -37,66 +37,62 @@ export async function generateWithVeo3(
     const duration = params.duration || 8;
     const resolution = params.resolution || '1080p';
 
-    // Call Google Veo API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/veo-3.1:generateVideo?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: params.prompt,
-          duration: duration,
-          aspectRatio: aspectRatio,
-          resolution: resolution,
-          numberOfVideos: 1,
-          safetyFilterLevel: 'BLOCK_MEDIUM_AND_ABOVE'
-        }),
-      }
-    );
+    // Use AIMLAPI for video generation
+    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
+
+    if (!AIML_KEY) {
+      throw new Error('AIMLAPI key not configured');
+    }
+
+    onProgress?.('Generating video...');
+
+    const response = await fetch('https://api.aimlapi.com/v1/video/generation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AIML_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'veo-3',
+        prompt: params.prompt,
+        duration: duration,
+        aspect_ratio: aspectRatio,
+        resolution: resolution,
+      }),
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Veo 3.1 API Error:', errorText);
-      throw new Error(`Veo 3.1 API Error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Video generation error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
+    onProgress?.('Video generation in progress...');
 
-    // Handle operation response (long-running operation)
-    if (data.name) {
-      onProgress?.('Video generation in progress...');
-
-      // Poll for completion
-      const operationName = data.name;
+    // Poll for completion if we get a job ID
+    if (data.id) {
       let attempts = 0;
-      const maxAttempts = 60; // 2 minutes timeout
+      const maxAttempts = 60;
 
       while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
-        const statusResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/${operationName}?key=${GEMINI_KEY}`
-        );
+        const statusResponse = await fetch(`https://api.aimlapi.com/v1/video/generation/${data.id}`, {
+          headers: {
+            'Authorization': `Bearer ${AIML_KEY}`,
+          },
+        });
 
         const statusData = await statusResponse.json();
 
-        if (statusData.done) {
-          if (statusData.error) {
-            throw new Error(statusData.error.message || 'Video generation failed');
-          }
-
-          const videoUrl = statusData.response?.generatedVideos?.[0]?.uri;
-          if (!videoUrl) {
-            throw new Error('No video URL in response');
-          }
-
+        if (statusData.status === 'completed') {
           onProgress?.('Video generated successfully!');
-          return videoUrl;
+          return statusData.video_url || statusData.url;
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.error || 'Video generation failed');
         }
 
-        onProgress?.(`Generating video... (${attempts * 2}s)`);
+        onProgress?.(`Generating video... (${attempts * 3}s)`);
         attempts++;
       }
 

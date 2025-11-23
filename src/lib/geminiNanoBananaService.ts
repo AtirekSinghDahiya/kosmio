@@ -34,80 +34,42 @@ export async function generateWithNanoBanana(
 
     const aspectRatio = aspectRatioMap[params.aspectRatio || 'square'];
 
-    // Use FAL.ai API for image generation with Flux model
-    const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+    // Use AIMLAPI for image generation (supports multiple models)
+    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
 
-    if (!FAL_KEY || FAL_KEY.includes('your-')) {
-      throw new Error('FAL API key not configured');
+    if (!AIML_KEY) {
+      throw new Error('AIMLAPI key not configured');
     }
 
-    // Submit generation request
-    const submitResponse = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
+    onProgress?.('Generating image...');
+
+    const imageResponse = await fetch('https://api.aimlapi.com/v1/images/generations', {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${FAL_KEY}`,
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AIML_KEY}`,
       },
       body: JSON.stringify({
+        model: 'flux-schnell',
         prompt: params.prompt,
-        image_size: aspectRatio === '16:9' ? 'landscape_16_9' : aspectRatio === '9:16' ? 'portrait_9_16' : 'square',
-        num_images: params.numberOfImages || 1,
+        n: params.numberOfImages || 1,
+        size: aspectRatio === '16:9' ? '1024x576' : aspectRatio === '9:16' ? '576x1024' : '1024x1024',
       }),
     });
 
-    if (!submitResponse.ok) {
-      const errorText = await submitResponse.text();
-      console.error('FAL API Error:', errorText);
-      throw new Error(`FAL API Error: ${submitResponse.status}`);
+    if (!imageResponse.ok) {
+      const errorData = await imageResponse.json().catch(() => ({}));
+      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || imageResponse.statusText}`);
     }
 
-    const { request_id } = await submitResponse.json();
-    onProgress?.('Image generation queued...');
+    const imageData = await imageResponse.json();
+    onProgress?.('Image generated successfully!');
 
-    // Poll for result
-    let attempts = 0;
-    const maxAttempts = 60;
-
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const statusResponse = await fetch(
-        `https://queue.fal.run/fal-ai/flux/schnell/requests/${request_id}/status`,
-        {
-          headers: {
-            'Authorization': `Key ${FAL_KEY}`,
-          },
-        }
-      );
-
-      const statusData = await statusResponse.json();
-
-      if (statusData.status === 'COMPLETED') {
-        const resultResponse = await fetch(
-          `https://queue.fal.run/fal-ai/flux/schnell/requests/${request_id}`,
-          {
-            headers: {
-              'Authorization': `Key ${FAL_KEY}`,
-            },
-          }
-        );
-
-        const result = await resultResponse.json();
-
-        if (result.images && result.images.length > 0) {
-          onProgress?.('Image generated successfully!');
-          return result.images[0].url;
-        }
-        throw new Error('No images in result');
-      } else if (statusData.status === 'FAILED') {
-        throw new Error(statusData.error || 'Generation failed');
-      }
-
-      onProgress?.(`Generating image... (${attempts * 2}s)`);
-      attempts++;
+    if (imageData.data && imageData.data.length > 0) {
+      return imageData.data[0].url;
     }
 
-    throw new Error('Image generation timed out');
+    throw new Error('No image data in response');
 
   } catch (error: any) {
     console.error('Nano Banana generation error:', error);

@@ -44,31 +44,31 @@ export async function generateWithElevenLabs(
     const voiceId = params.voice || ELEVENLABS_VOICES[0].id;
     const modelId = params.model || 'eleven_monolingual_v1';
 
-    // Call ElevenLabs API
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': ELEVENLABS_KEY,
-        },
-        body: JSON.stringify({
-          text: params.text,
-          model_id: modelId,
-          voice_settings: {
-            stability: params.stability || 0.5,
-            similarity_boost: params.similarity_boost || 0.75,
-          },
-        }),
-      }
-    );
+    // Use AIMLAPI for text-to-speech (supports multiple TTS providers)
+    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
+
+    if (!AIML_KEY) {
+      throw new Error('AIMLAPI key not configured');
+    }
+
+    onProgress?.('Generating speech...');
+
+    const response = await fetch('https://api.aimlapi.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${AIML_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        input: params.text,
+        voice: 'alloy',
+      }),
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('ElevenLabs API Error:', errorText);
-      throw new Error(`ElevenLabs API Error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`TTS generation error: ${response.status} - ${errorData.error?.message || response.statusText}`);
     }
 
     // Convert audio blob to base64

@@ -38,7 +38,7 @@ interface SunoStatusResponse {
   };
 }
 
-const SUNO_API_BASE = 'https://api.sunoapi.org/api/v1';
+const SUNO_API_BASE = 'https://api.aimlapi.com/v1/audio';
 
 /**
  * Generate music using Suno AI
@@ -61,13 +61,16 @@ export async function generateSunoMusic(
     requestBody.negativeTags = request.negativeTags;
   }
 
-  const response = await fetch(`${SUNO_API_BASE}/generate`, {
+  const response = await fetch(`${SUNO_API_BASE}/music/generations`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify({
+      prompt: request.prompt,
+      duration: 'short',
+    }),
   });
 
   if (!response.ok) {
@@ -87,15 +90,15 @@ export async function generateSunoMusic(
     throw new Error(`API Error (${response.status}): ${errorText || 'Unknown error'}`);
   }
 
-  const data: SunoGenerationResponse = await response.json();
+  const data: any = await response.json();
 
-  if (data.code !== 200) {
-    console.error('Suno generation failed:', data);
-    const errorMsg = data.message || 'Failed to generate music';
-    throw new Error(`Suno Error: ${errorMsg}`);
+  if (!data.id) {
+    console.error('Music generation failed:', data);
+    const errorMsg = data.error?.message || 'Failed to generate music';
+    throw new Error(`Music Error: ${errorMsg}`);
   }
 
-  return data.data.taskId;
+  return data.id;
 }
 
 /**
@@ -106,7 +109,7 @@ export async function checkSunoStatus(
   apiKey: string
 ): Promise<SunoStatusResponse['data']> {
   const response = await fetch(
-    `${SUNO_API_BASE}/generate/record-info?taskId=${taskId}`,
+    `${SUNO_API_BASE}/music/generations/${taskId}`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -121,14 +124,24 @@ export async function checkSunoStatus(
     throw new Error(`Status Check Error (${response.status}): ${errorText}`);
   }
 
-  const data: SunoStatusResponse = await response.json();
+  const data: any = await response.json();
 
-  if (data.code !== 200) {
-    console.error('Suno status check failed:', data);
-    throw new Error(data.message || 'Failed to check status');
+  if (data.error) {
+    console.error('Music status check failed:', data);
+    throw new Error(data.error.message || 'Failed to check status');
   }
 
-  return data.data;
+  return {
+    status: data.status === 'succeeded' ? 'SUCCESS' : data.status === 'failed' ? 'FAILED' : 'PROCESSING',
+    response: data.status === 'succeeded' ? {
+      sunoData: [{
+        audioUrl: data.audio_url || data.url,
+        title: data.title || 'Generated Music',
+        tags: '',
+        duration: data.duration || 0,
+      }]
+    } : undefined,
+  };
 }
 
 /**
