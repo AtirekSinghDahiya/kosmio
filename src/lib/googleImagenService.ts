@@ -1,6 +1,7 @@
 /**
- * Google Imagen 4.0 Image Generation Service
- * Uses Google's latest Imagen model for high-quality image generation
+ * Google Imagen 3 Image Generation Service
+ * Uses Google's official Imagen API via Gemini
+ * Documentation: https://ai.google.dev/gemini-api/docs/imagen
  */
 
 export interface ImagenParams {
@@ -16,7 +17,7 @@ export interface ImagenResult {
 }
 
 /**
- * Generate images using Google Imagen 4.0
+ * Generate images using Google Imagen 3
  */
 export async function generateWithImagen(
   params: ImagenParams,
@@ -29,7 +30,7 @@ export async function generateWithImagen(
       throw new Error('Google Gemini API key not configured');
     }
 
-    onProgress?.('Initializing Imagen 4.0...');
+    onProgress?.('Initializing Google Imagen 3...');
 
     // Map aspect ratios to Imagen format
     const aspectRatioMap: Record<string, string> = {
@@ -40,80 +41,67 @@ export async function generateWithImagen(
 
     const aspectRatio = aspectRatioMap[params.aspectRatio || 'square'];
 
-    // Use FAL.ai API for image generation
-    const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+    // Google Imagen 3 API endpoint
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_KEY}`;
 
-    if (!FAL_KEY || FAL_KEY.includes('your-')) {
-      throw new Error('FAL API key not configured');
-    }
+    onProgress?.('Generating image with Imagen 3...');
 
-    // Submit generation request
-    const submitResponse = await fetch('https://queue.fal.run/fal-ai/flux-pro', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${FAL_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: params.prompt,
-        image_size: aspectRatio === '16:9' ? 'landscape_16_9' : aspectRatio === '9:16' ? 'portrait_9_16' : 'square',
-        num_images: params.numberOfImages || 1,
+        instances: [
+          {
+            prompt: params.prompt,
+            ...(params.negativePrompt && { negative_prompt: params.negativePrompt }),
+            aspect_ratio: aspectRatio,
+            number_of_images: params.numberOfImages || 1,
+            safety_filter_level: 'block_some',
+            person_generation: 'allow_adult',
+          },
+        ],
+        parameters: {
+          sampleCount: params.numberOfImages || 1,
+        },
       }),
     });
 
-    if (!submitResponse.ok) {
-      const errorText = await submitResponse.text();
-      console.error('FAL API Error:', errorText);
-      throw new Error(`FAL API Error: ${submitResponse.status}`);
-    }
-
-    const { request_id } = await submitResponse.json();
-    onProgress?.('Image generation queued...');
-
-    // Poll for result
-    let attempts = 0;
-    const maxAttempts = 60;
-
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const statusResponse = await fetch(
-        `https://queue.fal.run/fal-ai/flux-pro/requests/${request_id}/status`,
-        {
-          headers: {
-            'Authorization': `Key ${FAL_KEY}`,
-          },
-        }
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Google Imagen API Error:', errorData);
+      throw new Error(
+        `Google Imagen API error: ${response.status} - ${
+          errorData.error?.message || response.statusText
+        }`
       );
-
-      const statusData = await statusResponse.json();
-
-      if (statusData.status === 'COMPLETED') {
-        const resultResponse = await fetch(
-          `https://queue.fal.run/fal-ai/flux-pro/requests/${request_id}`,
-          {
-            headers: {
-              'Authorization': `Key ${FAL_KEY}`,
-            },
-          }
-        );
-
-        const result = await resultResponse.json();
-
-        if (result.images && result.images.length > 0) {
-          onProgress?.('Image generated successfully!');
-          return result.images[0].url;
-        }
-        throw new Error('No images in result');
-      } else if (statusData.status === 'FAILED') {
-        throw new Error(statusData.error || 'Generation failed');
-      }
-
-      onProgress?.(`Generating image... (${attempts * 2}s)`);
-      attempts++;
     }
 
-    throw new Error('Image generation timed out');
+    const data = await response.json();
+    onProgress?.('Image generated successfully!');
+
+    // Extract image data from response
+    // Google returns base64 encoded images
+    const prediction = data.predictions?.[0];
+    if (!prediction) {
+      throw new Error('No image data in response');
+    }
+
+    // Check for different possible response formats
+    let imageData: string;
+    if (prediction.bytesBase64Encoded) {
+      imageData = prediction.bytesBase64Encoded;
+    } else if (prediction.image) {
+      imageData = prediction.image;
+    } else {
+      throw new Error('Unexpected response format from Imagen API');
+    }
+
+    // Convert base64 to data URL
+    const imageUrl = `data:image/png;base64,${imageData}`;
+
+    return imageUrl;
 
   } catch (error: any) {
     console.error('Imagen generation error:', error);
