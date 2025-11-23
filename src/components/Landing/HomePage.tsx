@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, Star, TrendingUp, Users, Coins, Crown, Building2 } from 'lucide-react';
+import { MessageSquare, Code, Palette, Video, ArrowRight, Check, Sparkles, Zap, Star, TrendingUp, Users, Coins, Crown, Building2, Music, Image as ImageIcon, Mic } from 'lucide-react';
 import { Floating3DCard, AnimatedGradientOrb } from './FloatingElements';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getTokenPacks, getTotalTokens } from '../../lib/subscriptionManagementService';
 import { trackPageVisit, trackGetStartedClick, trackEvent } from '../../lib/analyticsService';
+import { AI_MODELS } from '../../lib/aiModels';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -307,6 +308,169 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
                 </div>
               </Floating3DCard>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Models Showcase */}
+      <section className="relative py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <div className="inline-block px-6 py-3 glass-panel rounded-full border border-white/20 mb-8 animate-fade-in">
+              <span className="text-[#00FFF0] text-sm font-bold tracking-wider">150+ AI MODELS</span>
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 animate-fade-in-up">
+              <span className="bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                The Most Comprehensive
+              </span>
+              <br />AI Model Collection
+            </h2>
+            <p className="text-xl text-white/70 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+              Access models from OpenAI, Anthropic, Google, Meta, Mistral, and 15+ more providers
+            </p>
+          </div>
+
+          {/* Featured Models Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* GPT-4o */}
+            <Floating3DCard>
+              <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-[#00FFF0]/50 transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-7 h-7 text-green-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">GPT-4o</h3>
+                <p className="text-sm text-white/60 mb-3">Most capable OpenAI model with vision</p>
+                <span className="inline-block px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-semibold">OpenAI</span>
+              </div>
+            </Floating3DCard>
+
+            {/* Claude 3.5 Sonnet */}
+            <Floating3DCard delay={100}>
+              <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-[#8A2BE2]/50 transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-7 h-7 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Claude 3.5 Sonnet</h3>
+                <p className="text-sm text-white/60 mb-3">Superior reasoning and coding</p>
+                <span className="inline-block px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-semibold">Anthropic</span>
+              </div>
+            </Floating3DCard>
+
+            {/* Gemini 2.0 Flash */}
+            <Floating3DCard delay={200}>
+              <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-blue-500/50 transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-7 h-7 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Gemini 2.0 Flash</h3>
+                <p className="text-sm text-white/60 mb-3">Fast multimodal AI</p>
+                <span className="inline-block px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs font-semibold">Google</span>
+              </div>
+            </Floating3DCard>
+
+            {/* Llama 3.3 70B */}
+            <Floating3DCard delay={300}>
+              <div className="glass-panel rounded-2xl p-6 border border-white/10 hover:border-cyan-500/50 transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-7 h-7 text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Llama 3.3 70B</h3>
+                <p className="text-sm text-white/60 mb-3">Open-source powerhouse</p>
+                <span className="inline-block px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-semibold">Meta</span>
+              </div>
+            </Floating3DCard>
+          </div>
+
+          {/* Model Categories */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Chat Models */}
+            <Floating3DCard>
+              <div className="glass-panel rounded-2xl p-8 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00FFF0]/20 to-blue-600/20 flex items-center justify-center">
+                    <MessageSquare className="w-8 h-8 text-[#00FFF0]" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-white">{AI_MODELS.filter(m => m.category === 'chat').length}+</div>
+                    <div className="text-sm text-white/60">Models</div>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Chat AI</h3>
+                <p className="text-white/70 mb-4 leading-relaxed">
+                  GPT-5.1, Claude 4, Gemini 2.0, Llama 4, Mistral Large, DeepSeek V3.2, Qwen 2.5, and more
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">OpenAI</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Anthropic</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Google</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">+15 more</span>
+                </div>
+              </div>
+            </Floating3DCard>
+
+            {/* Code Models */}
+            <Floating3DCard delay={100}>
+              <div className="glass-panel rounded-2xl p-8 border border-white/10 hover:border-purple-500/30 transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 flex items-center justify-center">
+                    <Code className="w-8 h-8 text-purple-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-white">{AI_MODELS.filter(m => m.category === 'code').length}+</div>
+                    <div className="text-sm text-white/60">Models</div>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Code AI</h3>
+                <p className="text-white/70 mb-4 leading-relaxed">
+                  GPT-5.1 Codex, Codestral, DeepSeek Coder, Qwen 2.5 Coder, and specialized coding models
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Mistral</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">DeepSeek</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Qwen</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">OpenAI</span>
+                </div>
+              </div>
+            </Floating3DCard>
+
+            {/* Media Models */}
+            <Floating3DCard delay={200}>
+              <div className="glass-panel rounded-2xl p-8 border border-white/10 hover:border-pink-500/30 transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-600/20 flex items-center justify-center">
+                    <ImageIcon className="w-8 h-8 text-pink-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-white">{AI_MODELS.filter(m => ['image', 'video', 'audio'].includes(m.category)).length}+</div>
+                    <div className="text-sm text-white/60">Models</div>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Media AI</h3>
+                <p className="text-white/70 mb-4 leading-relaxed">
+                  Sora 2, Veo 3, Flux Pro, Suno AI, ElevenLabs TTS, and cutting-edge media models
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Image</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Video</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Audio</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 text-white/80 text-xs">Music</span>
+                </div>
+              </div>
+            </Floating3DCard>
+          </div>
+
+          {/* Provider Showcase */}
+          <div className="mt-16">
+            <h3 className="text-3xl font-bold text-white text-center mb-10">Powered by Leading AI Providers</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+              {['OpenAI', 'Anthropic', 'Google', 'Meta', 'Mistral AI', 'DeepSeek', 'Qwen', 'X.AI', 'Perplexity', 'Amazon', 'Microsoft', 'Cohere'].map((provider, idx) => (
+                <Floating3DCard key={provider} delay={idx * 50}>
+                  <div className="glass-panel rounded-xl p-4 border border-white/10 hover:border-[#00FFF0]/30 transition-all duration-300 text-center">
+                    <div className="text-white font-semibold text-sm">{provider}</div>
+                  </div>
+                </Floating3DCard>
+              ))}
+            </div>
           </div>
         </div>
       </section>
