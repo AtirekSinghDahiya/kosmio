@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { generateWithLyria } from '../../lib/googleLyriaService';
 import { generateWithSuno } from '../../lib/sunoMusicService';
 import { generateWithGeminiTTS, GEMINI_VOICES } from '../../lib/geminiTTSService';
+import { generateWithElevenLabs, ELEVENLABS_VOICES } from '../../lib/elevenlabsTTSService';
 
 interface SimpleMusicStudioProps {
   onBack?: () => void;
@@ -20,8 +21,10 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
   const [duration, setDuration] = useState<30 | 60 | 120>(30);
   const [musicType, setMusicType] = useState<'vocals' | 'instrumental'>('vocals');
   const [audioMode, setAudioMode] = useState<'music' | 'speech'>('music');
-  const [musicModel, setMusicModel] = useState<'lyria' | 'suno'>('lyria');
+  const [musicModel, setMusicModel] = useState<'lyria' | 'suno'>('suno');
+  const [ttsProvider, setTtsProvider] = useState<'gemini' | 'elevenlabs'>('elevenlabs');
   const [selectedVoice, setSelectedVoice] = useState(GEMINI_VOICES[0].id);
+  const [selectedElevenLabsVoice, setSelectedElevenLabsVoice] = useState(ELEVENLABS_VOICES[0].id);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -49,10 +52,17 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
           );
         }
       } else {
-        audioUrl = await generateWithGeminiTTS(
-          { text: prompt, voice: selectedVoice },
-          (status) => setProgress(status)
-        );
+        if (ttsProvider === 'gemini') {
+          audioUrl = await generateWithGeminiTTS(
+            { text: prompt, voice: selectedVoice },
+            (status) => setProgress(status)
+          );
+        } else {
+          audioUrl = await generateWithElevenLabs(
+            { text: prompt, voice: selectedElevenLabsVoice },
+            (status) => setProgress(status)
+          );
+        }
       }
 
       setGeneratedAudio(audioUrl);
@@ -204,23 +214,54 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
             </div>
           )}
 
-          {/* Voice Selector - Only for Speech Mode */}
+          {/* TTS Provider - Only for Speech Mode */}
           {audioMode === 'speech' && (
-            <div className="p-6 border-b border-white/10">
-              <label className="text-sm font-medium text-white/80 mb-3 block">Voice</label>
-              <select
-                value={selectedVoice}
-                onChange={(e) => setSelectedVoice(e.target.value)}
-                disabled={isGenerating}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 focus:border-pink-500/40 rounded-lg text-white text-sm focus:outline-none"
-              >
-                {GEMINI_VOICES.map((voice) => (
-                  <option key={voice.id} value={voice.id}>
-                    {voice.name} ({voice.gender})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <>
+              <div className="p-6 border-b border-white/10">
+                <label className="text-sm font-medium text-white/80 mb-3 block">TTS Provider</label>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setTtsProvider('elevenlabs')}
+                    disabled={isGenerating}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                      ttsProvider === 'elevenlabs'
+                        ? 'bg-pink-500/20 border-pink-500/50'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="font-medium text-white text-sm">ElevenLabs TTS</div>
+                    <div className="text-xs text-white/50">Premium voice synthesis</div>
+                  </button>
+                  <button
+                    onClick={() => setTtsProvider('gemini')}
+                    disabled={isGenerating}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                      ttsProvider === 'gemini'
+                        ? 'bg-pink-500/20 border-pink-500/50'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="font-medium text-white text-sm">Google Gemini TTS</div>
+                    <div className="text-xs text-white/50">Multilingual voices</div>
+                  </button>
+                </div>
+              </div>
+              <div className="p-6 border-b border-white/10">
+                <label className="text-sm font-medium text-white/80 mb-3 block">Voice</label>
+                <select
+                  value={ttsProvider === 'gemini' ? selectedVoice : selectedElevenLabsVoice}
+                  onChange={(e) => ttsProvider === 'gemini' ? setSelectedVoice(e.target.value) : setSelectedElevenLabsVoice(e.target.value)}
+                  disabled={isGenerating}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 focus:border-pink-500/40 rounded-lg text-white text-sm focus:outline-none"
+                >
+                  {(ttsProvider === 'gemini' ? GEMINI_VOICES : ELEVENLABS_VOICES).map((voice) => (
+                    <option key={voice.id} value={voice.id}>
+                      {voice.name}{ttsProvider === 'gemini' ? ` (${(voice as any).gender})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
 
           {/* Music Type - Only for Music Mode */}

@@ -35,8 +35,8 @@ export async function generateWithSuno(
       params.makeInstrumental ? 'Instrumental only' : 'With vocals'
     ].filter(Boolean).join('. ');
 
-    // Call Suno API
-    const response = await fetch('https://api.sunoaiapi.com/api/v1/gateway/generate/music', {
+    // Call Suno API via sunoapi.org
+    const response = await fetch('https://api.sunoapi.org/api/v1/music', {
       method: 'POST',
       headers: {
         'api-key': SUNO_KEY,
@@ -59,11 +59,11 @@ export async function generateWithSuno(
 
     const data = await response.json();
 
-    if (!data.data || !data.data.task_id) {
-      throw new Error('No task ID in response');
+    if (data.code !== 0 || !data.data || !data.data.taskId) {
+      throw new Error(data.message || 'No task ID in response');
     }
 
-    const taskId = data.data.task_id;
+    const taskId = data.data.taskId;
     onProgress?.('Music generation in progress...');
 
     // Poll for completion
@@ -74,7 +74,7 @@ export async function generateWithSuno(
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       const statusResponse = await fetch(
-        `https://api.sunoaiapi.com/api/v1/gateway/query?ids=${taskId}`,
+        `https://api.sunoapi.org/api/v1/music/${taskId}`,
         {
           headers: {
             'api-key': SUNO_KEY,
@@ -84,14 +84,15 @@ export async function generateWithSuno(
 
       const statusData = await statusResponse.json();
 
-      if (statusData.data && statusData.data.length > 0) {
-        const track = statusData.data[0];
-
-        if (track.status === 'complete' && track.audio_url) {
-          onProgress?.('Music generated successfully!');
-          return track.audio_url;
-        } else if (track.status === 'error') {
-          throw new Error(track.meta?.error_message || 'Music generation failed');
+      if (statusData.code === 0 && statusData.data) {
+        if (statusData.data.status === 'SUCCESS' && statusData.data.response) {
+          const audioUrl = statusData.data.response.sunoData?.[0]?.audioUrl;
+          if (audioUrl) {
+            onProgress?.('Music generated successfully!');
+            return audioUrl;
+          }
+        } else if (statusData.data.status === 'FAILED') {
+          throw new Error('Music generation failed');
         }
       }
 

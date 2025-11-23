@@ -34,70 +34,80 @@ export async function generateWithNanoBanana(
 
     const aspectRatio = aspectRatioMap[params.aspectRatio || 'square'];
 
-    // Call Gemini API with image generation request
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key=${NANO_BANANA_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Generate an image: ${params.prompt}\n\nAspect Ratio: ${aspectRatio}\nStyle: High quality, detailed, professional`
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.9,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 8192,
+    // Use FAL.ai API for image generation with Flux model
+    const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+
+    if (!FAL_KEY || FAL_KEY.includes('your-')) {
+      throw new Error('FAL API key not configured');
+    }
+
+    // Submit generation request
+    const submitResponse = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: params.prompt,
+        image_size: aspectRatio === '16:9' ? 'landscape_16_9' : aspectRatio === '9:16' ? 'portrait_9_16' : 'square',
+        num_images: params.numberOfImages || 1,
+      }),
+    });
+
+    if (!submitResponse.ok) {
+      const errorText = await submitResponse.text();
+      console.error('FAL API Error:', errorText);
+      throw new Error(`FAL API Error: ${submitResponse.status}`);
+    }
+
+    const { request_id } = await submitResponse.json();
+    onProgress?.('Image generation queued...');
+
+    // Poll for result
+    let attempts = 0;
+    const maxAttempts = 60;
+
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const statusResponse = await fetch(
+        `https://queue.fal.run/fal-ai/flux/schnell/requests/${request_id}/status`,
+        {
+          headers: {
+            'Authorization': `Key ${FAL_KEY}`,
           },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }
+      );
+
+      const statusData = await statusResponse.json();
+
+      if (statusData.status === 'COMPLETED') {
+        const resultResponse = await fetch(
+          `https://queue.fal.run/fal-ai/flux/schnell/requests/${request_id}`,
+          {
+            headers: {
+              'Authorization': `Key ${FAL_KEY}`,
             },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
-          ]
-        }),
+          }
+        );
+
+        const result = await resultResponse.json();
+
+        if (result.images && result.images.length > 0) {
+          onProgress?.('Image generated successfully!');
+          return result.images[0].url;
+        }
+        throw new Error('No images in result');
+      } else if (statusData.status === 'FAILED') {
+        throw new Error(statusData.error || 'Generation failed');
       }
-    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Nano Banana API Error:', errorText);
-      throw new Error(`Nano Banana API Error: ${response.status}`);
+      onProgress?.(`Generating image... (${attempts * 2}s)`);
+      attempts++;
     }
 
-    const data = await response.json();
-
-    // Extract image data from response
-    if (!data.candidates || data.candidates.length === 0) {
-      throw new Error('No image generated');
-    }
-
-    const candidate = data.candidates[0];
-
-    // Check for inline data (image)
-    if (candidate.content?.parts?.[0]?.inlineData) {
-      const imageData = candidate.content.parts[0].inlineData;
-      onProgress?.('Image generated successfully!');
-      return `data:${imageData.mimeType};base64,${imageData.data}`;
-    }
-
-    // If no inline data, try to extract from text response
-    const text = candidate.content?.parts?.[0]?.text;
-    if (text && text.includes('base64')) {
-      onProgress?.('Image generated successfully!');
-      return text;
-    }
-
-    throw new Error('No image data in response');
+    throw new Error('Image generation timed out');
 
   } catch (error: any) {
     console.error('Nano Banana generation error:', error);
