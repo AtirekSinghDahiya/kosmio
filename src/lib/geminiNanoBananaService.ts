@@ -1,8 +1,10 @@
 /**
  * Nano Banana Fast Image Generation
- * Uses AIMLAPI with Flux Schnell model for fast image generation
- * Documentation: https://docs.aimlapi.com/api-references/image-models
+ * Uses FAL.ai with Flux Schnell model for fast image generation
+ * Documentation: https://fal.ai/models/fal-ai/flux/schnell/api
  */
+
+import { fal } from '@fal-ai/client';
 
 export interface NanoBananaParams {
   prompt: string;
@@ -11,57 +13,57 @@ export interface NanoBananaParams {
 }
 
 /**
- * Generate images using Flux Schnell via AIMLAPI (fast generation)
+ * Generate images using Flux Schnell via FAL.ai (fast generation)
  */
 export async function generateWithNanoBanana(
   params: NanoBananaParams,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
+    const FAL_KEY = import.meta.env.VITE_FAL_KEY || import.meta.env.VITE_NANO_BANANA_API_KEY;
 
-    if (!AIML_KEY) {
-      throw new Error('AIMLAPI key not configured');
+    if (!FAL_KEY) {
+      throw new Error('FAL.ai API key not configured');
     }
+
+    // Configure FAL client
+    fal.config({
+      credentials: FAL_KEY
+    });
 
     onProgress?.('Initializing fast image generation...');
 
-    // Map aspect ratios to dimensions
-    const dimensionMap: Record<string, string> = {
-      'square': '1024x1024',
-      'landscape': '1024x576',
-      'portrait': '576x1024'
+    // Map aspect ratios to FAL format
+    const aspectRatioMap: Record<string, string> = {
+      'square': 'square',
+      'landscape': 'landscape_4_3',
+      'portrait': 'portrait_4_3'
     };
 
-    const size = dimensionMap[params.aspectRatio || 'square'];
+    const imageSize = aspectRatioMap[params.aspectRatio || 'square'];
 
     onProgress?.('Generating image with Flux Schnell...');
 
-    const imageResponse = await fetch('https://api.aimlapi.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${AIML_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'flux-schnell',
+    const result: any = await fal.subscribe('fal-ai/flux/schnell', {
+      input: {
         prompt: params.prompt,
-        n: params.numberOfImages || 1,
-        size: size,
-      }),
+        image_size: imageSize,
+        num_inference_steps: 4, // Optimal for schnell
+        num_images: params.numberOfImages || 1,
+        enable_safety_checker: true,
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === 'IN_PROGRESS') {
+          onProgress?.('Processing...');
+        }
+      },
     });
 
-    if (!imageResponse.ok) {
-      const errorData = await imageResponse.json().catch(() => ({}));
-      console.error('Image generation error:', imageResponse.status, errorData);
-      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || errorData.message || imageResponse.statusText}`);
-    }
-
-    const imageData = await imageResponse.json();
     onProgress?.('Image generated successfully!');
 
-    if (imageData.data && imageData.data.length > 0) {
-      return imageData.data[0].url;
+    if (result.images && result.images.length > 0) {
+      return result.images[0].url;
     }
 
     throw new Error('No image data in response');
@@ -76,6 +78,6 @@ export async function generateWithNanoBanana(
  * Check if Nano Banana is available
  */
 export function isNanoBananaAvailable(): boolean {
-  const key = import.meta.env.NEXT_PUBLIC_NANO_BANANA_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
-  return !!key && !key.includes('your-');
+  const key = import.meta.env.VITE_FAL_KEY || import.meta.env.VITE_NANO_BANANA_API_KEY;
+  return !!key;
 }

@@ -1,7 +1,7 @@
 /**
  * ElevenLabs Text-to-Speech Service
- * Uses AIMLAPI with OpenAI TTS model
- * Documentation: https://docs.aimlapi.com/api-references/speech-models/text-to-speech
+ * Uses ElevenLabs official API for high-quality voice synthesis
+ * Documentation: https://elevenlabs.io/docs/api-reference/text-to-speech
  */
 
 export interface ElevenLabsTTSParams {
@@ -12,55 +12,62 @@ export interface ElevenLabsTTSParams {
   similarity_boost?: number;
 }
 
-// Popular voice options
+// Popular ElevenLabs voices
 export const ELEVENLABS_VOICES = [
-  { id: 'alloy', name: 'Alloy - Neutral' },
-  { id: 'echo', name: 'Echo - Male' },
-  { id: 'fable', name: 'Fable - British' },
-  { id: 'onyx', name: 'Onyx - Deep' },
-  { id: 'nova', name: 'Nova - Female' },
-  { id: 'shimmer', name: 'Shimmer - Soft Female' },
+  { id: '21m00Tcm4TlvDq8ikWAM', name: 'Rachel - Calm' },
+  { id: 'AZnzlk1XvdvUeBnXmlld', name: 'Domi - Strong' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Bella - Soft' },
+  { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni - Well-rounded' },
+  { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli - Emotional' },
+  { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh - Deep' },
+  { id: 'VR6AewLTigWG4xSOukaG', name: 'Arnold - Crisp' },
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam - Narrative' },
+  { id: 'yoZ06aMxZJJ28mfd3POQ', name: 'Sam - Young' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel - Deep British' },
 ];
 
 /**
- * Generate speech using AIMLAPI TTS
+ * Generate speech using ElevenLabs API
  */
 export async function generateWithElevenLabs(
   params: ElevenLabsTTSParams,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
+    const ELEVENLABS_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
 
-    if (!AIML_KEY) {
-      throw new Error('AIMLAPI key not configured');
+    if (!ELEVENLABS_KEY || ELEVENLABS_KEY.includes('your-')) {
+      throw new Error('ElevenLabs API key not configured');
     }
 
-    onProgress?.('Initializing text-to-speech...');
+    onProgress?.('Initializing ElevenLabs TTS...');
 
-    const voice = params.voice || 'alloy';
+    const voiceId = params.voice || ELEVENLABS_VOICES[0].id;
+    const modelId = params.model || 'eleven_turbo_v2_5'; // Using Turbo v2.5 for good quality and speed
 
     onProgress?.('Generating speech...');
 
-    const response = await fetch('https://api.aimlapi.com/v1/tts', {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
+        'Accept': 'audio/mpeg',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${AIML_KEY}`,
+        'xi-api-key': ELEVENLABS_KEY,
       },
       body: JSON.stringify({
-        model: 'openai/tts-1',
         text: params.text,
-        voice: voice,
-        response_format: 'mp3',
-        speed: 1.0,
+        model_id: modelId,
+        voice_settings: {
+          stability: params.stability || 0.5,
+          similarity_boost: params.similarity_boost || 0.75,
+        },
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('TTS generation error:', response.status, errorData);
-      throw new Error(`TTS generation error: ${response.status} - ${errorData.error?.message || errorData.message || response.statusText}`);
+      const errorText = await response.text().catch(() => response.statusText);
+      console.error('ElevenLabs TTS error:', response.status, errorText);
+      throw new Error(`TTS generation error: ${response.status} - ${errorText}`);
     }
 
     // Convert audio blob to base64
@@ -86,6 +93,6 @@ export async function generateWithElevenLabs(
  * Check if ElevenLabs is available
  */
 export function isElevenLabsAvailable(): boolean {
-  const key = import.meta.env.VITE_AIMLAPI_KEY;
-  return !!key;
+  const key = import.meta.env.VITE_ELEVENLABS_API_KEY;
+  return !!key && !key.includes('your-');
 }

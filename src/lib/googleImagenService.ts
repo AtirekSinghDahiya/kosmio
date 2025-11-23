@@ -1,8 +1,10 @@
 /**
  * Google Imagen Image Generation Service
- * Uses AIMLAPI with Flux Pro model for high-quality image generation
- * Documentation: https://docs.aimlapi.com/api-references/image-models
+ * Uses FAL.ai with Flux Pro model for high-quality image generation
+ * Documentation: https://fal.ai/models/fal-ai/flux/dev/api
  */
+
+import { fal } from '@fal-ai/client';
 
 export interface ImagenParams {
   prompt: string;
@@ -17,57 +19,57 @@ export interface ImagenResult {
 }
 
 /**
- * Generate images using Flux Pro via AIMLAPI
+ * Generate images using Flux Dev via FAL.ai
  */
 export async function generateWithImagen(
   params: ImagenParams,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
+    const FAL_KEY = import.meta.env.VITE_FAL_KEY;
 
-    if (!AIML_KEY) {
-      throw new Error('AIMLAPI key not configured');
+    if (!FAL_KEY) {
+      throw new Error('FAL.ai API key not configured');
     }
+
+    // Configure FAL client
+    fal.config({
+      credentials: FAL_KEY
+    });
 
     onProgress?.('Initializing image generation...');
 
-    // Map aspect ratios to dimensions
-    const dimensionMap: Record<string, string> = {
-      'square': '1024x1024',
-      'landscape': '1024x576',
-      'portrait': '576x1024'
+    // Map aspect ratios to FAL format
+    const aspectRatioMap: Record<string, string> = {
+      'square': 'square',
+      'landscape': 'landscape_4_3',
+      'portrait': 'portrait_4_3'
     };
 
-    const size = dimensionMap[params.aspectRatio || 'square'];
+    const imageSize = aspectRatioMap[params.aspectRatio || 'square'];
 
-    onProgress?.('Generating image with Flux Pro...');
+    onProgress?.('Generating image with Flux Dev...');
 
-    const imageResponse = await fetch('https://api.aimlapi.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${AIML_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'flux-pro',
+    const result: any = await fal.subscribe('fal-ai/flux/dev', {
+      input: {
         prompt: params.prompt,
-        n: params.numberOfImages || 1,
-        size: size,
-      }),
+        image_size: imageSize,
+        num_inference_steps: 28, // Higher quality for dev model
+        num_images: params.numberOfImages || 1,
+        enable_safety_checker: true,
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === 'IN_PROGRESS') {
+          onProgress?.('Processing...');
+        }
+      },
     });
 
-    if (!imageResponse.ok) {
-      const errorData = await imageResponse.json().catch(() => ({}));
-      console.error('Image generation error:', imageResponse.status, errorData);
-      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || errorData.message || imageResponse.statusText}`);
-    }
-
-    const imageData = await imageResponse.json();
     onProgress?.('Image generated successfully!');
 
-    if (imageData.data && imageData.data.length > 0) {
-      return imageData.data[0].url;
+    if (result.images && result.images.length > 0) {
+      return result.images[0].url;
     }
 
     throw new Error('No image data in response');
@@ -82,6 +84,6 @@ export async function generateWithImagen(
  * Check if Imagen is available
  */
 export function isImagenAvailable(): boolean {
-  const key = import.meta.env.VITE_GEMINI_API_KEY;
-  return !!key && !key.includes('your-');
+  const key = import.meta.env.VITE_FAL_KEY;
+  return !!key;
 }
