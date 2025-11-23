@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send } from 'lucide-react';
+import { AI_MODELS } from '../../lib/aiModels';
 
 interface StudioLandingViewProps {
   onSelectMode: (mode: string, modelId?: string, initialPrompt?: string) => void;
@@ -42,293 +43,29 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     }
   };
 
-  // Grouped chat models by provider
-  const chatModelGroups: ModelGroup[] = [
-    {
-      provider: 'OpenAI',
-      models: [
-        {
-          id: 'gpt-4o',
-          name: 'GPT-4o',
-          description: 'Most capable model with vision and complex reasoning',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'OpenAI'
-        },
-        {
-          id: 'gpt-4o-mini',
-          name: 'GPT-4o Mini',
-          description: 'Fast and affordable GPT-4 level intelligence',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'OpenAI'
-        },
-        {
-          id: 'o1-preview',
-          name: 'o1 Preview',
-          description: 'Advanced reasoning model for complex problems',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'OpenAI'
-        },
-        {
-          id: 'o1-mini',
-          name: 'o1 Mini',
-          description: 'Reasoning model optimized for STEM',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'OpenAI'
-        },
-      ]
-    },
-    {
-      provider: 'Anthropic',
-      models: [
-        {
-          id: 'claude-3.5-sonnet',
-          name: 'Claude 3.5 Sonnet',
-          description: 'Superior reasoning and coding capabilities',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Anthropic'
-        },
-        {
-          id: 'claude-3-opus',
-          name: 'Claude 3 Opus',
-          description: 'Most intelligent model for complex tasks',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Anthropic'
-        },
-        {
-          id: 'claude-3-haiku',
-          name: 'Claude 3 Haiku',
-          description: 'Fast and cost-effective responses',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Anthropic'
-        },
-      ]
-    },
-    {
-      provider: 'Google',
-      models: [
-        {
-          id: 'gemini-2.0-flash-exp',
-          name: 'Gemini 2.0 Flash',
-          description: 'Experimental model with multimodal capabilities',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Google'
-        },
-        {
-          id: 'gemini-1.5-pro',
-          name: 'Gemini 1.5 Pro',
-          description: 'Long context window up to 2M tokens',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Google'
-        },
-        {
-          id: 'gemini-1.5-flash',
-          name: 'Gemini 1.5 Flash',
-          description: 'Fast and efficient multimodal model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Google'
-        },
-      ]
-    },
-    {
-      provider: 'xAI',
-      models: [
-        {
-          id: 'grok-2',
-          name: 'Grok 2',
-          description: 'Real-time knowledge and conversational AI',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'xAI'
-        },
-        {
-          id: 'grok-2-vision',
-          name: 'Grok 2 Vision',
-          description: 'Vision-enabled conversational model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'xAI'
-        },
-      ]
-    },
-    {
-      provider: 'Meta',
-      models: [
-        {
-          id: 'llama-3.3-70b',
-          name: 'Llama 3.3 70B',
-          description: 'Open-source model with strong performance',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Meta'
-        },
-        {
-          id: 'llama-3.1-405b',
-          name: 'Llama 3.1 405B',
-          description: 'Largest Llama model with exceptional capabilities',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Meta'
-        },
-      ]
-    },
-    {
-      provider: 'Mistral',
-      models: [
-        {
-          id: 'mistral-large',
-          name: 'Mistral Large',
-          description: 'High-performance European AI model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Mistral'
-        },
-        {
-          id: 'mixtral-8x7b',
-          name: 'Mixtral 8x7B',
-          description: 'Efficient mixture of experts model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Mistral'
-        },
-      ]
-    },
-    {
-      provider: 'Cohere',
-      models: [
-        {
-          id: 'command-r-plus',
-          name: 'Command R+',
-          description: 'Advanced enterprise model with RAG capabilities',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Cohere'
-        },
-        {
-          id: 'command-r',
-          name: 'Command R',
-          description: 'Scalable model for production workloads',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Cohere'
-        },
-      ]
-    },
-    {
-      provider: 'DeepSeek',
-      models: [
-        {
-          id: 'deepseek-chat',
-          name: 'DeepSeek Chat',
-          description: 'High-performance Chinese AI model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'DeepSeek'
-        },
-        {
-          id: 'deepseek-coder',
-          name: 'DeepSeek Coder',
-          description: 'Specialized coding assistant model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'DeepSeek'
-        },
-      ]
-    },
-    {
-      provider: 'Qwen',
-      models: [
-        {
-          id: 'qwen-2.5-72b',
-          name: 'Qwen 2.5 72B',
-          description: 'Alibaba\'s powerful multilingual model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Qwen'
-        },
-        {
-          id: 'qwen-2-vl',
-          name: 'Qwen 2 VL',
-          description: 'Vision-language model with image understanding',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Qwen'
-        },
-      ]
-    },
-    {
-      provider: 'Amazon',
-      models: [
-        {
-          id: 'amazon-nova-pro',
-          name: 'Nova Pro',
-          description: 'Amazon\'s multimodal foundation model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Amazon'
-        },
-        {
-          id: 'amazon-nova-lite',
-          name: 'Nova Lite',
-          description: 'Fast and cost-effective AWS model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Amazon'
-        },
-      ]
-    },
-    {
-      provider: 'Perplexity',
-      models: [
-        {
-          id: 'perplexity-llama-3.1-sonar-large',
-          name: 'Sonar Large',
-          description: 'Real-time web search powered responses',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Perplexity'
-        },
-        {
-          id: 'perplexity-llama-3.1-sonar-small',
-          name: 'Sonar Small',
-          description: 'Fast online search integration',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'Perplexity'
-        },
-      ]
-    },
-    {
-      provider: 'AI21',
-      models: [
-        {
-          id: 'jamba-1.5-large',
-          name: 'Jamba 1.5 Large',
-          description: 'Long context hybrid architecture model',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'AI21'
-        },
-        {
-          id: 'jamba-1.5-mini',
-          name: 'Jamba 1.5 Mini',
-          description: 'Efficient model with strong performance',
-          icon: MessageSquare,
-          category: 'chat',
-          badge: 'AI21'
-        },
-      ]
-    },
-  ];
+  // Grouped chat models by provider - dynamically built from AI_MODELS
+  const chatModelsFromLib = AI_MODELS.filter(m => m.category === 'chat' || m.category === 'code');
+
+  // Group models by provider
+  const providerMap = new Map<string, ModelCard[]>();
+  chatModelsFromLib.forEach(model => {
+    if (!providerMap.has(model.provider)) {
+      providerMap.set(model.provider, []);
+    }
+    providerMap.get(model.provider)!.push({
+      id: model.id,
+      name: model.name,
+      description: model.description,
+      icon: model.category === 'code' ? Code : MessageSquare,
+      category: model.category,
+      badge: model.provider
+    });
+  });
+
+  const chatModelGroups: ModelGroup[] = Array.from(providerMap.entries()).map(([provider, models]) => ({
+    provider,
+    models
+  }));
 
   const tabs = [
     { id: 'featured' as Tab, label: 'Featured', icon: Sparkles },
@@ -358,247 +95,125 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'New'
       },
       {
-        id: 'flux-1.1-pro',
-        name: 'Flux 1.1 Pro',
-        description: 'State-of-the-art image generation with photorealistic results',
-        icon: Image,
-        category: 'image'
-      },
-      {
-        id: 'sora',
-        name: 'Sora (OpenAI)',
-        description: 'Revolutionary AI video generation from text prompts',
-        icon: Video,
-        category: 'video',
-        badge: 'Premium'
-      },
-    ],
-    chat: [
-      // OpenAI Models
-      {
-        id: 'gpt-4o',
-        name: 'GPT-4o',
-        description: 'OpenAI - Most capable model with vision and complex reasoning',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'OpenAI'
-      },
-      {
-        id: 'gpt-4o-mini',
-        name: 'GPT-4o Mini',
-        description: 'OpenAI - Fast and affordable GPT-4 level intelligence',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'OpenAI'
-      },
-      {
-        id: 'o1-preview',
-        name: 'o1 Preview',
-        description: 'OpenAI - Advanced reasoning model for complex problems',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'OpenAI'
-      },
-      {
-        id: 'o1-mini',
-        name: 'o1 Mini',
-        description: 'OpenAI - Reasoning model optimized for STEM',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'OpenAI'
-      },
-      // Anthropic Models
-      {
-        id: 'claude-3.5-sonnet',
-        name: 'Claude 3.5 Sonnet',
-        description: 'Anthropic - Superior reasoning and coding capabilities',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Anthropic'
-      },
-      {
-        id: 'claude-3-opus',
-        name: 'Claude 3 Opus',
-        description: 'Anthropic - Most intelligent model for complex tasks',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Anthropic'
-      },
-      {
-        id: 'claude-3-haiku',
-        name: 'Claude 3 Haiku',
-        description: 'Anthropic - Fast and cost-effective responses',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Anthropic'
-      },
-      // Google Models
-      {
-        id: 'gemini-2.0-flash-exp',
-        name: 'Gemini 2.0 Flash',
-        description: 'Google - Experimental model with multimodal capabilities',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Google'
-      },
-      {
-        id: 'gemini-1.5-pro',
-        name: 'Gemini 1.5 Pro',
-        description: 'Google - Long context window up to 2M tokens',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Google'
-      },
-      {
-        id: 'gemini-1.5-flash',
-        name: 'Gemini 1.5 Flash',
-        description: 'Google - Fast and efficient multimodal model',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Google'
-      },
-      // xAI Models
-      {
-        id: 'grok-2',
-        name: 'Grok 2',
-        description: 'xAI - Real-time knowledge and conversational AI',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'xAI'
-      },
-      {
-        id: 'grok-2-vision',
-        name: 'Grok 2 Vision',
-        description: 'xAI - Vision-enabled conversational model',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'xAI'
-      },
-      // Meta Models
-      {
-        id: 'llama-3.3-70b',
-        name: 'Llama 3.3 70B',
-        description: 'Meta - Open-source model with strong performance',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Meta'
-      },
-      {
-        id: 'llama-3.1-405b',
-        name: 'Llama 3.1 405B',
-        description: 'Meta - Largest Llama model with exceptional capabilities',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Meta'
-      },
-      // Mistral Models
-      {
-        id: 'mistral-large',
-        name: 'Mistral Large',
-        description: 'Mistral - High-performance European AI model',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Mistral'
-      },
-      {
-        id: 'mixtral-8x7b',
-        name: 'Mixtral 8x7B',
-        description: 'Mistral - Efficient mixture of experts model',
-        icon: MessageSquare,
-        category: 'chat',
-        badge: 'Mistral'
-      },
-    ],
-    images: [
-      {
         id: 'nano-banana',
         name: 'Nano Banana',
-        description: 'Google\'s high-quality image generation model',
+        description: 'Fast image generation with Flux Schnell model',
         icon: Image,
         category: 'image',
-        badge: 'Kie AI'
+        badge: 'Image'
       },
       {
-        id: 'seedreem',
-        name: 'Seedreem V4',
-        description: 'ByteDance\'s advanced text-to-image model',
+        id: 'imagen-4',
+        name: 'Imagen 4.0',
+        description: 'Professional image generation with Flux Pro model',
         icon: Image,
         category: 'image',
-        badge: 'Kie AI'
+        badge: 'Image'
       },
-      {
-        id: 'gpt-4o-image',
-        name: 'GPT-4o Image',
-        description: 'OpenAI\'s multimodal image generation',
-        icon: Image,
-        category: 'image',
-        badge: 'Kie AI'
-      },
-    ],
-    video: [
       {
         id: 'sora-2',
         name: 'Sora 2',
-        description: 'Generate 10-15s videos with OpenAI Sora 2',
+        description: 'OpenAI video generation - 10-15s high-quality videos',
         icon: Video,
         category: 'video',
-        badge: 'Kie AI'
+        badge: 'Video'
       },
       {
         id: 'veo-3',
         name: 'Veo 3',
-        description: 'Google\'s fast video generation model',
+        description: 'Google fast video generation model',
         icon: Video,
         category: 'video',
-        badge: 'Kie AI'
+        badge: 'Video'
       },
-    ],
-    audio: [
       {
         id: 'suno',
         name: 'Suno AI',
         description: 'Generate complete songs with vocals and instruments',
         icon: Music,
-        category: 'audio'
+        category: 'audio',
+        badge: 'Audio'
       },
       {
         id: 'elevenlabs',
-        name: 'ElevenLabs',
-        description: 'Professional voice synthesis and cloning',
+        name: 'ElevenLabs TTS',
+        description: 'Professional voice synthesis with 10 voice options',
         icon: Mic,
-        category: 'audio'
+        category: 'audio',
+        badge: 'Audio'
       },
     ],
-    code: [
+    chat: [],
+    images: [
       {
-        id: 'code-studio',
-        name: 'Code Studio',
-        description: 'Build complete applications with AI assistance',
-        icon: FileCode,
-        category: 'code'
+        id: 'nano-banana',
+        name: 'Nano Banana (Flux Schnell)',
+        description: 'Fast image generation with Flux Schnell model',
+        icon: Image,
+        category: 'image',
+        badge: 'Fast'
       },
       {
-        id: 'web-builder',
-        name: 'Web Builder',
-        description: 'Create responsive websites with natural language',
-        icon: Code,
-        category: 'code'
-      },
-      {
-        id: 'api-generator',
-        name: 'API Generator',
-        description: 'Generate REST APIs and backend services',
-        icon: Zap,
-        category: 'code'
-      },
-      {
-        id: 'ppt-studio',
-        name: 'Presentation Studio',
-        description: 'Create beautiful presentations automatically',
-        icon: Presentation,
-        category: 'code'
+        id: 'imagen-4',
+        name: 'Imagen 4.0 (Flux Pro)',
+        description: 'Professional image generation with Flux Pro model',
+        icon: Image,
+        category: 'image',
+        badge: 'Pro'
       },
     ],
+    video: [
+      {
+        id: 'sora-2',
+        name: 'OpenAI Sora 2',
+        description: 'Generate 10-15s high-quality videos with Sora 2',
+        icon: Video,
+        category: 'video',
+        badge: 'Premium'
+      },
+      {
+        id: 'veo-3',
+        name: 'Google Veo 3',
+        description: 'Fast video generation with Google Veo',
+        icon: Video,
+        category: 'video',
+        badge: 'Fast'
+      },
+    ],
+    audio: [
+      {
+        id: 'suno',
+        name: 'Suno AI Music',
+        description: 'Generate complete songs with vocals and instruments',
+        icon: Music,
+        category: 'audio',
+        badge: 'Music'
+      },
+      {
+        id: 'elevenlabs',
+        name: 'ElevenLabs TTS',
+        description: 'Professional voice synthesis with 10 voice options',
+        icon: Mic,
+        category: 'audio',
+        badge: 'Voice'
+      },
+      {
+        id: 'gemini-tts',
+        name: 'Gemini TTS',
+        description: 'Google text-to-speech generation',
+        icon: Mic,
+        category: 'audio',
+        badge: 'Voice'
+      },
+    ],
+    code: AI_MODELS.filter(m => m.category === 'code').map(model => ({
+      id: model.id,
+      name: model.name,
+      description: model.description,
+      icon: Code,
+      category: 'code' as const,
+      badge: model.provider
+    })),
   };
 
   const handleCardClick = (card: ModelCard) => {
