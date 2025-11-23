@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { X, Music, Loader, Play, Download } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
+import { generateWithLyria } from '../../lib/googleLyriaService';
+import { generateWithSuno } from '../../lib/sunoMusicService';
+import { generateWithGeminiTTS, GEMINI_VOICES } from '../../lib/geminiTTSService';
 
 interface SimpleMusicStudioProps {
   onBack?: () => void;
@@ -17,6 +20,8 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
   const [duration, setDuration] = useState<30 | 60 | 120>(30);
   const [musicType, setMusicType] = useState<'vocals' | 'instrumental'>('vocals');
   const [audioMode, setAudioMode] = useState<'music' | 'speech'>('music');
+  const [musicModel, setMusicModel] = useState<'lyria' | 'suno'>('lyria');
+  const [selectedVoice, setSelectedVoice] = useState(GEMINI_VOICES[0].id);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -29,19 +34,36 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
     setProgress('Starting music generation...');
 
     try {
-      // This will use your existing Suno service
-      // For now, showing UI - you'll need to wire up the actual API
-      showToast('info', 'Coming Soon', 'Music generation is being set up');
+      let audioUrl: string;
 
-      setTimeout(() => {
-        setIsGenerating(false);
-        showToast('error', 'Not Available', 'Music generation API needs to be configured');
-      }, 2000);
+      if (audioMode === 'music') {
+        if (musicModel === 'lyria') {
+          audioUrl = await generateWithLyria(
+            { prompt, duration },
+            (status) => setProgress(status)
+          );
+        } else {
+          audioUrl = await generateWithSuno(
+            { prompt, duration, makeInstrumental: musicType === 'instrumental' },
+            (status) => setProgress(status)
+          );
+        }
+      } else {
+        audioUrl = await generateWithGeminiTTS(
+          { text: prompt, voice: selectedVoice },
+          (status) => setProgress(status)
+        );
+      }
+
+      setGeneratedAudio(audioUrl);
+      showToast('success', 'Audio Generated!', `Your ${audioMode === 'music' ? 'music' : 'speech'} is ready`);
 
     } catch (error: any) {
-      console.error('Music generation error:', error);
-      showToast('error', 'Generation Failed', error.message || 'Failed to generate music');
+      console.error('Audio generation error:', error);
+      showToast('error', 'Generation Failed', error.message || 'Failed to generate audio');
+    } finally {
       setIsGenerating(false);
+      setProgress('');
     }
   };
 
@@ -149,20 +171,57 @@ export const SimpleMusicStudio: React.FC<SimpleMusicStudioProps> = ({ onBack }) 
             </div>
           </div>
 
-          {/* Model Info */}
-          <div className="p-6 border-b border-white/10">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-pink-400"></div>
-              <span className="text-sm font-semibold text-white">
-                {audioMode === 'music' ? 'KroniQ Lyria' : 'KroniQ TTS Pro'}
-              </span>
+          {/* Music Model - Only for Music Mode */}
+          {audioMode === 'music' && (
+            <div className="p-6 border-b border-white/10">
+              <label className="text-sm font-medium text-white/80 mb-3 block">Music Model</label>
+              <div className="space-y-2">
+                <button
+                  onClick={() => setMusicModel('lyria')}
+                  disabled={isGenerating}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                    musicModel === 'lyria'
+                      ? 'bg-pink-500/20 border-pink-500/50'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="font-medium text-white text-sm">Google Lyria RealTime</div>
+                  <div className="text-xs text-white/50">Streaming music generation</div>
+                </button>
+                <button
+                  onClick={() => setMusicModel('suno')}
+                  disabled={isGenerating}
+                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                    musicModel === 'suno'
+                      ? 'bg-pink-500/20 border-pink-500/50'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="font-medium text-white text-sm">Suno AI</div>
+                  <div className="text-xs text-white/50">High-quality music generation</div>
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-white/50">
-              {audioMode === 'music'
-                ? 'AI-powered music generation with real-time control'
-                : 'Natural text-to-speech with 30 voice options'}
-            </p>
-          </div>
+          )}
+
+          {/* Voice Selector - Only for Speech Mode */}
+          {audioMode === 'speech' && (
+            <div className="p-6 border-b border-white/10">
+              <label className="text-sm font-medium text-white/80 mb-3 block">Voice</label>
+              <select
+                value={selectedVoice}
+                onChange={(e) => setSelectedVoice(e.target.value)}
+                disabled={isGenerating}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 focus:border-pink-500/40 rounded-lg text-white text-sm focus:outline-none"
+              >
+                {GEMINI_VOICES.map((voice) => (
+                  <option key={voice.id} value={voice.id}>
+                    {voice.name} ({voice.gender})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Music Type - Only for Music Mode */}
           {audioMode === 'music' && (

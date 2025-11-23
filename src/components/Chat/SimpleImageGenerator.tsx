@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Wand2, Loader } from 'lucide-react';
-import { generateImageSimple } from '../../lib/simpleImageGen';
+import { generateWithImagen } from '../../lib/googleImagenService';
+import { generateWithNanoBanana } from '../../lib/geminiNanoBananaService';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveImageToProject } from '../../lib/contentSaveService';
@@ -23,12 +24,11 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
   const [aspectRatio, setAspectRatio] = useState<'square' | 'landscape' | 'portrait' | '4:3' | '3:4'>('square');
   const [numImages, setNumImages] = useState(1);
   const [outputFormat, setOutputFormat] = useState<'JPEG' | 'PNG' | 'WebP'>('JPEG');
-  const [selectedModel, setSelectedModel] = useState('flux-schnell');
+  const [selectedModel, setSelectedModel] = useState('imagen-4');
 
   const models = [
-    { id: 'flux-schnell', name: 'Flux Schnell', description: 'Fast, high-quality generation', speed: 'Fast' },
-    { id: 'flux-dev', name: 'Flux Dev', description: 'Higher quality, slower', speed: 'Medium' },
-    { id: 'flux-pro', name: 'Flux Pro', description: 'Best quality, premium', speed: 'Slow' },
+    { id: 'imagen-4', name: 'Google Imagen 4.0', description: 'Google\'s latest image model', speed: 'Fast', provider: 'google' },
+    { id: 'nano-banana', name: 'Gemini Nano Banana', description: 'Gemini\'s built-in image generation', speed: 'Medium', provider: 'google' },
   ];
 
   const handleGenerate = async () => {
@@ -42,11 +42,27 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
     setProgress('Starting...');
 
     try {
-      const { generateImageSimple } = await import('../../lib/simpleImageGen');
+      let imageUrl: string;
 
-      const imageUrl = await generateImageSimple(prompt, (status) => {
-        setProgress(status);
-      }, selectedModel);
+      if (selectedModel === 'imagen-4') {
+        imageUrl = await generateWithImagen(
+          {
+            prompt,
+            aspectRatio: aspectRatio === 'landscape' ? 'landscape' : aspectRatio === 'portrait' ? 'portrait' : 'square',
+            numberOfImages: 1
+          },
+          (status) => setProgress(status)
+        );
+      } else {
+        imageUrl = await generateWithNanoBanana(
+          {
+            prompt,
+            aspectRatio: aspectRatio === 'landscape' ? 'landscape' : aspectRatio === 'portrait' ? 'portrait' : 'square',
+            numberOfImages: 1
+          },
+          (status) => setProgress(status)
+        );
+      }
 
       setGeneratedImageUrl(imageUrl);
       showToast('success', 'Image Generated!', 'Your image is ready');
@@ -55,8 +71,8 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
         try {
           await saveImageToProject(user.uid, prompt, imageUrl, {
             model: selectedModel,
-            dimensions: 'square_hd',
-            provider: 'fal-ai'
+            dimensions: aspectRatio,
+            provider: selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini'
           });
         } catch (saveError) {
           console.error('Failed to save image:', saveError);

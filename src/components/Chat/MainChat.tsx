@@ -323,12 +323,12 @@ export const MainChat: React.FC = () => {
         // Add generating message
         const generatingMsg = await addMessage(projectId, 'assistant', '🎬 Generating video... This may take 2-3 minutes.', []);
 
-        // Generate video - using Runway
-        const { runwayService } = await import('../../lib/runwayService');
-        const result = await runwayService.generateVideo(finalPrompt);
+        // Generate video - using Google Veo 3.1
+        const { generateWithVeo3 } = await import('../../lib/googleVeo3Service');
+        const videoUrl = await generateWithVeo3({ prompt: finalPrompt, duration: 8, aspectRatio: 'landscape' });
 
-        if (result && result.videoUrl) {
-          console.log('✅ Video generated:', result.videoUrl);
+        if (videoUrl) {
+          console.log('✅ Video generated:', videoUrl);
 
           // Update message with video player
           await supabase
@@ -338,7 +338,7 @@ export const MainChat: React.FC = () => {
               file_attachments: [{
                 id: Date.now().toString(),
                 type: 'video/mp4',
-                url: result.videoUrl,
+                url: videoUrl,
                 name: 'generated-video.mp4',
                 size: 0
               }]
