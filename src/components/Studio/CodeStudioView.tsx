@@ -1,5 +1,5 @@
 import React from 'react';
-import { NewCodeStudio } from './NewCodeStudio';
+import { CodeStudio } from './CodeStudio';
 
 interface CodeStudioViewProps {
   initialModel?: string;
@@ -8,5 +8,5 @@ interface CodeStudioViewProps {
 }
 
 export const CodeStudioView: React.FC<CodeStudioViewProps> = ({ initialModel, onBack, onClose }) => {
-  return <NewCodeStudio />;
+  return <CodeStudio />;
 };

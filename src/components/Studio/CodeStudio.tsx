@@ -1,17 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  ArrowLeft,
-  Settings as SettingsIcon,
-  RefreshCw,
   Code2,
-  Eye,
-  Maximize2,
   Send,
   Sparkles,
-  ChevronRight,
-  Lightbulb,
+  Play,
+  Settings,
   FileCode,
-  Zap
+  Zap,
+  Loader2,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getOpenRouterResponse } from '../../lib/openRouterService';
@@ -20,69 +18,96 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  isThinking?: boolean;
 }
 
-interface TutorialCard {
+interface CodeModel {
   id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
+  name: string;
+  provider: string;
 }
+
+const CODING_MODELS: CodeModel[] = [
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic' },
+  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', provider: 'OpenAI' },
+  { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI' },
+  { id: 'deepseek/deepseek-coder', name: 'DeepSeek Coder', provider: 'DeepSeek' },
+  { id: 'google/gemini-pro', name: 'Gemini Pro', provider: 'Google' },
+  { id: 'qwen/qwen-2.5-coder-32b-instruct', name: 'Qwen Coder', provider: 'Qwen' },
+  { id: 'mistralai/mixtral-8x7b-instruct', name: 'Mixtral 8x7B', provider: 'Mistral' },
+];
+
+const STARTER_TEMPLATES = [
+  { id: 'portfolio', title: 'Portfolio Website', description: 'Modern portfolio with projects showcase', icon: '💼' },
+  { id: 'ecommerce', title: 'E-commerce Platform', description: 'Full-featured online store', icon: '🛒' },
+  { id: 'dashboard', title: 'Dashboard UI', description: 'Analytics dashboard with charts', icon: '📊' },
+  { id: 'landing', title: 'Landing Page', description: 'Modern SaaS landing page', icon: '🚀' },
+  { id: 'mobile', title: 'Mobile App', description: 'React Native mobile application', icon: '📱' },
+  { id: 'api', title: 'REST API', description: 'Node.js backend with Express', icon: '⚡' },
+];
+
+const RECENT_PROMPTS = [
+  'Build a todo app with React',
+  'Create a modern pricing page',
+  'Design an authentication flow',
+  'Make a responsive navbar',
+];
 
 export const CodeStudio: React.FC = () => {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isThinking, setIsThinking] = useState(false);
-  const [activeTab, setActiveTab] = useState<'preview' | 'code' | 'fullscreen'>('preview');
-  const [showSettings, setShowSettings] = useState(true);
-  const [selectedModel, setSelectedModel] = useState('gpt-4');
-  const [systemInstructions, setSystemInstructions] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<CodeModel>(CODING_MODELS[0]);
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+  const [activeView, setActiveView] = useState<'start' | 'chat'>('start');
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const tutorialCards: TutorialCard[] = [
-    {
-      id: 'version-control',
-      title: 'Implement version control',
-      description: 'Allow users to save different versions of their generated code and revert to previous states if needed.',
-      icon: <RefreshCw className="w-6 h-6 text-blue-400" />
-    },
-    {
-      id: 'custom-instructions',
-      title: 'Use Custom Instructions',
-      description: 'Save custom instructions to define app styles, frameworks, or other preferences to ensure Gemini builds exactly what you have in mind.',
-      icon: <Lightbulb className="w-6 h-6 text-yellow-400" />
-    },
-    {
-      id: 'api-integration',
-      title: 'Integrate external APIs',
-      description: 'Connect your application with external services and APIs to extend functionality and add dynamic data.',
-      icon: <Zap className="w-6 h-6 text-purple-400" />
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSubmit = async (prompt?: string) => {
+    const userPrompt = prompt || input.trim();
+    if (!userPrompt || isGenerating) return;
+
+    if (activeView === 'start') {
+      setActiveView('chat');
     }
-  ];
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!input.trim() || isThinking) return;
 
     const userMessage: Message = {
       role: 'user',
-      content: input.trim(),
+      content: userPrompt,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setIsThinking(true);
+    setIsGenerating(true);
 
     try {
+      const systemPrompt = `You are an expert full-stack developer AI assistant. Generate complete, production-ready code based on user requests.
+
+Guidelines:
+- Use modern React with TypeScript and Tailwind CSS
+- Include all necessary imports and setup
+- Make code responsive and accessible
+- Add proper error handling
+- Include clear comments
+- Provide complete, runnable code
+
+Format your response with:
+1. Brief explanation of the solution
+2. Complete code in markdown code blocks
+3. Usage instructions if needed`;
+
       const response = await getOpenRouterResponse(
-        [...messages, userMessage].map(m => ({
-          role: m.role,
-          content: m.content
-        })),
-        selectedModel,
+        [
+          { role: 'system', content: systemPrompt },
+          ...messages.map(m => ({ role: m.role, content: m.content })),
+          userMessage
+        ],
+        selectedModel.id,
         currentUser?.uid || 'anonymous'
       );
 
@@ -94,7 +119,7 @@ export const CodeStudio: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error generating response:', error);
+      console.error('Error generating code:', error);
       const errorMessage: Message = {
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
@@ -102,353 +127,303 @@ export const CodeStudio: React.FC = () => {
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
-      setIsThinking(false);
+      setIsGenerating(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
   return (
-    <div className="flex h-screen bg-black text-white overflow-hidden">
-      {/* Left Sidebar - Chat History */}
-      <div className="w-80 bg-[#0a0a0a] border-r border-white/5 flex flex-col">
-        <div className="p-4 border-b border-white/5">
-          <button className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to start</span>
-          </button>
+    <div className="h-screen flex flex-col bg-black text-white">
+      {/* Header */}
+      <div className="h-14 border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <Code2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-sm font-semibold">KronIQ AI Studio</h1>
+            <p className="text-xs text-white/40">Create powerful applications with advanced AI assistance</p>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <FileCode className="w-5 h-5 text-blue-400" />
-            <span className="text-sm font-semibold text-white/90">Code assistant</span>
+        <div className="flex items-center gap-3">
+          {/* Model Selector */}
+          <div className="relative">
+            <button
+              onClick={() => setShowModelDropdown(!showModelDropdown)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors text-sm"
+            >
+              <span className="text-white/70">Model:</span>
+              <span className="font-medium">{selectedModel.name}</span>
+              <ChevronDown className="w-4 h-4 text-white/50" />
+            </button>
+
+            {showModelDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowModelDropdown(false)} />
+                <div className="absolute top-full right-0 mt-2 w-72 bg-zinc-900 border border-white/10 rounded-lg shadow-2xl z-50 overflow-hidden">
+                  <div className="p-2 border-b border-white/10">
+                    <p className="text-xs text-white/50 px-2">Select AI Model</p>
+                  </div>
+                  {CODING_MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => {
+                        setSelectedModel(model);
+                        setShowModelDropdown(false);
+                      }}
+                      className="w-full px-3 py-2.5 text-left hover:bg-white/5 transition-colors flex items-center justify-between"
+                    >
+                      <div>
+                        <div className="text-sm font-medium">{model.name}</div>
+                        <div className="text-xs text-white/40">{model.provider}</div>
+                      </div>
+                      {selectedModel.id === model.id && <Check className="w-4 h-4 text-blue-400" />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
-          {messages.length === 0 ? (
-            <div className="text-white/40 text-xs">
-              No messages yet. Start coding!
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`text-xs p-3 rounded-lg ${
-                    msg.role === 'user'
-                      ? 'bg-white/5 text-white/90'
-                      : 'bg-blue-500/10 text-blue-300'
-                  }`}
-                >
-                  <div className="font-medium mb-1">
-                    {msg.role === 'user' ? 'User:' : 'Assistant:'}
-                  </div>
-                  <div className="line-clamp-3">{msg.content}</div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+            <Zap className="w-4 h-4 text-blue-400" />
+            <span className="text-sm text-blue-300">10.0M tokens</span>
+          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="h-14 bg-[#0a0a0a] border-b border-white/5 flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-white/70">Apps</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-xs font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-md transition-colors flex items-center gap-2">
-              <SettingsIcon className="w-4 h-4" />
-              Settings
-            </button>
-            <button className="px-3 py-1.5 text-xs font-medium text-white/70 hover:text-white hover:bg-white/5 rounded-md transition-colors flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        {messages.length > 0 && (
-          <div className="h-12 bg-[#0a0a0a] border-b border-white/5 flex items-center px-6 gap-6">
-            <button
-              onClick={() => setActiveTab('preview')}
-              className={`text-sm font-medium pb-3 border-b-2 transition-colors ${
-                activeTab === 'preview'
-                  ? 'text-white border-blue-400'
-                  : 'text-white/50 border-transparent hover:text-white/70'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4" />
-                Preview
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('code')}
-              className={`text-sm font-medium pb-3 border-b-2 transition-colors ${
-                activeTab === 'code'
-                  ? 'text-white border-blue-400'
-                  : 'text-white/50 border-transparent hover:text-white/70'
-              }`}
-            >
-              <div className="flex items-center gap-2">
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar */}
+        <div className="w-80 border-r border-white/10 flex flex-col bg-black">
+          {/* Navigation */}
+          <div className="p-4 border-b border-white/10">
+            <div className="space-y-1">
+              <button
+                onClick={() => setActiveView('start')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  activeView === 'start' ? 'bg-white/10' : 'hover:bg-white/5'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-medium">Build</span>
+              </button>
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
+                <Play className="w-4 h-4" />
+                <span className="text-sm font-medium">Start</span>
+              </button>
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
+                <FileCode className="w-4 h-4" />
+                <span className="text-sm font-medium">Gallery</span>
+              </button>
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
                 <Code2 className="w-4 h-4" />
-                Code
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('fullscreen')}
-              className={`text-sm font-medium pb-3 border-b-2 transition-colors ${
-                activeTab === 'fullscreen'
-                  ? 'text-white border-blue-400'
-                  : 'text-white/50 border-transparent hover:text-white/70'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Maximize2 className="w-4 h-4" />
-                Full screen
-              </div>
-            </button>
+                <span className="text-sm font-medium">Your apps</span>
+              </button>
+              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-medium">FAQ</span>
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          {messages.length === 0 ? (
-            <div className="h-full flex items-center justify-center p-8">
-              <div className="max-w-4xl w-full">
-                <h1 className="text-4xl font-semibold text-white/90 text-center mb-4">
-                  Build your ideas with AI
-                </h1>
-                <p className="text-white/50 text-center mb-12">
-                  Make an AI coding studio which uses ai to generate code and website. User input turn into a fully functional website/app etc
-                </p>
+          {/* Content based on view */}
+          {activeView === 'chat' ? (
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-semibold">Code assistant</span>
+                </div>
+                <div className="p-3 bg-white/5 border border-white/10 rounded-lg">
+                  <p className="text-xs text-white/60">
+                    Add new features or easily modify this app with a prompt or the suggestions below
+                  </p>
+                </div>
+              </div>
 
-                {/* Tutorial Cards */}
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-white/80 mb-6">
-                    Supercharge your apps with AI
-                  </h2>
-                  <div className="grid grid-cols-1 gap-4">
-                    {tutorialCards.map((card) => (
-                      <button
-                        key={card.id}
-                        className="group relative bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-6 text-left transition-all duration-200"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="p-3 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
-                            {card.icon}
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-base font-semibold text-white/90 mb-2 group-hover:text-white transition-colors">
-                              {card.title}
-                            </h3>
-                            <p className="text-sm text-white/50 leading-relaxed">
-                              {card.description}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
+              {messages.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-white/40 mb-2">Recent Prompts</p>
+                  <div className="space-y-2">
+                    {messages.slice(-3).map((msg, idx) => (
+                      msg.role === 'user' && (
+                        <div key={idx} className="p-2 bg-white/5 rounded text-xs text-white/70 border border-white/5 truncate">
+                          {msg.content}
                         </div>
-                      </button>
+                      )
                     ))}
                   </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-xs text-white/40 mb-2">Suggestions</p>
+                <div className="space-y-2">
+                  {['Add aspect ratio options', 'Add negative prompt input', 'Improve error handling', 'Add image download button', 'Implement history'].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => handleSubmit(suggestion)}
+                      disabled={isGenerating}
+                      className="w-full p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors text-sm disabled:opacity-50"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="p-8 max-w-4xl mx-auto">
-              {messages.map((msg, idx) => (
-                <div key={idx} className="mb-8">
-                  {msg.role === 'user' ? (
-                    <div>
-                      <div className="text-xs text-white/40 mb-2">User:</div>
-                      <div className="text-white/90 text-sm">{msg.content}</div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="text-xs text-blue-400 mb-2 flex items-center gap-2">
-                        <span>Gemini 2.5 Pro</span>
-                        <span className="text-white/30">•</span>
-                        <span className="text-white/40">Running</span>
-                      </div>
-                      {isThinking && idx === messages.length - 1 ? (
-                        <div className="flex items-center gap-2 text-blue-400">
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                          <span className="text-sm">Thinking...</span>
-                        </div>
-                      ) : (
-                        <div className="prose prose-invert max-w-none">
-                          <div className="text-white/80 text-sm whitespace-pre-wrap">
-                            {msg.content}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Tutorial Card Suggestions */}
-                      {!isThinking && idx === messages.length - 1 && (
-                        <div className="mt-8 grid grid-cols-1 gap-4">
-                          {tutorialCards.slice(0, 1).map((card) => (
-                            <div
-                              key={card.id}
-                              className="bg-white/[0.03] border border-white/5 rounded-xl p-6"
-                            >
-                              <div className="flex items-center justify-center mb-4">
-                                <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center">
-                                  {card.icon}
-                                </div>
-                              </div>
-                              <h3 className="text-center text-base font-semibold text-white/90 mb-2">
-                                {card.title}
-                              </h3>
-                              <p className="text-center text-xs text-white/50 leading-relaxed mb-4">
-                                {card.description}
-                              </p>
-                              <button className="w-full py-2 px-4 bg-white/10 hover:bg-white/15 rounded-lg text-xs font-medium text-white transition-colors">
-                                Add to chat
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold mb-2">Recently viewed</h3>
+                <div className="space-y-2">
+                  {RECENT_PROMPTS.map((prompt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSubmit(prompt)}
+                      className="w-full p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-colors text-sm"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
                 </div>
-              ))}
-
-              {isThinking && (
-                <div className="flex items-center gap-2 text-blue-400 mb-8">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Thinking...</span>
-                </div>
-              )}
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Input Area */}
-        <div className="border-t border-white/5 bg-[#0a0a0a] p-4">
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          {/* Bottom Input */}
+          <div className="p-4 border-t border-white/10">
             <div className="relative">
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
+                onKeyDown={handleKeyDown}
                 placeholder="Make changes, add new features, ask for anything"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/20 focus:bg-white/[0.07] transition-colors resize-none"
-                rows={1}
-                style={{
-                  minHeight: '44px',
-                  maxHeight: '200px'
-                }}
+                className="w-full px-3 py-2.5 pr-10 bg-white/5 border border-white/10 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-white/30"
+                rows={3}
+                disabled={isGenerating}
               />
               <button
-                type="submit"
-                disabled={!input.trim() || isThinking}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-500 hover:bg-blue-600 disabled:bg-white/10 disabled:cursor-not-allowed rounded-lg transition-colors"
+                onClick={() => handleSubmit()}
+                disabled={!input.trim() || isGenerating}
+                className="absolute right-2 bottom-2 p-1.5 hover:bg-white/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                <Send className="w-4 h-4" />
+                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               </button>
-            </div>
-            <div className="flex items-center justify-between mt-2 px-1">
-              <div className="flex items-center gap-2 text-xs text-white/40">
-                <Sparkles className="w-3 h-3" />
-                <span>Powered by AI</span>
-              </div>
-              <div className="text-xs text-white/40">
-                Press Enter to send, Shift+Enter for new line
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Right Sidebar - Settings */}
-      {showSettings && (
-        <div className="w-96 bg-[#0a0a0a] border-l border-white/5 overflow-y-auto">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-white/90">Advanced settings</h2>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="text-white/50 hover:text-white transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Model Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-white/70 mb-2">
-                Select model for the code assistant:
-              </label>
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20"
-              >
-                <option value="gpt-4">Default (Gemini 2.5 Pro)</option>
-                <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                <option value="claude-3-opus">Claude 3 Opus</option>
-                <option value="claude-sonnet">Claude Sonnet 4.5</option>
-              </select>
-              <p className="mt-2 text-xs text-white/40">
-                The model will be used by the code assistant to generate code.
-              </p>
-            </div>
-
-            {/* System Instructions */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-white/70 mb-2">
-                System instructions
-              </label>
-              <textarea
-                value={systemInstructions}
-                onChange={(e) => setSystemInstructions(e.target.value)}
-                placeholder="Add custom instructions for your project to control style, models used, add specific knowledge, and more."
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/20 resize-none"
-                rows={6}
-              />
-            </div>
-
-            {/* System Instructions Template */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-white/70 mb-2">
-                System instructions template
-              </label>
-              <select
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20"
-              >
-                <option value="react">React (TypeScript)</option>
-                <option value="vue">Vue.js</option>
-                <option value="angular">Angular</option>
-                <option value="svelte">Svelte</option>
-                <option value="nextjs">Next.js</option>
-              </select>
-              <p className="mt-2 text-xs text-white/40">
-                The configuration is for working with React + TypeScript application. Assumes a basic structure with index.html and index.tsx.
-              </p>
-            </div>
-
-            {/* Microphone Selector */}
-            <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
-                Microphone selector
-              </label>
-              <div className="text-xs text-white/40">
-                No microphones found.
-              </div>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Right Content Area */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          {activeView === 'start' && messages.length === 0 ? (
+            <div className="max-w-4xl w-full">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm mb-6">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  <span>Powered by Advanced AI Models</span>
+                </div>
+                <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                  Supercharge your apps with AI
+                </h1>
+                <p className="text-xl text-white/60 max-w-2xl mx-auto">
+                  Create powerful applications with advanced AI assistance
+                </p>
+              </div>
+
+              <div className="mb-12">
+                <div className="flex gap-3 max-w-2xl mx-auto">
+                  <input
+                    type="text"
+                    placeholder="Describe your idea"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                    className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-white/30"
+                  />
+                  <button
+                    onClick={() => handleSubmit()}
+                    disabled={!input.trim() || isGenerating}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-white/5 disabled:text-white/30 rounded-lg transition-colors font-medium flex items-center gap-2"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Building...
+                      </>
+                    ) : (
+                      <>
+                        Build
+                        <span className="text-lg">→</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <span className="text-sm text-white/40">or</span>
+                  <button className="text-sm text-blue-400 hover:underline">I'm feeling lucky</button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                {STARTER_TEMPLATES.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => handleSubmit(`Create a ${template.title.toLowerCase()}: ${template.description}`)}
+                    className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-left group"
+                  >
+                    <div className="text-4xl mb-3">{template.icon}</div>
+                    <h3 className="text-sm font-semibold mb-1 group-hover:text-blue-400 transition-colors">
+                      {template.title}
+                    </h3>
+                    <p className="text-xs text-white/50">{template.description}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-center mt-12">
+                <p className="text-sm text-white/40">Discover and remix app ideas</p>
+                <button className="text-sm text-blue-400 hover:underline mt-2">Browse the app gallery →</button>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="max-w-3xl w-full">
+                <div className="space-y-4 mb-8">
+                  {messages.map((message, idx) => (
+                    <div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] p-4 rounded-lg ${message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10'}`}>
+                        <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                        <div className="text-xs mt-2 opacity-50">{message.timestamp.toLocaleTimeString()}</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {isGenerating && (
+                    <div className="flex justify-start">
+                      <div className="p-4 bg-white/5 border border-white/10 rounded-lg flex items-center gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                        <span className="text-sm text-white/70">Generating your application...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
