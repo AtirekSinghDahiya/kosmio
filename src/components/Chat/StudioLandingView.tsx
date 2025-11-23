@@ -206,14 +206,16 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'Voice'
       },
     ],
-    code: AI_MODELS.filter(m => m.category === 'code').map(model => ({
-      id: model.id,
-      name: model.name,
-      description: model.description,
-      icon: Code,
-      category: 'code' as const,
-      badge: model.provider
-    })),
+    code: [
+      {
+        id: 'code-studio',
+        name: 'Code Studio',
+        description: 'AI-powered code editor with multiple coding models - select your preferred model inside',
+        icon: FileCode,
+        category: 'code' as const,
+        badge: 'Studio'
+      }
+    ],
   };
 
   const handleCardClick = (card: ModelCard) => {

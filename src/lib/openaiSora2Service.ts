@@ -1,6 +1,7 @@
 /**
  * OpenAI Sora 2 Video Generation Service
- * Uses OpenAI's latest video generation model
+ * Uses AIMLAPI with proper two-step generation pattern
+ * Documentation: https://docs.aimlapi.com/api-references/video-models/openai/sora-2-pro-t2v
  */
 
 export interface Sora2Params {
@@ -11,111 +12,110 @@ export interface Sora2Params {
 }
 
 /**
- * Generate video using OpenAI Sora 2
+ * Generate video using OpenAI Sora 2 via AIMLAPI
  */
 export async function generateWithSora2(
   params: Sora2Params,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const OPENAI_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-
-    if (!OPENAI_KEY || OPENAI_KEY.includes('your-')) {
-      throw new Error('OpenAI API key not configured');
-    }
-
-    onProgress?.('Initializing Sora 2...');
-
-    // Map aspect ratios to dimensions
-    const dimensionMap: Record<string, { width: number; height: number }> = {
-      'landscape': { width: 1920, height: 1080 },
-      'portrait': { width: 1080, height: 1920 },
-      'square': { width: 1080, height: 1080 }
-    };
-
-    const dimensions = dimensionMap[params.aspectRatio || 'landscape'];
-    const duration = Math.min(params.duration || 10, 20); // Max 20 seconds
-
-    // Use AIMLAPI for video generation with Sora
     const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
 
     if (!AIML_KEY) {
       throw new Error('AIMLAPI key not configured');
     }
 
-    onProgress?.('Generating video with Sora...');
+    onProgress?.('Initializing Sora 2 video generation...');
 
-    const response = await fetch('https://api.aimlapi.com/v1/video/generation', {
+    // Map aspect ratios to AIMLAPI format
+    const aspectRatioMap: Record<string, string> = {
+      'landscape': '16:9',
+      'portrait': '9:16',
+      'square': '1:1'
+    };
+
+    const aspectRatio = aspectRatioMap[params.aspectRatio || 'landscape'];
+    const duration = Math.min(params.duration || 10, 20); // Max 20 seconds
+
+    onProgress?.('Creating video generation task...');
+
+    // Step 1: Create video generation task using universal endpoint
+    const createResponse = await fetch('https://api.aimlapi.com/v2/video/generations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${AIML_KEY}`,
       },
       body: JSON.stringify({
-        model: 'sora-2',
+        model: 'openai/sora-2-pro-t2v',
         prompt: params.prompt,
+        aspect_ratio: aspectRatio,
         duration: duration,
-        aspect_ratio: params.aspectRatio || 'landscape',
         quality: params.resolution === '1080p' ? 'hd' : 'standard',
       }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`Video generation error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+    if (!createResponse.ok) {
+      const errorData = await createResponse.json().catch(() => ({}));
+      console.error('Video generation creation error:', createResponse.status, errorData);
+      throw new Error(`Video generation error: ${createResponse.status} - ${errorData.error?.message || errorData.message || createResponse.statusText}`);
     }
 
-    const data = await response.json();
+    const createData = await createResponse.json();
 
-    // Handle video generation response
-    if (data.id) {
-      onProgress?.('Video generation in progress...');
+    if (!createData.id) {
+      throw new Error('No generation ID received from API');
+    }
 
-      // Poll for completion
-      let attempts = 0;
-      const maxAttempts = 90; // 3 minutes timeout
+    const generationId = createData.id;
+    onProgress?.('Video generation task created, processing...');
 
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 3000));
+    // Step 2: Poll for completion
+    const maxAttempts = 90; // ~9 minutes timeout (6 seconds per attempt)
+    let attempts = 0;
 
-        const statusResponse = await fetch(
-          `https://api.aimlapi.com/v1/video/generation/${data.id}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${AIML_KEY}`,
-            },
-          }
-        );
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 6000)); // Wait 6 seconds
 
-        const statusData = await statusResponse.json();
-
-        if (statusData.status === 'succeeded') {
-          const videoUrl = statusData.data?.[0]?.url;
-          if (!videoUrl) {
-            throw new Error('No video URL in response');
-          }
-
-          onProgress?.('Video generated successfully!');
-          return videoUrl;
-        } else if (statusData.status === 'failed') {
-          throw new Error(statusData.error?.message || 'Video generation failed');
+      const statusResponse = await fetch(
+        `https://api.aimlapi.com/v2/video/generations/${generationId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${AIML_KEY}`,
+          },
         }
+      );
 
-        onProgress?.(`Generating video... (${attempts * 2}s)`);
-        attempts++;
+      if (!statusResponse.ok) {
+        const errorData = await statusResponse.json().catch(() => ({}));
+        console.error('Status check error:', statusResponse.status, errorData);
+        throw new Error(`Status check failed: ${statusResponse.status}`);
       }
 
-      throw new Error('Video generation timed out');
+      const statusData = await statusResponse.json();
+
+      if (statusData.status === 'completed' || statusData.status === 'succeeded') {
+        // Extract video URL from response
+        const videoUrl = statusData.video_url || statusData.url || statusData.output?.video_url || statusData.data?.[0]?.url;
+
+        if (!videoUrl) {
+          console.error('No video URL in response:', statusData);
+          throw new Error('No video URL in response');
+        }
+
+        onProgress?.('Video generated successfully!');
+        return videoUrl;
+      } else if (statusData.status === 'failed' || statusData.status === 'error') {
+        throw new Error(statusData.error?.message || statusData.error || 'Video generation failed');
+      }
+
+      // Still processing
+      const timeElapsed = attempts * 6;
+      onProgress?.(`Generating video... (${timeElapsed}s elapsed)`);
+      attempts++;
     }
 
-    // Direct response (unlikely for video)
-    const videoUrl = data.data?.[0]?.url;
-    if (!videoUrl) {
-      throw new Error('No video URL in response');
-    }
-
-    onProgress?.('Video generated successfully!');
-    return videoUrl;
+    throw new Error('Video generation timed out after 9 minutes');
 
   } catch (error: any) {
     console.error('Sora 2 generation error:', error);
@@ -127,6 +127,6 @@ export async function generateWithSora2(
  * Check if Sora 2 is available
  */
 export function isSora2Available(): boolean {
-  const key = import.meta.env.VITE_OPENAI_API_KEY;
-  return !!key && !key.includes('your-');
+  const key = import.meta.env.VITE_AIMLAPI_KEY;
+  return !!key;
 }

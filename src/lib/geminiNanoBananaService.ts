@@ -1,6 +1,7 @@
 /**
- * Gemini 2.5 Flash Image Generation (Nano Banana)
- * Uses Gemini's built-in image generation capabilities
+ * Nano Banana Fast Image Generation
+ * Uses AIMLAPI with Flux Schnell model for fast image generation
+ * Documentation: https://docs.aimlapi.com/api-references/image-models
  */
 
 export interface NanoBananaParams {
@@ -10,38 +11,31 @@ export interface NanoBananaParams {
 }
 
 /**
- * Generate images using Gemini 2.5 Flash with Nano Banana
+ * Generate images using Flux Schnell via AIMLAPI (fast generation)
  */
 export async function generateWithNanoBanana(
   params: NanoBananaParams,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const NANO_BANANA_KEY = import.meta.env.NEXT_PUBLIC_NANO_BANANA_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
-
-    if (!NANO_BANANA_KEY || NANO_BANANA_KEY.includes('your-')) {
-      throw new Error('Nano Banana API key not configured');
-    }
-
-    onProgress?.('Initializing Gemini Nano Banana...');
-
-    // Map aspect ratios
-    const aspectRatioMap: Record<string, string> = {
-      'square': '1:1',
-      'landscape': '16:9',
-      'portrait': '9:16'
-    };
-
-    const aspectRatio = aspectRatioMap[params.aspectRatio || 'square'];
-
-    // Use AIMLAPI for image generation (supports multiple models)
     const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
 
     if (!AIML_KEY) {
       throw new Error('AIMLAPI key not configured');
     }
 
-    onProgress?.('Generating image...');
+    onProgress?.('Initializing fast image generation...');
+
+    // Map aspect ratios to dimensions
+    const dimensionMap: Record<string, string> = {
+      'square': '1024x1024',
+      'landscape': '1024x576',
+      'portrait': '576x1024'
+    };
+
+    const size = dimensionMap[params.aspectRatio || 'square'];
+
+    onProgress?.('Generating image with Flux Schnell...');
 
     const imageResponse = await fetch('https://api.aimlapi.com/v1/images/generations', {
       method: 'POST',
@@ -53,13 +47,14 @@ export async function generateWithNanoBanana(
         model: 'flux-schnell',
         prompt: params.prompt,
         n: params.numberOfImages || 1,
-        size: aspectRatio === '16:9' ? '1024x576' : aspectRatio === '9:16' ? '576x1024' : '1024x1024',
+        size: size,
       }),
     });
 
     if (!imageResponse.ok) {
       const errorData = await imageResponse.json().catch(() => ({}));
-      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || imageResponse.statusText}`);
+      console.error('Image generation error:', imageResponse.status, errorData);
+      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || errorData.message || imageResponse.statusText}`);
     }
 
     const imageData = await imageResponse.json();

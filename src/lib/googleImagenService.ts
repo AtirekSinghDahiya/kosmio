@@ -1,7 +1,7 @@
 /**
- * Google Imagen 3 Image Generation Service
- * Uses Google's official Imagen API via Gemini
- * Documentation: https://ai.google.dev/gemini-api/docs/imagen
+ * Google Imagen Image Generation Service
+ * Uses AIMLAPI with Flux Pro model for high-quality image generation
+ * Documentation: https://docs.aimlapi.com/api-references/image-models
  */
 
 export interface ImagenParams {
@@ -17,84 +17,31 @@ export interface ImagenResult {
 }
 
 /**
- * Generate images using Google Imagen 3
+ * Generate images using Flux Pro via AIMLAPI
  */
 export async function generateWithImagen(
   params: ImagenParams,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-    if (!GEMINI_KEY || GEMINI_KEY.includes('your-')) {
-      throw new Error('Google Gemini API key not configured');
-    }
-
-    onProgress?.('Initializing Google Imagen 3...');
-
-    // Map aspect ratios to Imagen format
-    const aspectRatioMap: Record<string, string> = {
-      'square': '1:1',
-      'landscape': '16:9',
-      'portrait': '9:16'
-    };
-
-    const aspectRatio = aspectRatioMap[params.aspectRatio || 'square'];
-
-    // Use Gemini Pro Vision for image generation with detailed prompts
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_KEY}`;
-
-    onProgress?.('Generating image with Google AI...');
-
-    // Since direct Imagen API is not publicly available, we'll use a workaround
-    // by generating a detailed description and then using that
-    // For now, we'll return a placeholder or use an alternative approach
-
-    // Alternative: Use the actual working Google AI Studio API
-    const aiStudioEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-
-    const response = await fetch(aiStudioEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `Create a detailed visual description for: ${params.prompt}`
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.9,
-          topK: 1,
-          topP: 1,
-          maxOutputTokens: 2048,
-        }
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Google AI Error:', errorData);
-      throw new Error(
-        `Google AI error: ${response.status} - ${
-          errorData.error?.message || response.statusText
-        }`
-      );
-    }
-
-    const data = await response.json();
-
-    // For now, since Imagen API is not publicly available,
-    // we need to use an alternative image generation service
-    // Let's use the AIMLAPI which supports multiple models
     const AIML_KEY = import.meta.env.VITE_AIMLAPI_KEY;
 
     if (!AIML_KEY) {
-      throw new Error('AIMLAPI key not configured. Image generation requires a working image API.');
+      throw new Error('AIMLAPI key not configured');
     }
 
-    onProgress?.('Generating image...');
+    onProgress?.('Initializing image generation...');
+
+    // Map aspect ratios to dimensions
+    const dimensionMap: Record<string, string> = {
+      'square': '1024x1024',
+      'landscape': '1024x576',
+      'portrait': '576x1024'
+    };
+
+    const size = dimensionMap[params.aspectRatio || 'square'];
+
+    onProgress?.('Generating image with Flux Pro...');
 
     const imageResponse = await fetch('https://api.aimlapi.com/v1/images/generations', {
       method: 'POST',
@@ -106,13 +53,14 @@ export async function generateWithImagen(
         model: 'flux-pro',
         prompt: params.prompt,
         n: params.numberOfImages || 1,
-        size: aspectRatio === '16:9' ? '1024x576' : aspectRatio === '9:16' ? '576x1024' : '1024x1024',
+        size: size,
       }),
     });
 
     if (!imageResponse.ok) {
       const errorData = await imageResponse.json().catch(() => ({}));
-      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || imageResponse.statusText}`);
+      console.error('Image generation error:', imageResponse.status, errorData);
+      throw new Error(`Image generation error: ${imageResponse.status} - ${errorData.error?.message || errorData.message || imageResponse.statusText}`);
     }
 
     const imageData = await imageResponse.json();
