@@ -1,8 +1,9 @@
 /**
  * Google Veo 3 Video Generation Service
- * Placeholder for actual Google Veo 3 API integration
- * Note: Requires GOOGLE_VEO_API_KEY environment variable
+ * Uses AIMLAPI for actual Google Veo 3 API integration
  */
+
+import { generateAndWaitForAimlapiVideo } from './aimlapiVideoService';
 
 export interface Veo3Params {
   prompt: string;
@@ -12,28 +13,45 @@ export interface Veo3Params {
 }
 
 /**
- * Generate video using Google Veo 3
- * Currently returns a demo video URL - integrate actual API when key is available
+ * Generate video using Google Veo 3 via AIMLAPI
  */
 export async function generateWithVeo3(
   params: Veo3Params,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    onProgress?.('Initializing Veo 3 video generation...');
-
-    const apiKey = import.meta.env.VITE_GOOGLE_VEO_API_KEY;
+    const apiKey = import.meta.env.VITE_AIMLAPI_KEY;
 
     if (!apiKey || apiKey.includes('your-')) {
-      throw new Error('Google Veo 3 API key not configured. Add VITE_GOOGLE_VEO_API_KEY to .env file.');
+      throw new Error('AIMLAPI key not configured. Add VITE_AIMLAPI_KEY to .env file.');
     }
 
-    // TODO: Integrate actual Google Veo 3 API
-    // For now, return a demo video URL
-    onProgress?.('Video generation pending - API integration needed');
+    onProgress?.('Initializing Veo 3 video generation...');
 
-    // Return a sample video URL (replace with actual API call)
-    return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+    // Map aspect ratio to AIMLAPI format
+    let aspectRatioMapping: '16:9' | '9:16' | '1:1' = '16:9';
+    if (params.aspectRatio === 'portrait') {
+      aspectRatioMapping = '9:16';
+    } else if (params.aspectRatio === 'square') {
+      aspectRatioMapping = '1:1';
+    }
+
+    // Map duration (AIMLAPI only supports 4 or 8)
+    const duration = params.duration && params.duration >= 8 ? 8 : 4;
+
+    const videoUrl = await generateAndWaitForAimlapiVideo(
+      {
+        prompt: params.prompt,
+        aspectRatio: aspectRatioMapping,
+        duration: duration as 4 | 8,
+      },
+      apiKey,
+      (status, percent) => {
+        onProgress?.(`${status} (${percent}%)`);
+      }
+    );
+
+    return videoUrl;
 
   } catch (error: any) {
     console.error('Veo 3 generation error:', error);
@@ -45,6 +63,6 @@ export async function generateWithVeo3(
  * Check if Veo 3 is available
  */
 export function isVeo3Available(): boolean {
-  const apiKey = import.meta.env.VITE_GOOGLE_VEO_API_KEY;
+  const apiKey = import.meta.env.VITE_AIMLAPI_KEY;
   return !!(apiKey && !apiKey.includes('your-'));
 }

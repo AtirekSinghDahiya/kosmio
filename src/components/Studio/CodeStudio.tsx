@@ -52,7 +52,11 @@ const RECENT_PROMPTS = [
   'Make a responsive navbar',
 ];
 
-export const CodeStudio: React.FC = () => {
+interface CodeStudioProps {
+  onClose?: () => void;
+}
+
+export const CodeStudio: React.FC<CodeStudioProps> = ({ onClose }) => {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
