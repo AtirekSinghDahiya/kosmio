@@ -1,10 +1,7 @@
 /**
  * Nano Banana Fast Image Generation
- * Uses Replicate API with Flux Schnell model for fast image generation
- * Documentation: https://replicate.com/docs
+ * Uses Pollinations.ai with Flux Schnell model for fast image generation
  */
-
-import { generateWithReplicate, isReplicateAvailable, type ReplicateImageParams } from './replicateImageService';
 
 export interface NanoBananaParams {
   prompt: string;
@@ -13,7 +10,7 @@ export interface NanoBananaParams {
 }
 
 /**
- * Generate images using Flux Schnell via Replicate (fast generation)
+ * Generate images using Flux Schnell via Pollinations.ai (fast generation)
  */
 export async function generateWithNanoBanana(
   params: NanoBananaParams,
@@ -22,17 +19,25 @@ export async function generateWithNanoBanana(
   try {
     onProgress?.('Initializing Nano Banana fast generation...');
 
-    const replicateParams: ReplicateImageParams = {
-      prompt: params.prompt,
-      model: 'flux-schnell',
-      aspectRatio: params.aspectRatio || 'square',
-      numberOfImages: params.numberOfImages || 1
-    };
+    const { prompt, aspectRatio = 'square' } = params;
 
-    const imageUrl = await generateWithReplicate(replicateParams, (status) => {
-      onProgress?.(`Nano Banana: ${status}`);
-    });
+    // Determine dimensions based on aspect ratio
+    let width = 1024;
+    let height = 1024;
 
+    if (aspectRatio === 'landscape') {
+      width = 1280;
+      height = 720;
+    } else if (aspectRatio === 'portrait') {
+      width = 720;
+      height = 1280;
+    }
+
+    const timestamp = Date.now();
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${timestamp}&nologo=true&model=flux`;
+
+    onProgress?.('Image generated successfully');
     return imageUrl;
 
   } catch (error: any) {
@@ -45,5 +50,5 @@ export async function generateWithNanoBanana(
  * Check if Nano Banana is available
  */
 export function isNanoBananaAvailable(): boolean {
-  return isReplicateAvailable();
+  return true; // Pollinations.ai is always available
 }

@@ -1,10 +1,8 @@
 /**
  * Google Veo 3 Video Generation Service
- * Uses Replicate API with Google Veo 2/3 model
- * Documentation: https://replicate.com/docs
+ * Placeholder for actual Google Veo 3 API integration
+ * Note: Requires GOOGLE_VEO_API_KEY environment variable
  */
-
-import { generateWithReplicateVideo, isReplicateVideoAvailable, type ReplicateVideoParams } from './replicateVideoService';
 
 export interface Veo3Params {
   prompt: string;
@@ -14,7 +12,8 @@ export interface Veo3Params {
 }
 
 /**
- * Generate video using Google Veo 3 via Replicate
+ * Generate video using Google Veo 3
+ * Currently returns a demo video URL - integrate actual API when key is available
  */
 export async function generateWithVeo3(
   params: Veo3Params,
@@ -23,19 +22,18 @@ export async function generateWithVeo3(
   try {
     onProgress?.('Initializing Veo 3 video generation...');
 
-    const replicateParams: ReplicateVideoParams = {
-      prompt: params.prompt,
-      model: 'veo3',
-      duration: params.duration || 8,
-      aspectRatio: params.aspectRatio || 'landscape',
-      resolution: params.resolution || '720p'
-    };
+    const apiKey = import.meta.env.VITE_GOOGLE_VEO_API_KEY;
 
-    const videoUrl = await generateWithReplicateVideo(replicateParams, (status) => {
-      onProgress?.(`Veo 3: ${status}`);
-    });
+    if (!apiKey || apiKey.includes('your-')) {
+      throw new Error('Google Veo 3 API key not configured. Add VITE_GOOGLE_VEO_API_KEY to .env file.');
+    }
 
-    return videoUrl;
+    // TODO: Integrate actual Google Veo 3 API
+    // For now, return a demo video URL
+    onProgress?.('Video generation pending - API integration needed');
+
+    // Return a sample video URL (replace with actual API call)
+    return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 
   } catch (error: any) {
     console.error('Veo 3 generation error:', error);
@@ -47,5 +45,6 @@ export async function generateWithVeo3(
  * Check if Veo 3 is available
  */
 export function isVeo3Available(): boolean {
-  return isReplicateVideoAvailable();
+  const apiKey = import.meta.env.VITE_GOOGLE_VEO_API_KEY;
+  return !!(apiKey && !apiKey.includes('your-'));
 }

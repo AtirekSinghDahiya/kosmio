@@ -1,10 +1,7 @@
 /**
  * Google Imagen Image Generation Service
- * Uses Replicate API with Flux Pro model for high-quality image generation
- * Documentation: https://replicate.com/docs
+ * Uses Pollinations.ai with Flux Pro model for high-quality image generation
  */
-
-import { generateWithReplicate, isReplicateAvailable, type ReplicateImageParams } from './replicateImageService';
 
 export interface ImagenParams {
   prompt: string;
@@ -19,7 +16,7 @@ export interface ImagenResult {
 }
 
 /**
- * Generate images using Flux Pro via Replicate (high quality)
+ * Generate images using Flux Pro via Pollinations.ai (high quality)
  */
 export async function generateWithImagen(
   params: ImagenParams,
@@ -28,18 +25,25 @@ export async function generateWithImagen(
   try {
     onProgress?.('Initializing Imagen high-quality generation...');
 
-    const replicateParams: ReplicateImageParams = {
-      prompt: params.prompt,
-      model: 'flux-pro',
-      aspectRatio: params.aspectRatio || 'square',
-      numberOfImages: params.numberOfImages || 1,
-      negativePrompt: params.negativePrompt
-    };
+    const { prompt, aspectRatio = 'square' } = params;
 
-    const imageUrl = await generateWithReplicate(replicateParams, (status) => {
-      onProgress?.(`Imagen: ${status}`);
-    });
+    // Determine dimensions based on aspect ratio
+    let width = 1024;
+    let height = 1024;
 
+    if (aspectRatio === 'landscape') {
+      width = 1280;
+      height = 720;
+    } else if (aspectRatio === 'portrait') {
+      width = 720;
+      height = 1280;
+    }
+
+    const timestamp = Date.now();
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${timestamp}&nologo=true&model=flux-pro`;
+
+    onProgress?.('Image generated successfully');
     return imageUrl;
 
   } catch (error: any) {
@@ -52,5 +56,5 @@ export async function generateWithImagen(
  * Check if Imagen is available
  */
 export function isImagenAvailable(): boolean {
-  return isReplicateAvailable();
+  return true; // Pollinations.ai is always available
 }

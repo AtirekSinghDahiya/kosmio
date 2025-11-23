@@ -144,61 +144,17 @@ export async function generateImageSmart(
 }
 
 /**
- * Generate image using Google Gemini (Nano Banana) - ACTUAL API
- * This is the real Nano Banana image generation!
+ * Generate image using Pollinations.ai (Fast and Reliable)
+ * Uses Flux model for high-quality image generation
  */
 export async function generateImageFree(prompt: string): Promise<GeneratedImage> {
-  console.log('🎨 Generating image with Nano Banana (Gemini):', prompt);
+  console.log('🎨 Generating image with Pollinations.ai Flux model:', prompt);
 
-  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
   const timestamp = Date.now();
-
-  // Try Gemini first (Nano Banana)
-  if (geminiKey && !geminiKey.includes('your-')) {
-    try {
-      console.log('🍌 Using Nano Banana (Gemini 2.5 Flash Image)');
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${geminiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            prompt: prompt,
-            number_of_images: 1,
-            aspect_ratio: '1:1',
-            safety_filter_level: 'block_some',
-            person_generation: 'allow_adult'
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.predictions && data.predictions[0]?.bytesBase64Encoded) {
-          const imageUrl = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
-          console.log('✅ Nano Banana generated successfully!');
-          return {
-            url: imageUrl,
-            seed: timestamp,
-            prompt: prompt,
-            timestamp: new Date(),
-          };
-        }
-      }
-
-      console.log('⚠️ Gemini response not OK, falling back');
-    } catch (error) {
-      console.error('❌ Gemini error:', error);
-    }
-  }
-
-  // Fallback to Pollinations.ai
-  console.log('⚠️ Using Pollinations.ai fallback');
   const encodedPrompt = encodeURIComponent(prompt);
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${timestamp}&nologo=true&model=flux`;
+
+  console.log('✅ Image URL generated:', imageUrl);
 
   return {
     url: imageUrl,
