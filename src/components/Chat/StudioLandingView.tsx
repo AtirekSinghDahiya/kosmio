@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send } from 'lucide-react';
+import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send, FileText } from 'lucide-react';
 import { AI_MODELS } from '../../lib/aiModels';
 
 interface StudioLandingViewProps {
@@ -214,6 +214,14 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         icon: FileCode,
         category: 'code' as const,
         badge: 'Studio'
+      },
+      {
+        id: 'ppt-studio',
+        name: 'PPT Studio',
+        description: 'Create professional presentations with AI - customize slides, design, and style',
+        icon: FileText,
+        category: 'code' as const,
+        badge: 'Slides'
       }
     ],
   };
