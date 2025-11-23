@@ -42,45 +42,13 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
     setProgress('Starting...');
 
     try {
-      const modelMap: Record<string, string> = {
-        'flux-schnell': 'fal-ai/flux/schnell',
-        'flux-dev': 'fal-ai/flux/dev',
-        'flux-pro': 'fal-ai/flux-pro'
-      };
+      const { generateImageSimple } = await import('../../lib/simpleImageGen');
 
-      const falModel = modelMap[selectedModel] || 'fal-ai/flux/schnell';
+      const imageUrl = await generateImageSimple(prompt, (status) => {
+        setProgress(status);
+      }, selectedModel);
 
-      setProgress('Initializing...');
-      const { fal } = await import('../../lib/falClient');
-
-      const result = await fal.subscribe(falModel, {
-        input: {
-          prompt,
-          image_size: 'square_hd',
-          num_inference_steps: selectedModel === 'flux-schnell' ? 4 : 28,
-          num_images: 1,
-          enable_safety_checker: true,
-        },
-        logs: true,
-        onQueueUpdate: (update) => {
-          if (update.status === 'IN_PROGRESS') {
-            setProgress('Generating your image...');
-          } else if (update.status === 'IN_QUEUE') {
-            const position = (update as any).position || 0;
-            setProgress(`Position in queue: ${position}`);
-          }
-        },
-      });
-
-      const output = result.data as any;
-
-      if (!output?.images?.[0]?.url) {
-        throw new Error('No image URL in response');
-      }
-
-      const imageUrl = output.images[0].url;
       setGeneratedImageUrl(imageUrl);
-      setProgress('Complete!');
       showToast('success', 'Image Generated!', 'Your image is ready');
 
       if (user) {

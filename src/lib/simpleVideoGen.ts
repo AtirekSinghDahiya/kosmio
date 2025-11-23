@@ -3,8 +3,6 @@
  * Reliable video generation with multiple models
  */
 
-import { fal } from './falClient';
-
 export type VideoModel = 'veo-3' | 'sora-2' | 'veo-3-legacy';
 
 export interface VideoParams {
@@ -22,6 +20,12 @@ export async function generateVideoSimple(
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
+    const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+
+    if (!FAL_KEY || FAL_KEY.includes('your-')) {
+      throw new Error('FAL.ai API key not configured. Please add VITE_FAL_KEY to your .env file.');
+    }
+
     onProgress?.('Initializing video generation...');
 
     // Map to FAL.ai model IDs
@@ -40,31 +44,75 @@ export async function generateVideoSimple(
       'square': '1:1'
     };
 
-    const result = await fal.subscribe(falModel, {
-      input: {
+    // Direct FAL API call
+    const response = await fetch(`https://queue.fal.run/${falModel}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         prompt: params.prompt,
         aspect_ratio: aspectRatioMap[params.aspectRatio || 'landscape'],
         duration: params.duration || 8
-      },
-      logs: true,
-      onQueueUpdate: (update) => {
-        if (update.status === 'IN_PROGRESS') {
-          onProgress?.('Generating your video...');
-        } else if (update.status === 'IN_QUEUE') {
-          const position = (update as any).queue_position;
-          onProgress?.(`Waiting in queue... (position: ${position || '?'})`);
-        }
-      },
+      }),
     });
 
-    const output = result.data as any;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('FAL API Error:', errorText);
+      throw new Error(`FAL API Error: ${response.status} - ${errorText}`);
+    }
 
-    if (!output?.video?.url) {
+    const data = await response.json();
+
+    // Handle queue response
+    if (data.request_id) {
+      onProgress?.('In queue, waiting...');
+
+      // Poll for result
+      const resultUrl = `https://queue.fal.run/${falModel}/requests/${data.request_id}`;
+      let attempts = 0;
+      const maxAttempts = 180; // 3 minutes timeout for video
+
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Check every 2 seconds
+
+        const statusResponse = await fetch(resultUrl, {
+          headers: {
+            'Authorization': `Key ${FAL_KEY}`,
+          },
+        });
+
+        const statusData = await statusResponse.json();
+
+        if (statusData.status === 'COMPLETED') {
+          const videoUrl = statusData.video?.url;
+          if (!videoUrl) {
+            throw new Error('No video URL in completed response');
+          }
+          onProgress?.('Video generated successfully!');
+          return videoUrl;
+        } else if (statusData.status === 'FAILED') {
+          throw new Error(statusData.error || 'Video generation failed');
+        }
+
+        const progress = statusData.logs?.[statusData.logs.length - 1]?.message || 'Generating...';
+        onProgress?.(`${progress} (${Math.floor(attempts * 2)}s)`);
+        attempts++;
+      }
+
+      throw new Error('Video generation timed out');
+    }
+
+    // Direct response (no queue)
+    const videoUrl = data.video?.url;
+    if (!videoUrl) {
       throw new Error('No video URL in response');
     }
 
     onProgress?.('Video generated successfully!');
-    return output.video.url;
+    return videoUrl;
 
   } catch (error: any) {
     console.error('Video generation error:', error);
@@ -76,5 +124,6 @@ export async function generateVideoSimple(
  * Check if video generation is available
  */
 export function isVideoGenerationAvailable(): boolean {
-  return !!import.meta.env.VITE_FAL_KEY;
+  const key = import.meta.env.VITE_FAL_KEY;
+  return !!key && !key.includes('your-');
 }
