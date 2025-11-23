@@ -115,3 +115,18 @@ export function isSunoAvailable(): boolean {
   const key = import.meta.env.VITE_SUNO_API_KEY;
   return !!key && !key.includes('your-');
 }
+
+/**
+ * Simple wrapper for generating music from just a prompt
+ */
+export async function generateSunoMusic(prompt: string): Promise<{ audioUrl: string; title: string }> {
+  const audioUrl = await generateWithSuno({
+    prompt,
+    makeInstrumental: false,
+  });
+
+  return {
+    audioUrl,
+    title: prompt.substring(0, 50),
+  };
+}

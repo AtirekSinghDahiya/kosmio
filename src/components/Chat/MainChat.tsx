@@ -482,18 +482,35 @@ export const MainChat: React.FC = () => {
       // Create user message
       const userMsg = await addMessage(activeProjectId!, 'user', `Generate an image: ${finalPrompt}`);
 
-      // Create generating message
-      const generatingMsg = await addMessage(activeProjectId!, 'assistant', 'Generating image...');
+      // Create generating message with loading indicator
+      const generatingMsg = await addMessage(activeProjectId!, 'assistant', '🎨 Generating your image...');
 
       // Import and use image service
       try {
         console.log('🎨 Starting image generation with prompt:', finalPrompt);
         const { generateImageFree } = await import('../../lib/imageService');
+
+        // Show progress
+        await supabase
+          .from('messages')
+          .update({ content: '🎨 Creating image with AI...' })
+          .eq('id', generatingMsg.id);
+
         const result = await generateImageFree(finalPrompt);
         console.log('🎨 Image generation result:', result);
 
         if (result && result.url) {
           console.log('✅ Image generated successfully! URL:', result.url);
+
+          // Show finalizing message
+          await supabase
+            .from('messages')
+            .update({ content: '✨ Finalizing your image...' })
+            .eq('id', generatingMsg.id);
+
+          // Small delay to show the loading state
+          await new Promise(resolve => setTimeout(resolve, 500));
+
           // Update message with generated image
           await supabase
             .from('messages')

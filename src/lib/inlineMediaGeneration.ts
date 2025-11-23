@@ -1,6 +1,6 @@
 import { generateNanoBananaImage } from './nanoBananaService';
 import { generateVeo3VideoNew } from './veo3ServiceNew';
-import { generateSunoMusic } from './sunoService';
+import { generateSunoMusic } from './sunoMusicService';
 
 export interface MediaGenerationProgress {
   status: string;

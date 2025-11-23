@@ -106,13 +106,10 @@ Format your response with:
 3. Usage instructions if needed`;
 
       const response = await getOpenRouterResponse(
-        [
-          { role: 'system', content: systemPrompt },
-          ...messages.map(m => ({ role: m.role, content: m.content })),
-          userMessage
-        ],
-        selectedModel.id,
-        currentUser?.uid || 'anonymous'
+        userPrompt,
+        messages.map(m => ({ role: m.role, content: m.content })),
+        systemPrompt,
+        selectedModel.id
       );
 
       const assistantMessage: Message = {
@@ -218,22 +215,6 @@ Format your response with:
               >
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">Build</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
-                <Play className="w-4 h-4" />
-                <span className="text-sm font-medium">Start</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
-                <FileCode className="w-4 h-4" />
-                <span className="text-sm font-medium">Gallery</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
-                <Code2 className="w-4 h-4" />
-                <span className="text-sm font-medium">Your apps</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
-                <Settings className="w-4 h-4" />
-                <span className="text-sm font-medium">FAQ</span>
               </button>
             </div>
           </div>
