@@ -1,10 +1,10 @@
 /**
  * Google Imagen Image Generation Service
- * Uses FAL.ai with Flux Pro model for high-quality image generation
- * Documentation: https://fal.ai/models/fal-ai/flux/dev/api
+ * Uses Replicate API with Flux Pro model for high-quality image generation
+ * Documentation: https://replicate.com/docs
  */
 
-import { fal } from '@fal-ai/client';
+import { generateWithReplicate, isReplicateAvailable, type ReplicateImageParams } from './replicateImageService';
 
 export interface ImagenParams {
   prompt: string;
@@ -19,60 +19,28 @@ export interface ImagenResult {
 }
 
 /**
- * Generate images using Flux Dev via FAL.ai
+ * Generate images using Flux Pro via Replicate (high quality)
  */
 export async function generateWithImagen(
   params: ImagenParams,
   onProgress?: (status: string) => void
 ): Promise<string> {
   try {
-    const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+    onProgress?.('Initializing Imagen high-quality generation...');
 
-    if (!FAL_KEY) {
-      throw new Error('FAL.ai API key not configured');
-    }
-
-    // Configure FAL client
-    fal.config({
-      credentials: FAL_KEY
-    });
-
-    onProgress?.('Initializing image generation...');
-
-    // Map aspect ratios to FAL format
-    const aspectRatioMap: Record<string, string> = {
-      'square': 'square',
-      'landscape': 'landscape_4_3',
-      'portrait': 'portrait_4_3'
+    const replicateParams: ReplicateImageParams = {
+      prompt: params.prompt,
+      model: 'flux-pro',
+      aspectRatio: params.aspectRatio || 'square',
+      numberOfImages: params.numberOfImages || 1,
+      negativePrompt: params.negativePrompt
     };
 
-    const imageSize = aspectRatioMap[params.aspectRatio || 'square'];
-
-    onProgress?.('Generating image with Flux Dev...');
-
-    const result: any = await fal.subscribe('fal-ai/flux/dev', {
-      input: {
-        prompt: params.prompt,
-        image_size: imageSize,
-        num_inference_steps: 28, // Higher quality for dev model
-        num_images: params.numberOfImages || 1,
-        enable_safety_checker: true,
-      },
-      logs: true,
-      onQueueUpdate: (update) => {
-        if (update.status === 'IN_PROGRESS') {
-          onProgress?.('Processing...');
-        }
-      },
+    const imageUrl = await generateWithReplicate(replicateParams, (status) => {
+      onProgress?.(`Imagen: ${status}`);
     });
 
-    onProgress?.('Image generated successfully!');
-
-    if (result.images && result.images.length > 0) {
-      return result.images[0].url;
-    }
-
-    throw new Error('No image data in response');
+    return imageUrl;
 
   } catch (error: any) {
     console.error('Imagen generation error:', error);
@@ -84,6 +52,5 @@ export async function generateWithImagen(
  * Check if Imagen is available
  */
 export function isImagenAvailable(): boolean {
-  const key = import.meta.env.VITE_FAL_KEY;
-  return !!key;
+  return isReplicateAvailable();
 }
