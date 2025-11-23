@@ -1,10 +1,8 @@
 /**
  * Nano Banana Fast Image Generation
- * Uses FAL.ai with Flux Schnell model for fast image generation
+ * Uses FAL.ai REST API with Flux Schnell model for fast image generation
  * Documentation: https://fal.ai/models/fal-ai/flux/schnell/api
  */
-
-import { fal } from '@fal-ai/client';
 
 export interface NanoBananaParams {
   prompt: string;
@@ -13,7 +11,7 @@ export interface NanoBananaParams {
 }
 
 /**
- * Generate images using Flux Schnell via FAL.ai (fast generation)
+ * Generate images using Flux Schnell via FAL.ai REST API
  */
 export async function generateWithNanoBanana(
   params: NanoBananaParams,
@@ -25,11 +23,6 @@ export async function generateWithNanoBanana(
     if (!FAL_KEY) {
       throw new Error('FAL.ai API key not configured');
     }
-
-    // Configure FAL client
-    fal.config({
-      credentials: FAL_KEY
-    });
 
     onProgress?.('Initializing fast image generation...');
 
@@ -44,29 +37,82 @@ export async function generateWithNanoBanana(
 
     onProgress?.('Generating image with Flux Schnell...');
 
-    const result: any = await fal.subscribe('fal-ai/flux/schnell', {
-      input: {
+    // Submit generation request to FAL.ai queue
+    const queueResponse = await fetch('https://queue.fal.run/fal-ai/flux/schnell', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${FAL_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         prompt: params.prompt,
         image_size: imageSize,
-        num_inference_steps: 4, // Optimal for schnell
+        num_inference_steps: 4,
         num_images: params.numberOfImages || 1,
         enable_safety_checker: true,
-      },
-      logs: true,
-      onQueueUpdate: (update) => {
-        if (update.status === 'IN_PROGRESS') {
-          onProgress?.('Processing...');
-        }
-      },
+      }),
     });
 
-    onProgress?.('Image generated successfully!');
-
-    if (result.images && result.images.length > 0) {
-      return result.images[0].url;
+    if (!queueResponse.ok) {
+      const errorData = await queueResponse.json().catch(() => ({}));
+      console.error('FAL.ai queue error:', queueResponse.status, errorData);
+      throw new Error(`Image generation error: ${queueResponse.status} - ${errorData.detail || errorData.message || queueResponse.statusText}`);
     }
 
-    throw new Error('No image data in response');
+    const queueData = await queueResponse.json();
+    const requestId = queueData.request_id;
+
+    if (!requestId) {
+      throw new Error('No request ID received from FAL.ai');
+    }
+
+    // Poll for result
+    const maxAttempts = 60; // 2 minutes timeout
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+
+      const statusResponse = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${requestId}/status`, {
+        headers: {
+          'Authorization': `Key ${FAL_KEY}`,
+        },
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`Status check failed: ${statusResponse.status}`);
+      }
+
+      const statusData = await statusResponse.json();
+
+      if (statusData.status === 'COMPLETED') {
+        const resultResponse = await fetch(`https://queue.fal.run/fal-ai/flux/schnell/requests/${requestId}`, {
+          headers: {
+            'Authorization': `Key ${FAL_KEY}`,
+          },
+        });
+
+        if (!resultResponse.ok) {
+          throw new Error(`Result fetch failed: ${resultResponse.status}`);
+        }
+
+        const result = await resultResponse.json();
+        onProgress?.('Image generated successfully!');
+
+        if (result.images && result.images.length > 0) {
+          return result.images[0].url;
+        }
+
+        throw new Error('No image data in response');
+      } else if (statusData.status === 'FAILED') {
+        throw new Error(statusData.error || 'Image generation failed');
+      }
+
+      onProgress?.('Processing...');
+      attempts++;
+    }
+
+    throw new Error('Image generation timed out');
 
   } catch (error: any) {
     console.error('Nano Banana generation error:', error);
