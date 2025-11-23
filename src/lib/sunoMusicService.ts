@@ -7,9 +7,12 @@ export interface SunoParams {
   prompt: string;
   duration?: number;
   makeInstrumental?: boolean;
-  genre?: string;
-  mood?: string;
+  style?: string;
+  title?: string;
+  model?: 'V3_5' | 'V4' | 'V4_5' | 'V4_5PLUS' | 'V5';
 }
+
+const SUNO_API_BASE = 'https://api.sunoapi.org/api/v1';
 
 /**
  * Generate music using Suno API
@@ -25,42 +28,41 @@ export async function generateWithSuno(
       throw new Error('Suno API key not configured');
     }
 
-    onProgress?.('Initializing Suno...');
+    onProgress?.('Initializing Suno music generation...');
 
-    // Build music description
-    const description = [
-      params.prompt,
-      params.genre ? `Genre: ${params.genre}` : '',
-      params.mood ? `Mood: ${params.mood}` : '',
-      params.makeInstrumental ? 'Instrumental only' : 'With vocals'
-    ].filter(Boolean).join('. ');
+    const requestBody: any = {
+      prompt: params.prompt,
+      customMode: true,
+      instrumental: params.makeInstrumental || false,
+      model: params.model || 'V3_5',
+      style: params.style || 'Folk Pop',
+      title: params.title || params.prompt.substring(0, 80),
+      callBackUrl: 'https://example.com/callback'
+    };
 
-    // Call Suno API via sunoapi.org
-    const response = await fetch('https://api.sunoapi.org/api/v1/music', {
+    console.log('🎵 Suno API request:', requestBody);
+
+    // Start generation
+    const response = await fetch(`${SUNO_API_BASE}/generate`, {
       method: 'POST',
       headers: {
-        'api-key': SUNO_KEY,
+        'Authorization': `Bearer ${SUNO_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        title: params.prompt.substring(0, 100),
-        tags: params.genre || 'electronic',
-        prompt: description,
-        make_instrumental: params.makeInstrumental || false,
-        wait_audio: false
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Suno API Error:', errorText);
-      throw new Error(`Suno API Error: ${response.status}`);
+      console.error('❌ Suno API Error:', response.status, errorText);
+      throw new Error(`Suno API Error (${response.status}): ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('📊 Suno response:', data);
 
-    if (data.code !== 0 || !data.data || !data.data.taskId) {
-      throw new Error(data.message || 'No task ID in response');
+    if (data.code !== 200 || !data.data?.taskId) {
+      throw new Error(data.msg || 'No task ID in response');
     }
 
     const taskId = data.data.taskId;
@@ -68,39 +70,50 @@ export async function generateWithSuno(
 
     // Poll for completion
     let attempts = 0;
-    const maxAttempts = 90; // 3 minutes timeout
+    const maxAttempts = 60; // 10 minutes max (10 seconds per check)
 
     while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
 
       const statusResponse = await fetch(
-        `https://api.sunoapi.org/api/v1/music/${taskId}`,
+        `${SUNO_API_BASE}/generate/record-info?taskId=${taskId}`,
         {
           headers: {
-            'api-key': SUNO_KEY,
+            'Authorization': `Bearer ${SUNO_KEY}`,
           },
         }
       );
 
-      const statusData = await statusResponse.json();
-
-      if (statusData.code === 0 && statusData.data) {
-        if (statusData.data.status === 'SUCCESS' && statusData.data.response) {
-          const audioUrl = statusData.data.response.sunoData?.[0]?.audioUrl;
-          if (audioUrl) {
-            onProgress?.('Music generated successfully!');
-            return audioUrl;
-          }
-        } else if (statusData.data.status === 'FAILED') {
-          throw new Error('Music generation failed');
-        }
+      if (!statusResponse.ok) {
+        console.error('❌ Status check failed:', statusResponse.status);
+        attempts++;
+        continue;
       }
 
-      onProgress?.(`Generating music... (${attempts * 2}s)`);
+      const statusData = await statusResponse.json();
+      console.log(`📈 Status check ${attempts + 1}:`, statusData);
+
+      if (statusData.code === 200 && statusData.data) {
+        const status = statusData.data.status;
+
+        if (status === 'SUCCESS' && statusData.data.response?.data) {
+          const audioUrl = statusData.data.response.data[0]?.audio_url;
+          if (audioUrl) {
+            onProgress?.('Music generated successfully!');
+            console.log('✅ Music ready:', audioUrl);
+            return audioUrl;
+          }
+        } else if (status === 'FAILED') {
+          throw new Error('Music generation failed');
+        }
+
+        onProgress?.(`Generating music... (${(attempts + 1) * 10}s)`);
+      }
+
       attempts++;
     }
 
-    throw new Error('Music generation timed out');
+    throw new Error('Music generation timed out after 10 minutes');
 
   } catch (error: any) {
     console.error('Suno generation error:', error);
@@ -123,6 +136,7 @@ export async function generateSunoMusic(prompt: string): Promise<{ audioUrl: str
   const audioUrl = await generateWithSuno({
     prompt,
     makeInstrumental: false,
+    model: 'V3_5',
   });
 
   return {
