@@ -73,7 +73,6 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     { id: 'images' as Tab, label: 'Images', icon: Image },
     { id: 'video' as Tab, label: 'Video', icon: Video },
     { id: 'audio' as Tab, label: 'Audio', icon: Music },
-    { id: 'code' as Tab, label: 'Code', icon: Code },
   ];
 
   const modelCards: Record<Tab, ModelCard[]> = {
@@ -206,24 +205,7 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'Voice'
       },
     ],
-    code: [
-      {
-        id: 'code-studio',
-        name: 'Code Studio',
-        description: 'AI-powered code editor with multiple coding models - select your preferred model inside',
-        icon: FileCode,
-        category: 'code' as const,
-        badge: 'Studio'
-      },
-      {
-        id: 'ppt-studio',
-        name: 'PPT Studio',
-        description: 'Create professional presentations with AI - customize slides, design, and style',
-        icon: FileText,
-        category: 'code' as const,
-        badge: 'Slides'
-      }
-    ],
+    code: []
   };
 
   const handleCardClick = (card: ModelCard) => {

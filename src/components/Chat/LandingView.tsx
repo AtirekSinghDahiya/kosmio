@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { ImageIcon, Video, Send, Sparkles, ArrowRight, Presentation, Music, Paperclip, Image, File } from 'lucide-react';
 import { CompactModelSelector } from './CompactModelSelector';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 interface LandingViewProps {
   onQuickAction: (prompt: string, attachments?: File[]) => void;
@@ -11,15 +13,44 @@ interface LandingViewProps {
 
 export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selectedModel = 'gpt-4o', onModelChange }) => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState('');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [limits, setLimits] = useState({ images: 5, videos: 1, songs: 5, ppts: 5 });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    fetchLimits();
+  }, [user]);
+
+  const fetchLimits = async () => {
+    if (!user) return;
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+    const { data } = await supabase
+      .from('daily_usage_limits')
+      .select('feature_type')
+      .eq('user_id', user.uid)
+      .gte('created_at', startOfMonth);
+
+    const usage = data || [];
+    const imageCount = usage.filter(u => u.feature_type === 'image_generation').length;
+    const videoCount = usage.filter(u => u.feature_type === 'video_generation').length;
+    const songCount = usage.filter(u => u.feature_type === 'music_generation').length;
+    const pptCount = usage.filter(u => u.feature_type === 'presentation_generation').length;
+
+    setLimits({
+      images: Math.max(0, 5 - imageCount),
+      videos: Math.max(0, 1 - videoCount),
+      songs: Math.max(0, 5 - songCount),
+      ppts: Math.max(0, 5 - pptCount)
+    });
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -44,21 +75,29 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
       icon: ImageIcon,
       title: 'Generate Image',
       prompt: 'Create an image of a sunset over mountains',
+      remaining: limits.images,
+      total: 5
     },
     {
       icon: Video,
       title: 'Generate Video',
       prompt: 'Generate a video of ocean waves',
+      remaining: limits.videos,
+      total: 1
     },
     {
       icon: Presentation,
       title: 'Create PPT',
       prompt: 'Create a presentation about AI',
+      remaining: limits.ppts,
+      total: 5
     },
     {
       icon: Music,
       title: 'Generate Song',
       prompt: 'Create a calm instrumental music',
+      remaining: limits.songs,
+      total: 5
     }
   ];
 
@@ -90,8 +129,15 @@ export const LandingView: React.FC<LandingViewProps> = ({ onQuickAction, selecte
                 onClick={() => onQuickAction(suggestion.prompt)}
                 className="group flex flex-col items-start gap-2 md:gap-3 p-3 md:p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-200 text-left active:scale-95"
               >
-                <div className="p-1.5 md:p-2 rounded-lg bg-white/5">
-                  <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+                <div className="flex items-center justify-between w-full">
+                  <div className="p-1.5 md:p-2 rounded-lg bg-white/5">
+                    <Icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
+                  </div>
+                  {user && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70">
+                      {suggestion.remaining}/{suggestion.total}
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs md:text-sm text-white/90 group-hover:text-white transition-colors font-medium leading-snug">
                   {suggestion.title}

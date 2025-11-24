@@ -12,11 +12,12 @@ import { CosmicBackground } from './components/Layout/CosmicBackground';
 import { MainChat } from './components/Chat/MainChat';
 import { UnifiedStudioChat } from './components/Chat/UnifiedStudioChat';
 import { ProjectsView } from './components/Projects/ProjectsView';
-import { VoiceStudio } from './components/Studio/VoiceStudio';
-import { CodeStudio } from './components/Studio/CodeStudio';
-import { DesignStudio } from './components/Studio/DesignStudio';
-import { VideoStudio } from './components/Studio/VideoStudio';
-import { PPTStudio } from './components/Studio/PPTStudio';
+// Studio components temporarily disabled
+// import { VoiceStudio } from './components/Studio/VoiceStudio';
+// import { CodeStudio } from './components/Studio/CodeStudio';
+// import { DesignStudio } from './components/Studio/DesignStudio';
+// import { VideoStudio } from './components/Studio/VideoStudio';
+// import { PPTStudio } from './components/Studio/PPTStudio';
 import { BillingView } from './components/Billing/BillingView';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { AdminAnalyticsDashboard } from './components/Admin/AdminAnalyticsDashboard';
@@ -90,15 +91,11 @@ const MainApp: React.FC = () => {
       case 'projects':
         return <ProjectsView onOpenProject={handleOpenProject} />;
       case 'voice':
-        return <VoiceStudio projectId={activeProject?.id} />;
       case 'code':
-        return <CodeStudio projectId={activeProject?.id} />;
       case 'design':
-        return <DesignStudio projectId={activeProject?.id} />;
       case 'video':
-        return <VideoStudio projectId={activeProject?.id} />;
       case 'ppt':
-        return <PPTStudio projectId={activeProject?.id} />;
+        return <UnifiedStudioChat projectId={activeProject?.id} projectName={activeProject?.name} />;
       case 'billing':
         return <BillingView />;
       case 'admin':

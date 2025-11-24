@@ -36,8 +36,8 @@ export async function getUserAccessInfo(userId?: string): Promise<UserAccessInfo
     }
 
     const paidTokens = profile.paid_tokens_balance || 0;
-    const userType = profile.user_type || (paidTokens > 0 ? 'paid' : 'free');
-    const isPremium = paidTokens > 0 || profile.is_paid === true || profile.is_premium === true;
+    const userType = profile.user_type || 'free';
+    const isPremium = (userType === 'paid') || (profile.is_paid === true) || (profile.is_premium === true);
 
     return {
       userId: uid,

@@ -23,11 +23,12 @@ import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
-import { PPTStudio } from '../Studio/PPTStudio';
-import { ImageStudioView } from '../Studio/ImageStudioView';
-import { VideoStudioView } from '../Studio/VideoStudioView';
-import { SimpleMusicStudio } from '../Studio/SimpleMusicStudio';
-import { CodeStudio } from '../Studio/CodeStudio';
+// Studio components disabled
+// import { PPTStudio } from '../Studio/PPTStudio';
+// import { ImageStudioView } from '../Studio/ImageStudioView';
+// import { VideoStudioView } from '../Studio/VideoStudioView';
+// import { SimpleMusicStudio } from '../Studio/SimpleMusicStudio';
+// import { CodeStudio } from '../Studio/CodeStudio';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MediaPreview } from './MediaPreview';
 import { TypingEffect, TypingIndicator } from './TypingEffect';
@@ -76,8 +77,9 @@ export const MainChat: React.FC = () => {
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
   const [showPPTGenerator, setShowPPTGenerator] = useState(false);
   const [pptTopic, setPPTTopic] = useState('');
-  const [showCodeStudio, setShowCodeStudio] = useState(false);
-  const [codePrompt, setCodePrompt] = useState('');
+  // Code studio disabled
+  // const [showCodeStudio, setShowCodeStudio] = useState(false);
+  // const [codePrompt, setCodePrompt] = useState('');
   const [musicPrompt, setMusicPrompt] = useState('');
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
@@ -996,32 +998,6 @@ export const MainChat: React.FC = () => {
                 setVideoPrompt('');
               }}
               initialPrompt={videoPrompt}
-            />
-          ) : showPPTGenerator ? (
-            <PPTStudio
-              onClose={() => {
-                setShowPPTGenerator(false);
-                setPPTTopic('');
-              }}
-              initialTopic={pptTopic}
-              onSlidesGenerated={async (slides, topic) => {
-                // Create project if none exists
-                if (!activeProjectId) {
-                  const newProject = await createProject(
-                    topic.substring(0, 50) || 'Presentation',
-                    'chat',
-                    topic
-                  );
-                  setActiveProjectId(newProject.id);
-                }
-              }}
-            />
-          ) : showCodeStudio ? (
-            <CodeStudio
-              onClose={() => {
-                setShowCodeStudio(false);
-                setCodePrompt('');
-              }}
             />
           ) : showMusicGenerator ? (
             <SimpleMusicStudio

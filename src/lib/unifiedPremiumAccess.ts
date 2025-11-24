@@ -84,7 +84,7 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
     console.log('📊 Fetching fresh premium status for:', userId);
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('id, paid_tokens_balance, tokens_balance, free_tokens_balance, is_premium, is_paid, current_tier')
+      .select('id, user_type, paid_tokens_balance, tokens_balance, free_tokens_balance, is_premium, is_paid, current_tier')
       .eq('id', userId)
       .maybeSingle();
 
@@ -103,20 +103,22 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
 
     const paidTokens = profile.paid_tokens_balance || 0;
     const totalTokens = profile.tokens_balance || 0;
+    const userType = profile.user_type || 'free';
 
-    // Premium status: ONLY check paid_tokens_balance (source of truth)
-    // Free users have tokens_balance (free tokens) but paid_tokens_balance should be 0
-    // DO NOT use is_premium flag as fallback - it can be incorrect
-    const isPremium = paidTokens > 0;
+    // Premium status: Check user_type FIRST, then paid tokens as backup
+    // user_type is the source of truth (set by payment system)
+    // Free users CANNOT access paid models even if they have promotional tokens
+    const isPremium = (userType === 'paid') || (profile.is_paid === true) || (profile.is_premium === true);
 
     console.log('💎 Premium calculation:', {
+      userType,
       paidTokens,
       totalTokens,
       is_premium: profile.is_premium,
       is_paid: profile.is_paid,
       current_tier: profile.current_tier,
       result: isPremium,
-      logic: paidTokens > 0 ? 'HAS_PAID_TOKENS' : (profile.is_premium ? 'IS_PREMIUM_FLAG' : 'FREE')
+      logic: userType === 'paid' ? 'USER_TYPE_PAID' : (profile.is_premium ? 'IS_PREMIUM_FLAG' : 'FREE')
     });
 
     if (isPremium && paidTokens > 0) {
