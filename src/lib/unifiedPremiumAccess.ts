@@ -105,20 +105,22 @@ export async function getUnifiedPremiumStatus(userIdOverride?: string): Promise<
     const totalTokens = profile.tokens_balance || 0;
     const userType = profile.user_type || 'free';
 
-    // Premium status: Check user_type FIRST, then paid tokens as backup
-    // user_type is the source of truth (set by payment system)
-    // Free users CANNOT access paid models even if they have promotional tokens
-    const isPremium = (userType === 'paid') || (profile.is_paid === true) || (profile.is_premium === true);
+    // Premium status: ONLY check user_type (SINGLE SOURCE OF TRUTH)
+    // user_type is set ONLY by payment system (Stripe)
+    // Promotional tokens do NOT grant premium access
+    // Free users CANNOT access paid models even with 5M tokens
+    const isPremium = (userType === 'paid');
 
     console.log('💎 Premium calculation:', {
       userType,
       paidTokens,
       totalTokens,
+      freeTokens: profile.free_tokens_balance,
       is_premium: profile.is_premium,
       is_paid: profile.is_paid,
       current_tier: profile.current_tier,
       result: isPremium,
-      logic: userType === 'paid' ? 'USER_TYPE_PAID' : (profile.is_premium ? 'IS_PREMIUM_FLAG' : 'FREE')
+      logic: userType === 'paid' ? 'PAID_USER' : 'FREE_USER'
     });
 
     if (isPremium && paidTokens > 0) {
