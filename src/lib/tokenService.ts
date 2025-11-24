@@ -113,9 +113,9 @@ export async function deductTokensForRequest(
     const modelCost = getModelCost(modelId);
     const baseTokens = modelCost.tokensPerMessage;
 
-    const tokensToDeduct = baseTokens * 2;
+    const tokensToDeduct = baseTokens;
 
-    const { data, error } = await supabase.rpc('deduct_tokens', {
+    const { data, error } = await supabase.rpc('deduct_tokens_v2', {
       p_user_id: userId,
       p_tokens: tokensToDeduct,
       p_model: modelId,
@@ -126,7 +126,7 @@ export async function deductTokensForRequest(
 
     if (error) throw error;
 
-    const result = data as { success: boolean; balance?: number; transaction_id?: string; error?: string };
+    const result = data as { success: boolean; balance?: number; transaction_id?: string; error?: string; user_type?: string };
 
     if (!result.success) {
       return {
@@ -135,6 +135,8 @@ export async function deductTokensForRequest(
         error: result.error || 'Token deduction failed',
       };
     }
+
+    console.log(`✅ Token deduction successful - User: ${result.user_type}, Balance: ${result.balance}`);
 
     return {
       success: true,

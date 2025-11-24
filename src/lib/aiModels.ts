@@ -200,6 +200,25 @@ export const AI_MODELS: AIModel[] = [
   { id: 'openrouter/sherlock-dash-alpha', name: 'Sherlock Dash Alpha', provider: 'Sherlock AI', description: 'Fast multimodal with vision', category: 'chat', tokensPerMessage: 7000, tier: 'MID' },
   { id: 'openrouter/sherlock-think-alpha', name: 'Sherlock Think Alpha', provider: 'Sherlock AI', description: 'Advanced reasoning model', category: 'chat', tokensPerMessage: 12000, tier: 'PREMIUM' },
 
+  // Anthropic Claude Models (1)
+  { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', provider: 'Anthropic', description: 'Most capable Claude with vision support', category: 'chat', tokensPerMessage: 25000, tier: 'PREMIUM' },
+
+  // OpenRouter Proprietary Models (1)
+  { id: 'openrouter/bert-nebulon-alpha', name: 'Bert-Nebulon Alpha', provider: 'OpenRouter', description: 'Fast multimodal with vision capabilities', category: 'chat', tokensPerMessage: 8000, tier: 'MID' },
+
+  // AllenAI Olmo Models (3)
+  { id: 'allenai/olmo-3-32b-think', name: 'Olmo 3 32B Think', provider: 'AllenAI', description: 'Advanced reasoning with thinking tokens', category: 'chat', tokensPerMessage: 7000, tier: 'MID' },
+  { id: 'allenai/olmo-3-7b-instruct', name: 'Olmo 3 7B Instruct', provider: 'AllenAI', description: 'Instruction-following model', category: 'chat', tokensPerMessage: 1500, tier: 'FREE' },
+  { id: 'allenai/olmo-3-7b-think', name: 'Olmo 3 7B Think', provider: 'AllenAI', description: 'Reasoning model with thinking process', category: 'chat', tokensPerMessage: 2000, tier: 'BUDGET' },
+
+  // Google Gemini Models (2)
+  { id: 'google/gemini-3-pro-image-preview', name: 'Nano Banana Pro (Gemini 3 Image)', provider: 'Google', description: 'Image generation and vision preview', category: 'chat', tokensPerMessage: 20000, tier: 'PREMIUM' },
+  { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', provider: 'Google', description: 'Latest Gemini with reasoning tokens', category: 'chat', tokensPerMessage: 15000, tier: 'PREMIUM' },
+
+  // xAI Grok Models (2)
+  { id: 'x-ai/grok-4.1-fast', name: 'Grok 4.1 Fast', provider: 'xAI', description: 'Fast reasoning with thinking tokens', category: 'chat', tokensPerMessage: 9000, tier: 'MID' },
+  { id: 'x-ai/grok-4.1-fast:free', name: 'Grok 4.1 Fast (Free)', provider: 'xAI', description: 'Free tier Grok with basic features', category: 'chat', tokensPerMessage: 1200, tier: 'FREE' },
+
   // Other Models (3)
   { id: 'openrouter/auto', name: 'Auto Router', provider: 'OpenRouter', description: 'Auto-selects best model', category: 'chat', tokensPerMessage: 5000, tier: 'BUDGET' },
   { id: 'codex-mini', name: 'Codex Mini', provider: 'OpenAI', description: 'Lightweight coding', category: 'code', tokensPerMessage: 2000, tier: 'BUDGET' },

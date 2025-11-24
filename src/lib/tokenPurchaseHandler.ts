@@ -11,13 +11,15 @@ export interface TokenPurchaseResult {
 
 export async function handleTokenPurchase(
   tokenAmount: number,
-  purchaseId: string
+  purchaseId: string,
+  amountUSD: number = 0
 ): Promise<TokenPurchaseResult> {
   const userId = auth.currentUser?.uid;
 
   console.log('💳 [TOKEN PURCHASE] Starting token purchase handler...');
   console.log('   User ID:', userId);
   console.log('   Token Amount:', tokenAmount);
+  console.log('   Amount USD:', amountUSD);
   console.log('   Purchase ID:', purchaseId);
 
   if (!userId) {
@@ -33,7 +35,7 @@ export async function handleTokenPurchase(
   try {
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
-      .select('paid_tokens_balance, tokens_balance, email, display_name, current_tier')
+      .select('paid_tokens_balance, can_purchase_tokens, email, display_name')
       .eq('id', userId)
       .maybeSingle();
 
@@ -58,50 +60,54 @@ export async function handleTokenPurchase(
     }
 
     const currentPaidTokens = profile.paid_tokens_balance || 0;
-    const newPaidTokens = currentPaidTokens + tokenAmount;
 
     console.log('📊 [TOKEN PURCHASE] Current state:');
     console.log('   Current Paid Tokens:', currentPaidTokens);
-    console.log('   Adding:', tokenAmount);
-    console.log('   New Balance:', newPaidTokens);
+    console.log('   Can Purchase:', profile.can_purchase_tokens);
 
-    let tier = 'premium';
-    if (newPaidTokens >= 10000000) {
-      tier = 'ultra-premium';
-    } else if (newPaidTokens >= 5000000) {
-      tier = 'premium';
-    } else {
-      tier = 'budget';
-    }
-
-    console.log('🎯 [TOKEN PURCHASE] Setting tier to:', tier);
-
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        paid_tokens_balance: newPaidTokens,
-        tokens_balance: (profile.tokens_balance || 0) + tokenAmount,
-        is_premium: true,
-        is_paid: true,
-        current_tier: tier,
-        tokens_lifetime_purchased: (profile.tokens_balance || 0) + tokenAmount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
-
-    if (updateError) {
-      console.error('❌ [TOKEN PURCHASE] Failed to update profile:', updateError);
+    if (currentPaidTokens > 0 && profile.can_purchase_tokens === false) {
+      console.warn('⚠️ [TOKEN PURCHASE] User already has paid tokens');
       return {
         success: false,
-        message: 'Failed to update token balance',
+        message: 'Please use your existing tokens before purchasing more',
+        newBalance: currentPaidTokens,
+        isPremium: true
+      };
+    }
+
+    console.log('🔄 [TOKEN PURCHASE] Calling upgrade_to_paid function...');
+
+    const { data: upgradeResult, error: upgradeError } = await supabase.rpc('upgrade_to_paid', {
+      p_user_id: userId,
+      p_tokens: tokenAmount,
+      p_amount_usd: amountUSD
+    });
+
+    if (upgradeError) {
+      console.error('❌ [TOKEN PURCHASE] upgrade_to_paid failed:', upgradeError);
+      return {
+        success: false,
+        message: upgradeError.message || 'Failed to upgrade account',
         newBalance: currentPaidTokens,
         isPremium: false
       };
     }
 
-    console.log('✅ [TOKEN PURCHASE] Profile updated successfully');
+    const result = upgradeResult as { success: boolean; new_balance?: number; tier?: string; error?: string };
 
-    await syncToPaidTierUsers(userId, profile.email, profile.display_name, tier, newPaidTokens);
+    if (!result.success) {
+      console.error('❌ [TOKEN PURCHASE] Upgrade returned failure:', result.error);
+      return {
+        success: false,
+        message: result.error || 'Upgrade failed',
+        newBalance: currentPaidTokens,
+        isPremium: false
+      };
+    }
+
+    console.log('✅ [TOKEN PURCHASE] Upgrade successful!');
+
+    await syncToPaidTierUsers(userId, profile.email, profile.display_name, 'premium', tokenAmount);
 
     const { error: purchaseError } = await supabase
       .from('token_purchases')
@@ -109,7 +115,7 @@ export async function handleTokenPurchase(
         user_id: userId,
         pack_id: purchaseId,
         tokens_purchased: tokenAmount,
-        amount_paid: 0,
+        amount_paid_usd: amountUSD,
         purchase_date: new Date().toISOString(),
         created_at: new Date().toISOString()
       });
@@ -121,14 +127,14 @@ export async function handleTokenPurchase(
     clearUnifiedCache(userId);
 
     console.log('✅✅✅ [TOKEN PURCHASE] Purchase completed successfully!');
-    console.log('   New Paid Token Balance:', newPaidTokens);
-    console.log('   Tier:', tier);
+    console.log('   New Paid Token Balance:', result.new_balance);
+    console.log('   Tier:', result.tier);
     console.log('   Premium Status: TRUE');
 
     return {
       success: true,
-      message: 'Tokens purchased successfully',
-      newBalance: newPaidTokens,
+      message: 'Welcome to Premium! You now have full access to all AI models.',
+      newBalance: result.new_balance || tokenAmount,
       isPremium: true
     };
 

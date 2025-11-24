@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, ChevronDown, Lock, Zap, RefreshCw } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUnifiedPremiumStatus, UnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
+import { getUserAccessInfo } from '../../lib/modelAccessControl';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 import { AI_MODELS, AIModel } from '../../lib/aiModels';
 
@@ -26,23 +26,32 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
   const { theme } = useTheme();
   const { currentUser } = useAuth();
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
-  const [premiumAccess, setPremiumAccess] = useState<UnifiedPremiumStatus | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [userType, setUserType] = useState<'free' | 'paid'>('free');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAccess = async () => {
       if (!currentUser) {
-        setPremiumAccess(null);
+        setIsPremium(false);
+        setUserType('free');
         setIsLoading(false);
         return;
       }
       setIsLoading(true);
       try {
-        const access = await getUnifiedPremiumStatus(currentUser.uid);
-        setPremiumAccess(access);
+        const accessInfo = await getUserAccessInfo(currentUser.uid);
+        if (accessInfo) {
+          setIsPremium(accessInfo.isPremium);
+          setUserType(accessInfo.userType);
+        } else {
+          setIsPremium(false);
+          setUserType('free');
+        }
       } catch (error) {
-        console.error('Error getting premium access:', error);
-        setPremiumAccess(null);
+        console.error('Error getting user access info:', error);
+        setIsPremium(false);
+        setUserType('free');
       } finally {
         setIsLoading(false);
       }
@@ -99,10 +108,11 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
       .sort((a, b) => a.provider.localeCompare(b.provider));
   }, [category]);
 
-  const isModelLocked = (modelId: string): boolean => {
-    const modelCost = getModelCost(modelId);
-    const isFree = modelCost.tier === 'free';
-    return !isFree && !premiumAccess?.isPremium;
+  const isModelLocked = (model: AIModel): boolean => {
+    if (isPremium || userType === 'paid') {
+      return false;
+    }
+    return model.tier !== 'FREE';
   };
 
   const selectedModelData = AI_MODELS.find(m => m.id === selectedModel);
@@ -212,7 +222,7 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
                 }`}>
                   {group.models.map((model) => {
                     const modelCost = getModelCost(model.id);
-                    const isLocked = isModelLocked(model.id);
+                    const isLocked = isModelLocked(model);
                     const isSelected = selectedModel === model.id;
 
                     return (
