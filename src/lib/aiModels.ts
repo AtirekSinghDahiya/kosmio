@@ -106,13 +106,6 @@ export const AI_MODELS: AIModel[] = [
   { id: 'zhipuai/glm-4-long', name: 'GLM-4 Long', provider: 'Z.AI', description: 'Extended context', category: 'chat', tokensPerMessage: 5000, tier: 'BUDGET' },
   { id: 'glm-4.6', name: 'GLM 4.6', provider: 'Z.AI', description: 'Latest GLM', category: 'chat', tokensPerMessage: 6000, tier: 'MID' },
 
-  // Grok Models (6)
-  { id: 'x-ai/grok-beta', name: 'Grok Beta', provider: 'X.AI', description: 'Beta release', category: 'chat', tokensPerMessage: 10000, tier: 'MID' },
-  { id: 'x-ai/grok-vision-beta', name: 'Grok Vision Beta', provider: 'X.AI', description: 'Vision beta', category: 'chat', tokensPerMessage: 12000, tier: 'PREMIUM' },
-  { id: 'x-ai/grok-2-vision-1212', name: 'Grok 2 Vision 1212', provider: 'X.AI', description: 'December vision', category: 'chat', tokensPerMessage: 11000, tier: 'PREMIUM' },
-  { id: 'x-ai/grok-2-1212', name: 'Grok 2 1212', provider: 'X.AI', description: 'December release', category: 'chat', tokensPerMessage: 9000, tier: 'MID' },
-  { id: 'grok-4-fast', name: 'Grok 4 Fast', provider: 'X.AI', description: 'Fast reasoning with images', category: 'chat', tokensPerMessage: 8000, tier: 'MID' },
-  { id: 'x-ai/grok-2-code-fast', name: 'Grok 2 Code Fast', provider: 'X.AI', description: 'Ultra-fast code generation', category: 'code', tokensPerMessage: 7000, tier: 'MID' },
 
   // Perplexity Models (6)
   { id: 'perplexity/llama-3.1-sonar-small-128k-online', name: 'Sonar Small Online', provider: 'Perplexity', description: 'Small web search', category: 'chat', tokensPerMessage: 3000, tier: 'BUDGET' },

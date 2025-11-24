@@ -1,4 +1,5 @@
 import { getPricePerMillionTokens, getModelPricing } from './modelPricing';
+import { AI_MODELS, getModelById } from './aiModels';
 
 export interface ModelTokenCost {
   id: string;
@@ -15,17 +16,6 @@ export interface ModelTokenCost {
 }
 
 export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
-  'grok-4-fast': {
-    id: 'grok-4-fast',
-    name: 'Grok 4 Fast',
-    provider: 'X.AI',
-    tokensPerMessage: 800,
-    costPerMessage: 0.0003,
-    tier: 'free',
-    description: 'Lightning fast, minimal cost',
-    icon: '⚡',
-    logoUrl: 'https://pbs.twimg.com/profile_images/1683899100922511378/5lY42eHs_400x400.jpg'
-  },
   'gemini-flash-lite-free': {
     id: 'gemini-flash-lite-free',
     name: 'Gemini 2.5 Flash Lite',
@@ -624,21 +614,74 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
 };
 
 export function getModelCost(modelId: string): ModelTokenCost {
-  const cost = MODEL_TOKEN_COSTS[modelId] || {
-    id: modelId,
-    name: modelId,
-    provider: 'Unknown',
-    tokensPerMessage: 1000,
-    costPerMessage: 0.01,
-    tier: 'mid',
-    description: 'Unknown model',
-    icon: '❓',
-  };
+  // First check MODEL_TOKEN_COSTS
+  let cost = MODEL_TOKEN_COSTS[modelId];
+
+  // If not found, fallback to AI_MODELS
+  if (!cost) {
+    const aiModel = getModelById(modelId);
+    if (aiModel) {
+      cost = {
+        id: aiModel.id,
+        name: aiModel.name,
+        provider: aiModel.provider,
+        tokensPerMessage: aiModel.tokensPerMessage || 1000,
+        costPerMessage: 0.01,
+        tier: (aiModel.tier?.toLowerCase() || 'mid') as 'free' | 'budget' | 'mid' | 'premium' | 'ultra-premium',
+        description: aiModel.description,
+        icon: getProviderIcon(aiModel.provider),
+      };
+    } else {
+      // Ultimate fallback
+      cost = {
+        id: modelId,
+        name: modelId,
+        provider: 'Unknown',
+        tokensPerMessage: 1000,
+        costPerMessage: 0.01,
+        tier: 'mid',
+        description: 'Unknown model',
+        icon: '❓',
+      };
+    }
+  }
 
   // Add actual pricing from OpenRouter with our margin
   cost.pricePerMillion = getPricePerMillionTokens(modelId);
 
   return cost;
+}
+
+function getProviderIcon(provider: string): string {
+  const icons: Record<string, string> = {
+    'OpenAI': '🤖',
+    'Anthropic': '🔮',
+    'Google': '🌟',
+    'xAI': '⚡',
+    'X.AI': '⚡',
+    'DeepSeek': '🧠',
+    'Meta': '🦙',
+    'NVIDIA': '🚀',
+    'Qwen': '👁️',
+    'Moonshot': '🌙',
+    'MoonshotAI': '🌙',
+    'Amazon': '📦',
+    'Perplexity': '🔍',
+    'LiquidAI': '💧',
+    'IBM': '🪨',
+    'Baidu': '🧩',
+    'Z.AI': '⚙️',
+    'AllenAI': '🧪',
+    'OpenRouter': '🔀',
+    'Sherlock AI': '🔎',
+    'Stability AI': '🎨',
+    'Adobe': '🔥',
+    'ElevenLabs': '🎙️',
+    'Cohere': '💬',
+    'MiniMax': '🔢',
+    'Microsoft': '🪟'
+  };
+  return icons[provider] || '🤖';
 }
 
 export function getTierBadgeColor(tier: ModelTokenCost['tier']): string {

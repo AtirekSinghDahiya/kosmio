@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Check, ChevronDown, Lock, Zap, RefreshCw } from 'lucide-react';
+import { Check, ChevronDown, Lock, RefreshCw } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUserAccessInfo } from '../../lib/modelAccessControl';
-import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
+import { getModelCost, getTierBadgeColor } from '../../lib/modelTokenPricing';
 import { AI_MODELS, AIModel } from '../../lib/aiModels';
 
 interface GroupedModelSelectorProps {
@@ -150,17 +150,11 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
             </div>
           </div>
           {selectedModelData && (
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-1 rounded-md text-xs font-semibold border ${
-                getTierBadgeColor(getModelCost(selectedModelData.id).tier)
-              }`}>
-                {getModelCost(selectedModelData.id).tier === 'free' ? 'FREE' : getModelCost(selectedModelData.id).tier.toUpperCase()}
-              </span>
-              <span className="flex items-center gap-1 text-xs text-white/60">
-                <Zap className="w-3 h-3" />
-                {formatTokenDisplay(getModelCost(selectedModelData.id).tokensPerMessage)}
-              </span>
-            </div>
+            <span className={`px-2 py-1 rounded-md text-xs font-semibold border ${
+              getTierBadgeColor(getModelCost(selectedModelData.id).tier)
+            }`}>
+              {getModelCost(selectedModelData.id).tier === 'free' ? 'FREE' : getModelCost(selectedModelData.id).tier.toUpperCase()}
+            </span>
           )}
         </div>
       </div>
@@ -268,10 +262,6 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
                               getTierBadgeColor(modelCost.tier)
                             }`}>
                               {modelCost.tier === 'free' ? 'FREE' : modelCost.tier.toUpperCase()}
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-white/60">
-                              <Zap className="w-3 h-3" />
-                              {modelCost.pricePerMillion || formatTokenDisplay(modelCost.tokensPerMessage)}
                             </span>
                           </div>
                         </div>
