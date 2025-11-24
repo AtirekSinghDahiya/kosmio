@@ -22,7 +22,7 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
   const [balance, setBalance] = useState<TokenBalance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch token balance using new tier-based function
+  // Fetch token balance directly from profiles
   const fetchBalance = async () => {
     if (!user) {
       setIsLoading(false);
@@ -32,25 +32,35 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
     try {
       console.log('💰 Fetching token balance for user:', user.uid);
 
-      // Use the new get_user_token_balance function
-      const { data, error } = await supabase
-        .rpc('get_user_token_balance', { p_user_id: user.uid });
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('user_type, paid_tokens_balance, free_tokens_balance, daily_free_tokens_remaining, tokens_balance, is_paid, is_premium')
+        .eq('id', user.uid)
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching token balance:', error);
         setBalance(null);
-      } else if (data && data.length > 0) {
-        const balanceData = data[0];
+      } else if (profile) {
+        const userType = profile.user_type || (profile.paid_tokens_balance > 0 ? 'paid' : 'free');
+        const paidTokens = profile.paid_tokens_balance || 0;
+        const freeTokens = profile.free_tokens_balance || 0;
+        const dailyTokens = profile.daily_free_tokens_remaining || 0;
+
+        const totalTokens = userType === 'paid'
+          ? paidTokens
+          : dailyTokens + freeTokens;
+
         setBalance({
-          tier: balanceData.tier,
-          dailyTokens: balanceData.daily_tokens || 0,
-          paidTokens: balanceData.paid_tokens || 0,
-          totalTokens: balanceData.total_tokens || 0,
-          canUsePaidModels: balanceData.can_use_paid_models || false
+          tier: userType === 'paid' || paidTokens > 0 || profile.is_paid ? 'premium' : 'free',
+          dailyTokens,
+          paidTokens,
+          totalTokens,
+          canUsePaidModels: userType === 'paid' || paidTokens > 0 || profile.is_paid || profile.is_premium
         });
-        console.log('✅ Token balance:', balanceData);
+        console.log('✅ Token balance:', { userType, paidTokens, totalTokens });
       } else {
-        console.log('⚠️ No balance data found');
+        console.log('⚠️ No profile found');
         setBalance(null);
       }
     } catch (error) {
@@ -88,8 +98,8 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
       )
       .subscribe();
 
-    // Refresh every 5 seconds as fallback
-    const interval = setInterval(fetchBalance, 5000);
+    // Refresh every 30 seconds as fallback
+    const interval = setInterval(fetchBalance, 30000);
 
     return () => {
       supabase.removeChannel(channel);

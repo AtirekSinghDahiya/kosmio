@@ -767,20 +767,23 @@ export const MainChat: React.FC = () => {
       // Deduct tokens from user's balance
       let deductionSuccess = false;
       try {
-        console.log('🔄 Calling deduct_tokens_simple with:', { user_id: user.uid, tokens: tokensToDeduct });
+        console.log('🔄 Calling deduct_tokens_v2 with:', { user_id: user.uid, tokens: tokensToDeduct, model: selectedModel });
 
-        const { data: deductResult, error: deductError } = await supabase.rpc('deduct_tokens_simple', {
+        const { data: deductResult, error: deductError } = await supabase.rpc('deduct_tokens_v2', {
           p_user_id: user.uid,
-          p_tokens: tokensToDeduct
+          p_tokens: tokensToDeduct,
+          p_model: selectedModel,
+          p_provider: modelInfo.provider,
+          p_cost_usd: finalCostUSD,
+          p_request_type: 'chat'
         });
 
         console.log('📊 Deduction result:', { deductResult, deductError });
 
         if (deductError) {
           console.error('❌ Token deduction error:', deductError);
-          // Don't show error toast - just log it
         } else if (deductResult && deductResult.success) {
-          console.log(`✅ Deducted ${tokensToDeduct.toLocaleString()} tokens. New balance: ${deductResult.new_balance?.toLocaleString()}`);
+          console.log(`✅ Deducted ${tokensToDeduct.toLocaleString()} tokens. New balance: ${deductResult.balance?.toLocaleString()} (User: ${deductResult.user_type})`);
           deductionSuccess = true;
         } else {
           console.warn('⚠️ Token deduction returned success=false:', deductResult);
@@ -788,7 +791,6 @@ export const MainChat: React.FC = () => {
       } catch (deductErr: any) {
         console.error('❌ Exception during token deduction:', deductErr);
         console.error('❌ Error details:', JSON.stringify(deductErr, null, 2));
-        // Don't show error toast - AI response was successful
       }
 
       // Log usage to database for tracking and analytics

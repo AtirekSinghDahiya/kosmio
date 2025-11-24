@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Lock, Zap, Check, Sparkles } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUnifiedPremiumStatus } from '../../lib/unifiedPremiumAccess';
+import { getUserAccessInfo } from '../../lib/modelAccessControl';
 import { getModelCost, getTierBadgeColor, formatTokenDisplay } from '../../lib/modelTokenPricing';
 import { AI_MODELS, AIModel } from '../../lib/aiModels';
 
@@ -21,16 +21,29 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
   const { currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [userType, setUserType] = useState<'free' | 'paid'>('free');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkAccess = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setIsPremium(false);
+        setUserType('free');
+        return;
+      }
       try {
-        const access = await getUnifiedPremiumStatus(currentUser.uid);
-        setIsPremium(access.isPremium);
+        const accessInfo = await getUserAccessInfo(currentUser.uid);
+        if (accessInfo) {
+          setIsPremium(accessInfo.isPremium);
+          setUserType(accessInfo.userType);
+        } else {
+          setIsPremium(false);
+          setUserType('free');
+        }
       } catch (error) {
-        console.error('Error checking premium access:', error);
+        console.error('Error checking user access:', error);
+        setIsPremium(false);
+        setUserType('free');
       }
     };
     checkAccess();
@@ -78,9 +91,11 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
 
   const selectedModelData = AI_MODELS.find(m => m.id === selectedModel);
   const selectedModelCost = selectedModelData ? getModelCost(selectedModelData.id) : null;
-  const isModelLocked = (modelId: string): boolean => {
-    const modelCost = getModelCost(modelId);
-    return modelCost.tier !== 'free' && !isPremium;
+  const isModelLocked = (model: AIModel): boolean => {
+    if (isPremium || userType === 'paid') {
+      return false;
+    }
+    return model.tier !== 'FREE';
   };
 
   return (
@@ -166,7 +181,7 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
               {/* Models */}
               {group.models.map((model) => {
                 const modelCost = getModelCost(model.id);
-                const isLocked = isModelLocked(model.id);
+                const isLocked = isModelLocked(model);
                 const isSelected = selectedModel === model.id;
 
                 return (
