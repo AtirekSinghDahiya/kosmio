@@ -25,6 +25,37 @@ git push
 
 **That's it!** Full instructions in [DEPLOYMENT_SUMMARY.md](./DEPLOYMENT_SUMMARY.md)
 
+## 🔐 Security & Environment Variables
+
+**IMPORTANT:** This project uses environment variables for all API keys and sensitive configuration.
+
+### Quick Setup
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in your actual API keys in `.env`
+
+3. **Never commit `.env` files to Git** (already in `.gitignore`)
+
+### If You Accidentally Committed .env Files
+
+**⚠️ URGENT:** If you pushed `.env` files to GitHub:
+
+1. **Immediately rotate ALL API keys** (see [SECURITY.md](./SECURITY.md) for checklist)
+2. **Remove from Git history** using instructions in [SECURITY.md](./SECURITY.md)
+3. **Force push** the cleaned repository
+
+### Key Management
+
+- All API keys are loaded from environment variables
+- Frontend: `import.meta.env.VITE_*`
+- Edge Functions: `Deno.env.get()`
+- Never hardcode API keys in source code
+- See [SECURITY.md](./SECURITY.md) for complete security guidelines
+
 ---
 
 ## ✅ ALL ISSUES FIXED - Latest Update!

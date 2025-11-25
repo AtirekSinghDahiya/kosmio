@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY") || "sk_bce36f70354fa4da9e878786ec5ff439ddb3338128dcc935";
+const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
