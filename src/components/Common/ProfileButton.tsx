@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Settings, CreditCard, GripVertical } from 'lucide-react';
+import { User, LogOut, Settings, GripVertical, X, Camera, Mail, Crown, Coins } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ProfileButtonProps {
   tokenBalance?: number;
@@ -15,18 +16,28 @@ interface Position {
 }
 
 export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: propTokenBalance = 0 }) => {
-  const { currentUser, signOut, userData } = useAuth();
+  const { currentUser, signOut, userData, updateUserProfile, refreshUserData } = useAuth();
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
+  const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(propTokenBalance);
+  const [tier, setTier] = useState('free');
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const buttonRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number>();
 
-  // Load saved position or set default
+  // Profile edit states
+  const [displayName, setDisplayName] = useState('');
+  const [photoURL, setPhotoURL] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved position
   useEffect(() => {
     const savedPosition = localStorage.getItem('profileButtonPosition');
     if (savedPosition) {
@@ -37,6 +48,61 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: prop
       }
     }
   }, []);
+
+  // Load profile data
+  useEffect(() => {
+    if (userData) {
+      setDisplayName(userData.displayName || '');
+      setPhotoURL(userData.photoURL || '');
+    }
+  }, [userData]);
+
+  // Fetch real-time token balance from Supabase
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+
+    const fetchTokenBalance = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('tokens_balance, current_tier, is_premium')
+          .eq('id', currentUser.uid)
+          .maybeSingle();
+
+        if (!error && data) {
+          setTokenBalance(data.tokens_balance || 0);
+          setTier(data.is_premium ? 'premium' : data.current_tier || 'free');
+        }
+      } catch (err) {
+        console.error('Error fetching token balance:', err);
+      }
+    };
+
+    fetchTokenBalance();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel(`token-balance-${currentUser.uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${currentUser.uid}`
+        },
+        (payload) => {
+          if (payload.new && 'tokens_balance' in payload.new) {
+            setTokenBalance(payload.new.tokens_balance);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser?.uid]);
 
   // Drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -127,56 +193,61 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: prop
     };
   }, [isDragging, dragOffset, position]);
 
-  // Fetch real-time token balance from Supabase
-  useEffect(() => {
-    if (!currentUser?.uid) return;
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentUser) return;
 
-    const fetchTokenBalance = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('tokens_balance')
-          .eq('id', currentUser.uid)
-          .maybeSingle();
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setPhotoURL(result);
+        setUploading(false);
+        showToast('success', 'Image Loaded', 'Profile picture updated');
+      };
+      reader.onerror = () => {
+        setUploading(false);
+        showToast('error', 'Upload Failed', 'Could not read image file');
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      showToast('error', 'Upload Failed', 'Failed to upload image');
+      setUploading(false);
+    }
+  };
 
-        if (!error && data) {
-          setTokenBalance(data.tokens_balance || 0);
-        }
-      } catch (err) {
-        console.error('Error fetching token balance:', err);
-      }
-    };
+  const handleSave = async () => {
+    if (!currentUser) {
+      showToast('error', 'Not Authenticated', 'You must be logged in');
+      return;
+    }
 
-    fetchTokenBalance();
+    if (!displayName.trim()) {
+      showToast('warning', 'Invalid Input', 'Display name cannot be empty');
+      return;
+    }
 
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel(`token-balance-${currentUser.uid}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${currentUser.uid}`
-        },
-        (payload) => {
-          console.log('\ud83d\udcb0 Token balance update received:', payload.new);
-          if (payload.new && 'tokens_balance' in payload.new) {
-            const newBalance = payload.new.tokens_balance;
-            console.log(`\u2705 Updating token balance to: ${newBalance?.toLocaleString()}`);
-            setTokenBalance(newBalance);
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('\ud83d\udd14 Token balance subscription status:', status);
-      });
+    setSaving(true);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [currentUser?.uid]);
+    try {
+      const profileData = {
+        displayName: displayName.trim(),
+        photoURL: photoURL || '',
+      };
+
+      await updateUserProfile(profileData);
+      await refreshUserData();
+
+      showToast('success', 'Profile Updated', 'Your changes have been saved');
+      setTimeout(() => setShowProfilePopup(false), 800);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to save profile';
+      showToast('error', 'Save Failed', errorMessage);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {
@@ -209,180 +280,187 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ tokenBalance: prop
   } : {};
 
   return (
-    <div
-      ref={buttonRef}
-      style={buttonStyle}
-      className={`${!position ? 'relative' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
-    >
-      <button
-        data-drag-handle
-        onClick={() => !isDragging && setIsOpen(!isOpen)}
-        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group backdrop-blur-xl shadow-lg hover:shadow-2xl ${!isDragging ? 'hover:scale-[1.02] active:scale-[0.98]' : 'scale-105'} ${
-          theme === 'light'
-            ? 'bg-white/95 border-2 border-gray-200 hover:border-[#00FFF0]/50'
-            : 'bg-black/95 border-2 border-[#00FFF0]/20 hover:border-[#00FFF0]/50'
-        }`}
+    <>
+      <div
+        ref={buttonRef}
+        style={buttonStyle}
+        className={`${!position ? 'relative' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
-        <GripVertical className={`w-4 h-4 ${theme === 'light' ? 'text-gray-400' : 'text-[#00FFF0]/50'}`} />
-        {/* Avatar */}
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg ${
-          theme === 'light'
-            ? 'bg-gradient-to-br from-[#00FFF0] to-[#00D4D4] text-black'
-            : 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white'
-        }`}>
-          {userData?.photoURL ? (
-            <img
-              src={userData.photoURL}
-              alt={userData.displayName || 'User'}
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            initials
-          )}
-        </div>
-
-        {/* Token Balance */}
-        <div className="flex flex-col items-start">
-          <span className={`text-xs font-semibold ${
-            theme === 'light' ? 'text-gray-600' : 'text-white/50'
-          }`}>
-            Tokens
-          </span>
-          <span className={`text-sm font-bold ${
-            theme === 'light' ? 'text-black' : 'text-[#00FFF0]'
-          }`}>
-            {formatTokens(tokenBalance)}
-          </span>
-        </div>
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && !isDragging && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[9998]"
-            onClick={() => setIsOpen(false)}
-          />
-
-          {/* Menu */}
-          <div className={`absolute top-full right-0 mt-2 w-64 rounded-xl shadow-2xl border z-[9999] overflow-hidden backdrop-blur-2xl animate-fade-in ${
+        <button
+          data-drag-handle
+          onClick={() => !isDragging && setShowProfilePopup(true)}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group backdrop-blur-xl shadow-lg hover:shadow-2xl ${!isDragging ? 'hover:scale-[1.02] active:scale-[0.98]' : 'scale-105'} ${
             theme === 'light'
-              ? 'bg-white/95 border-gray-200'
-              : 'bg-black/95 border-[#00FFF0]/20'
+              ? 'bg-white/95 border-2 border-gray-200 hover:border-[#00FFF0]/50'
+              : 'bg-black/95 border-2 border-[#00FFF0]/20 hover:border-[#00FFF0]/50'
+          }`}
+        >
+          <GripVertical className={`w-4 h-4 ${theme === 'light' ? 'text-gray-400' : 'text-[#00FFF0]/50'}`} />
+
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg ${
+            theme === 'light'
+              ? 'bg-gradient-to-br from-[#00FFF0] to-[#00D4D4] text-black'
+              : 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white'
           }`}>
-            {/* User Info Section */}
-            <div className={`p-4 border-b ${
-              theme === 'light' ? 'border-gray-200' : 'border-[#00FFF0]/10'
+            {userData?.photoURL ? (
+              <img
+                src={userData.photoURL}
+                alt={userData.displayName || 'User'}
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              initials
+            )}
+          </div>
+
+          <div className="flex flex-col items-start">
+            <span className={`text-xs font-semibold ${
+              theme === 'light' ? 'text-gray-600' : 'text-white/50'
             }`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold shadow-lg ${
-                  theme === 'light'
-                    ? 'bg-gradient-to-br from-[#00FFF0] to-[#00D4D4] text-black'
-                    : 'bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white'
-                }`}>
-                  {userData?.photoURL ? (
-                    <img
-                      src={userData.photoURL}
-                      alt={userData.displayName || 'User'}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    initials
-                  )}
+              Tokens
+            </span>
+            <span className={`text-sm font-bold ${
+              theme === 'light' ? 'text-black' : 'text-[#00FFF0]'
+            }`}>
+              {formatTokens(tokenBalance)}
+            </span>
+          </div>
+        </button>
+      </div>
+
+      {/* Profile Popup */}
+      {showProfilePopup && !isDragging && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-black/95 backdrop-blur-2xl rounded-3xl shadow-2xl border-2 border-[#00FFF0]/20 overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="relative p-6 border-b border-[#00FFF0]/10">
+              <button
+                onClick={() => setShowProfilePopup(false)}
+                className="absolute top-4 right-4 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+              <h2 className="text-xl font-bold text-white">Profile</h2>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Profile Picture & Info */}
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] flex items-center justify-center shadow-lg border-2 border-[#00FFF0]/30 overflow-hidden">
+                    {photoURL ? (
+                      <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-bold text-white">{initials}</span>
+                    )}
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute -bottom-1 -right-1 p-2 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                  >
+                    <Camera className="w-3 h-3 text-white" />
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-semibold truncate ${
-                    theme === 'light' ? 'text-black' : 'text-white'
+
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">
+                    {displayName || userData?.displayName || 'User'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
+                    <Mail className="w-4 h-4" />
+                    <span className="truncate">{currentUser.email}</span>
+                  </div>
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    tier === 'premium'
+                      ? 'bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/50 text-[#00FFF0]'
+                      : 'bg-white/5 border border-white/10 text-white/70'
                   }`}>
-                    {userData?.displayName || 'User'}
-                  </p>
-                  <p className={`text-xs truncate ${
-                    theme === 'light' ? 'text-gray-600' : 'text-white/50'
-                  }`}>
-                    {currentUser.email}
-                  </p>
+                    <Crown className="w-3 h-3" />
+                    <span className="capitalize">{tier}</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Token Balance Detail */}
-              <div className={`mt-3 p-3 rounded-lg ${
-                theme === 'light'
-                  ? 'bg-gray-100 border border-gray-200'
-                  : 'bg-gradient-to-r from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20'
-              }`}>
+              {/* Token Balance Card */}
+              <div className="bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20 rounded-2xl p-4">
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs font-medium ${
-                    theme === 'light' ? 'text-gray-600' : 'text-white/60'
-                  }`}>
-                    Token Balance
-                  </span>
-                  <span className={`text-lg font-bold ${
-                    theme === 'light' ? 'text-black' : 'text-[#00FFF0]'
-                  }`}>
-                    {tokenBalance.toLocaleString()}
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-5 h-5 text-[#00FFF0]" />
+                    <span className="text-white/70 text-sm">Token Balance</span>
+                  </div>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] bg-clip-text text-transparent">
+                    {formatTokens(tokenBalance)}
                   </span>
                 </div>
               </div>
-            </div>
 
-            {/* Menu Items */}
-            <div className="py-2">
-              <button
-                onClick={() => {
-                  navigateTo('profile');
-                  setIsOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
-                  theme === 'light'
-                    ? 'hover:bg-gray-100 text-black'
-                    : 'hover:bg-[#00FFF0]/5 text-white/90'
-                }`}
-              >
-                <User className="w-4 h-4" />
-                <span className="text-sm font-medium">Profile</span>
-              </button>
+              {/* Edit Name */}
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Display Name
+                </label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 transition-all"
+                  placeholder="Enter your name"
+                />
+              </div>
 
-              <button
-                onClick={() => {
-                  navigateTo('settings');
-                  setIsOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
-                  theme === 'light'
-                    ? 'hover:bg-gray-100 text-black'
-                    : 'hover:bg-[#00FFF0]/5 text-white/90'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-                <span className="text-sm font-medium">Settings</span>
-              </button>
-            </div>
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setShowProfilePopup(false);
+                    navigateTo('settings');
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#00FFF0]/30 rounded-xl text-white transition-all"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="text-sm font-medium">Settings</span>
+                </button>
 
-            {/* Logout */}
-            <div className={`border-t ${
-              theme === 'light' ? 'border-gray-200' : 'border-[#00FFF0]/10'
-            }`}>
+                <button
+                  onClick={async () => {
+                    await signOut();
+                    setShowProfilePopup(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-xl text-red-400 hover:text-red-300 transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm font-medium">Logout</span>
+                </button>
+              </div>
+
+              {/* Save Button */}
               <button
-                onClick={async () => {
-                  await signOut();
-                  setIsOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${
-                  theme === 'light'
-                    ? 'hover:bg-red-50 text-red-600'
-                    : 'hover:bg-red-500/10 text-red-400'
-                }`}
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#00FFF0]/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm font-medium">Logout</span>
+                {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
