@@ -116,7 +116,7 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
   return (
     <div className="h-full flex flex-col bg-black">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 relative">
         <div className="flex items-center gap-3">
           <Video className="w-5 h-5 text-purple-400" />
           <h1 className="text-lg font-semibold text-white">Video Generation</h1>
@@ -124,7 +124,7 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
         </div>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
+          className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors z-50"
         >
           <X className="w-5 h-5" />
         </button>
