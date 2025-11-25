@@ -106,18 +106,20 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
   return (
     <div className="h-full flex flex-col bg-black">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 relative">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center px-6 py-4 border-b border-white/10">
+        <div className="flex items-center gap-3 flex-1">
           <Wand2 className="w-5 h-5 text-teal-400" />
           <h1 className="text-lg font-semibold text-white">Image Generation</h1>
           <p className="text-sm text-white/40">Create stunning images with AI</p>
         </div>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors z-50"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Main Content - 2 Column Layout */}
