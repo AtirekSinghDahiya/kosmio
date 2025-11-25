@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Check, ChevronDown, Lock, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Check, ChevronDown, Lock, RefreshCw, Search, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUserAccessInfo } from '../../lib/modelAccessControl';
@@ -29,6 +29,7 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
   const [isPremium, setIsPremium] = useState(false);
   const [userType, setUserType] = useState<'free' | 'paid'>('free');
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -59,12 +60,26 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
     checkAccess();
   }, [currentUser]);
 
-  // Group models by provider
-  const modelGroups: ModelGroup[] = React.useMemo(() => {
+  // Group models by provider with search filtering
+  const modelGroups: ModelGroup[] = useMemo(() => {
     const filteredModels = AI_MODELS.filter(m => m.category === category);
     const grouped = new Map<string, AIModel[]>();
 
+    const searchLower = searchQuery.toLowerCase().trim();
+
     filteredModels.forEach(model => {
+      if (searchLower) {
+        const matchesName = model.name.toLowerCase().includes(searchLower);
+        const matchesProvider = model.provider.toLowerCase().includes(searchLower);
+        const matchesDescription = model.description.toLowerCase().includes(searchLower);
+        const modelCost = getModelCost(model.id);
+        const matchesTier = modelCost.tier.toLowerCase().includes(searchLower);
+
+        if (!matchesName && !matchesProvider && !matchesDescription && !matchesTier) {
+          return;
+        }
+      }
+
       const provider = model.provider;
       if (!grouped.has(provider)) {
         grouped.set(provider, []);
@@ -106,7 +121,7 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
         icon: providerIcons[provider] || '🤖'
       }))
       .sort((a, b) => a.provider.localeCompare(b.provider));
-  }, [category]);
+  }, [category, searchQuery]);
 
   const isModelLocked = (model: AIModel): boolean => {
     if (isPremium || userType === 'paid') {
@@ -159,6 +174,40 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className={`rounded-xl p-3 border ${
+        theme === 'light'
+          ? 'bg-white border-gray-200'
+          : 'bg-slate-900/50 border-white/10'
+      }`}>
+        <div className="relative">
+          <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+            theme === 'light' ? 'text-gray-400' : 'text-white/40'
+          }`} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search models by name, provider, or tier..."
+            className={`w-full pl-10 pr-10 py-2 rounded-lg text-sm transition-colors focus:outline-none ${
+              theme === 'light'
+                ? 'bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-gray-100'
+                : 'bg-white/5 text-white placeholder-white/40 focus:bg-white/10'
+            }`}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-white/10 transition-colors ${
+                theme === 'light' ? 'text-gray-400 hover:text-gray-600' : 'text-white/40 hover:text-white/60'
+              }`}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Model Groups */}
       <div className="space-y-2">
         {isLoading ? (
@@ -166,6 +215,18 @@ export const GroupedModelSelector: React.FC<GroupedModelSelectorProps> = ({
             <RefreshCw className="w-8 h-8 animate-spin text-blue-500 mb-2" />
             <p className={theme === 'light' ? 'text-gray-600' : 'text-white/60'}>
               Loading models...
+            </p>
+          </div>
+        ) : modelGroups.length === 0 ? (
+          <div className={`p-8 flex flex-col items-center justify-center rounded-xl border ${
+            theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-900/50 border-white/10'
+          }`}>
+            <Search className={`w-12 h-12 mb-3 ${theme === 'light' ? 'text-gray-300' : 'text-white/20'}`} />
+            <p className={`text-sm font-medium mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+              No models found
+            </p>
+            <p className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-white/40'}`}>
+              Try a different search term
             </p>
           </div>
         ) : (
