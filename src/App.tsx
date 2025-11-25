@@ -11,6 +11,7 @@ import { FloatingNavbar } from './components/Layout/FloatingNavbar';
 import { CosmicBackground } from './components/Layout/CosmicBackground';
 import { MainChat } from './components/Chat/MainChat';
 import { UnifiedStudioChat } from './components/Chat/UnifiedStudioChat';
+import { AudioStudio } from './components/Chat/AudioStudio';
 import { ProjectsView } from './components/Projects/ProjectsView';
 // Studio components temporarily disabled
 // import { VoiceStudio } from './components/Studio/VoiceStudio';
@@ -26,7 +27,6 @@ import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
-import { DraggableTokenDisplay } from './components/Common/DraggableTokenDisplay';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { StudioModeProvider } from './contexts/StudioModeContext';
 import { Project } from './types';
@@ -92,6 +92,7 @@ const MainApp: React.FC = () => {
       case 'projects':
         return <ProjectsView onOpenProject={handleOpenProject} />;
       case 'voice':
+        return <AudioStudio onClose={() => navigateTo('chat')} />;
       case 'code':
       case 'design':
       case 'video':
@@ -156,7 +157,6 @@ function App() {
             <NavigationProvider>
               <StudioModeProvider>
                 <MainApp />
-                <DraggableTokenDisplay />
                 <CookieConsent />
                 <BugReportButton />
               </StudioModeProvider>
