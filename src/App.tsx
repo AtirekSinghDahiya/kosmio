@@ -26,6 +26,7 @@ import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
+import { DraggableTokenDisplay } from './components/Common/DraggableTokenDisplay';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
 import { StudioModeProvider } from './contexts/StudioModeContext';
 import { Project } from './types';
@@ -155,6 +156,7 @@ function App() {
             <NavigationProvider>
               <StudioModeProvider>
                 <MainApp />
+                <DraggableTokenDisplay />
                 <CookieConsent />
                 <BugReportButton />
               </StudioModeProvider>

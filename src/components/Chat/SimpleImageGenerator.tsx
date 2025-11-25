@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Wand2, Loader } from 'lucide-react';
+import { X, Wand2, Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import { generateWithImagen } from '../../lib/googleImagenService';
 import { generateWithNanoBanana } from '../../lib/geminiNanoBananaService';
 import { useToast } from '../../contexts/ToastContext';
@@ -25,6 +25,7 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
   const [numImages, setNumImages] = useState(1);
   const [outputFormat, setOutputFormat] = useState<'JPEG' | 'PNG' | 'WebP'>('JPEG');
   const [selectedModel, setSelectedModel] = useState('imagen-4');
+  const [showControls, setShowControls] = useState(true);
 
   const models = [
     { id: 'imagen-4', name: 'Google Imagen 4.0', description: 'Google\'s latest image model', speed: 'Fast', provider: 'google' },
@@ -105,148 +106,154 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
 
   return (
     <div className="h-full flex flex-col bg-black">
-      {/* Header */}
-      <div className="flex items-center px-6 py-4 border-b border-white/10">
-        <div className="flex items-center gap-3 flex-1">
-          <Wand2 className="w-5 h-5 text-teal-400" />
-          <h1 className="text-lg font-semibold text-white">Image Generation</h1>
-          <p className="text-sm text-white/40">Create stunning images with AI</p>
+      {/* Header - Responsive */}
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <Wand2 className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400 flex-shrink-0" />
+          <h1 className="text-base sm:text-lg font-semibold text-white truncate">Image Generation</h1>
+          <p className="hidden md:block text-sm text-white/40">Create stunning images with AI</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors flex-shrink-0"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Main Content - 2 Column Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Side - Preview */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-black">
+      {/* Main Content - Responsive Layout */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Preview Section */}
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black min-h-[40vh] lg:min-h-0">
           {isGenerating ? (
             <div className="flex flex-col items-center gap-4">
-              <Loader className="w-16 h-16 animate-spin text-teal-400" />
-              <p className="text-white/60">{progress || 'Generating your image...'}</p>
+              <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-teal-400" />
+              <p className="text-white/60 text-sm sm:text-base text-center px-4">{progress || 'Generating your image...'}</p>
             </div>
           ) : generatedImageUrl ? (
-            <div className="max-w-4xl w-full">
+            <div className="max-w-full w-full">
               <img
                 src={generatedImageUrl}
                 alt="Generated"
-                className="w-full rounded-lg border border-white/10 shadow-2xl"
+                className="w-full rounded-lg border border-white/10 shadow-2xl max-h-[60vh] lg:max-h-full object-contain"
               />
             </div>
           ) : (
-            <div className="text-center max-w-md">
-              <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
-                <Wand2 className="w-16 h-16 text-white/20" />
+            <div className="text-center max-w-md px-4">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 rounded-full bg-white/5 flex items-center justify-center">
+                <Wand2 className="w-12 h-12 sm:w-16 sm:h-16 text-white/20" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Image preview</h3>
-              <p className="text-white/40">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Image preview</h3>
+              <p className="text-sm sm:text-base text-white/40">
                 Your generated image will appear here. Enter a prompt and click generate to start.
               </p>
             </div>
           )}
         </div>
 
-        {/* Right Side - Controls */}
-        <div className="w-[420px] border-l border-white/10 flex flex-col bg-black">
-          {/* Model Selector */}
-          <div className="p-6 border-b border-white/10">
-            <div className="text-sm font-semibold text-white mb-3">Model</div>
-            <div className="space-y-2">
-              {models.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => setSelectedModel(model.id)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
-                    selectedModel === model.id
-                      ? 'border-teal-500/40 bg-teal-500/10'
-                      : 'border-white/10 bg-white/5 hover:bg-white/10'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-white">{model.name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-white/60">{model.speed}</span>
-                  </div>
-                  <p className="text-xs text-white/50">{model.description}</p>
-                </button>
-              ))}
+        {/* Controls Section - Responsive */}
+        <div className="w-full lg:w-[400px] xl:w-[420px] border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-black max-h-[60vh] lg:max-h-none overflow-y-auto">
+          {/* Collapsible Controls Toggle - Mobile Only */}
+          <button
+            onClick={() => setShowControls(!showControls)}
+            className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-white/10 text-white hover:bg-white/5 transition-colors"
+          >
+            <span className="text-sm font-medium">Controls</span>
+            {showControls ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          <div className={`${showControls ? 'block' : 'hidden lg:block'}`}>
+            {/* Model Selector */}
+            <div className="p-4 sm:p-6 border-b border-white/10">
+              <div className="text-sm font-semibold text-white mb-3">Model</div>
+              <div className="space-y-2">
+                {models.map((model) => (
+                  <button
+                    key={model.id}
+                    onClick={() => setSelectedModel(model.id)}
+                    className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border transition-all touch-manipulation ${
+                      selectedModel === model.id
+                        ? 'border-teal-500/40 bg-teal-500/10'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10 active:bg-white/15'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-white">{model.name}</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-white/10 text-white/60">{model.speed}</span>
+                    </div>
+                    <p className="text-xs text-white/50">{model.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Aspect Ratio - Responsive Grid */}
+            <div className="p-4 sm:p-6 border-b border-white/10">
+              <label className="text-sm font-medium text-white/80 mb-3 block">Aspect Ratio</label>
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                {aspectRatios.map((ar) => (
+                  <button
+                    key={ar.id}
+                    onClick={() => setAspectRatio(ar.id)}
+                    disabled={isGenerating}
+                    className={`flex flex-col items-center gap-1 sm:gap-1.5 p-2 sm:p-3 rounded-lg border transition-all touch-manipulation min-h-[60px] sm:min-h-[70px] ${
+                      aspectRatio === ar.id
+                        ? 'bg-teal-500/20 border-teal-500/50 text-white'
+                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 active:bg-white/15'
+                    }`}
+                  >
+                    <span className="text-xl sm:text-2xl">{ar.icon}</span>
+                    <span className="text-[9px] sm:text-[10px] font-medium">{ar.ratio}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Number of Images - Responsive Grid */}
+            <div className="p-4 sm:p-6 border-b border-white/10">
+              <label className="text-sm font-medium text-white/80 mb-3 block">Number of Images: {numImages}</label>
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                {[1, 2, 3, 4].map((num) => (
+                  <button
+                    key={num}
+                    onClick={() => setNumImages(num)}
+                    disabled={isGenerating}
+                    className={`py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg border text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                      numImages === num
+                        ? 'bg-teal-500/20 border-teal-500/50 text-white'
+                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 active:bg-white/15'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Output Format - Responsive Grid */}
+            <div className="p-4 sm:p-6 border-b border-white/10">
+              <label className="text-sm font-medium text-white/80 mb-3 block">Output Format</label>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                {(['JPEG', 'PNG', 'WebP'] as const).map((format) => (
+                  <button
+                    key={format}
+                    onClick={() => setOutputFormat(format)}
+                    disabled={isGenerating}
+                    className={`py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg border text-sm font-medium transition-all touch-manipulation min-h-[44px] ${
+                      outputFormat === format
+                        ? 'bg-teal-500/20 border-teal-500/50 text-white'
+                        : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 active:bg-white/15'
+                    }`}
+                  >
+                    {format}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Aspect Ratio */}
-          <div className="p-6 border-b border-white/10">
-            <label className="text-sm font-medium text-white/80 mb-3 block">Aspect Ratio</label>
-            <div className="grid grid-cols-5 gap-2">
-              {aspectRatios.map((ar) => (
-                <button
-                  key={ar.id}
-                  onClick={() => setAspectRatio(ar.id)}
-                  disabled={isGenerating}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all ${
-                    aspectRatio === ar.id
-                      ? 'bg-teal-500/20 border-teal-500/50 text-white'
-                      : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                  }`}
-                >
-                  <span className="text-2xl">{ar.icon}</span>
-                  <span className="text-[10px] font-medium">{ar.ratio}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Number of Images */}
-          <div className="p-6 border-b border-white/10">
-            <label className="text-sm font-medium text-white/80 mb-3 block">Number of Images: {numImages}</label>
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4].map((num) => (
-                <button
-                  key={num}
-                  onClick={() => setNumImages(num)}
-                  disabled={isGenerating}
-                  className={`py-2 px-4 rounded-lg border text-sm font-medium transition-all ${
-                    numImages === num
-                      ? 'bg-teal-500/20 border-teal-500/50 text-white'
-                      : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                  }`}
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Output Format */}
-          <div className="p-6 border-b border-white/10">
-            <label className="text-sm font-medium text-white/80 mb-3 block">Output Format</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['JPEG', 'PNG', 'WebP'] as const).map((format) => (
-                <button
-                  key={format}
-                  onClick={() => setOutputFormat(format)}
-                  disabled={isGenerating}
-                  className={`py-2 px-4 rounded-lg border text-sm font-medium transition-all ${
-                    outputFormat === format
-                      ? 'bg-teal-500/20 border-teal-500/50 text-white'
-                      : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                  }`}
-                >
-                  {format}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Spacer */}
-          <div className="flex-1"></div>
-
-          {/* Prompt Input at Bottom */}
-          <div className="p-6 border-t border-white/10 bg-black">
+          {/* Prompt Input - Always Visible */}
+          <div className="p-4 sm:p-6 border-t border-white/10 bg-black mt-auto">
             <label className="text-sm font-medium text-white/80 mb-3 block">Prompt</label>
             <div className="relative">
               <textarea
@@ -254,18 +261,18 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Describe your image... e.g., 'A majestic dragon soaring through stormy clouds'"
-                className="w-full h-24 px-4 py-3 bg-white/5 border border-white/10 focus:border-teal-500/40 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
+                className="w-full h-20 sm:h-24 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border border-white/10 focus:border-teal-500/40 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
                 disabled={isGenerating}
               />
-              <div className="absolute bottom-3 right-3 text-xs text-white/30">
-                {prompt.length} characters
+              <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 text-xs text-white/30">
+                {prompt.length}
               </div>
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-teal-500 hover:bg-teal-600 disabled:bg-white/5 text-white font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 sm:py-3.5 bg-teal-500 hover:bg-teal-600 disabled:bg-white/5 text-white font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation min-h-[48px] active:scale-98"
             >
               {isGenerating ? (
                 <>
