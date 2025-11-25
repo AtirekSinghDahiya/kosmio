@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic, Palette, Code, Film } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon, Video as VideoIcon, Music as MusicIcon, Mic, Palette, Code, Film, X } from 'lucide-react';
 import { MainChat } from './MainChat';
 import { ImageControls } from './Controls/ImageControls';
 import { VideoControls } from './Controls/VideoControls';
@@ -266,18 +266,29 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
             <>
               {/* Header */}
               <div className="px-6 pt-6 pb-4 border-b border-[#00FFF0]/10">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
-                    <IconComponent className="w-5 h-5 text-[#00FFF0]" />
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
+                      <IconComponent className="w-5 h-5 text-[#00FFF0]" />
+                    </div>
+                    <div>
+                      <h2 className="text-white font-semibold text-base">
+                        {mode === 'chat' ? 'Select Studio' : modelInfo.name}
+                      </h2>
+                      {mode !== 'chat' && (
+                        <p className="text-white/50 text-xs mt-0.5">{modelInfo.description}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-white font-semibold text-base">
-                      {mode === 'chat' ? 'Select Studio' : modelInfo.name}
-                    </h2>
-                    {mode !== 'chat' && (
-                      <p className="text-white/50 text-xs mt-0.5">{modelInfo.description}</p>
-                    )}
-                  </div>
+                  {mode !== 'chat' && (
+                    <button
+                      onClick={() => setMode('chat')}
+                      className="p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/30 hover:border-[#00FFF0]/50 text-[#00FFF0] hover:scale-110 transition-all"
+                      title="Exit studio"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
                 </div>
                 {premiumStatus?.isPremium && (
                   <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">

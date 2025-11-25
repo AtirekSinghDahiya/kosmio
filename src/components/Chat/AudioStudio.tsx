@@ -56,7 +56,8 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-lg text-white/60 hover:text-white transition-colors"
+            className="p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/30 hover:border-[#00FFF0]/50 text-[#00FFF0] hover:scale-110 transition-all"
+            title="Exit Audio Studio"
           >
             <X className="w-5 h-5" />
           </button>
