@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Lock, Zap, Check, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { ChevronDown, Lock, Zap, Check, Sparkles, Search, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getUserAccessInfo } from '../../lib/modelAccessControl';
@@ -22,6 +22,7 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [userType, setUserType] = useState<'free' | 'paid'>('free');
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,12 +64,25 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Group models by provider
-  const modelGroups = React.useMemo(() => {
+  // Group models by provider with search filtering
+  const modelGroups = useMemo(() => {
     const filteredModels = AI_MODELS.filter(m => m.category === category);
     const grouped = new Map<string, AIModel[]>();
+    const searchLower = searchQuery.toLowerCase().trim();
 
     filteredModels.forEach(model => {
+      if (searchLower) {
+        const matchesName = model.name.toLowerCase().includes(searchLower);
+        const matchesProvider = model.provider.toLowerCase().includes(searchLower);
+        const matchesDescription = model.description.toLowerCase().includes(searchLower);
+        const modelCost = getModelCost(model.id);
+        const matchesTier = modelCost.tier.toLowerCase().includes(searchLower);
+
+        if (!matchesName && !matchesProvider && !matchesDescription && !matchesTier) {
+          return;
+        }
+      }
+
       const provider = model.provider;
       if (!grouped.has(provider)) {
         grouped.set(provider, []);
@@ -87,7 +101,7 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
         })
       }))
       .sort((a, b) => a.provider.localeCompare(b.provider));
-  }, [category]);
+  }, [category, searchQuery]);
 
   const selectedModelData = AI_MODELS.find(m => m.id === selectedModel);
   const selectedModelCost = selectedModelData ? getModelCost(selectedModelData.id) : null;
@@ -164,12 +178,57 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-50 animate-fade-in ${
+        <div className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl border z-50 animate-fade-in ${
           theme === 'light'
             ? 'bg-white/95 border-gray-200'
             : 'bg-slate-900/98 border-white/20'
         } backdrop-blur-2xl`}>
-          {modelGroups.map((group) => (
+          {/* Search Bar */}
+          <div className="sticky top-0 z-20 p-3 border-b backdrop-blur-xl" style={{
+            borderColor: theme === 'light' ? 'rgb(229, 231, 235)' : 'rgba(255, 255, 255, 0.1)'
+          }}>
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
+                theme === 'light' ? 'text-gray-400' : 'text-white/40'
+              }`} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search models..."
+                className={`w-full pl-10 pr-10 py-2 rounded-lg text-sm transition-colors focus:outline-none ${
+                  theme === 'light'
+                    ? 'bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-gray-100'
+                    : 'bg-white/5 text-white placeholder-white/40 focus:bg-white/10'
+                }`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-white/10 transition-colors ${
+                    theme === 'light' ? 'text-gray-400 hover:text-gray-600' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Models List */}
+          <div className="max-h-80 overflow-y-auto">
+            {modelGroups.length === 0 ? (
+              <div className="p-8 text-center">
+                <Search className={`w-12 h-12 mx-auto mb-3 ${theme === 'light' ? 'text-gray-300' : 'text-white/20'}`} />
+                <p className={`text-sm font-medium mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                  No models found
+                </p>
+                <p className={`text-xs ${theme === 'light' ? 'text-gray-500' : 'text-white/40'}`}>
+                  Try a different search term
+                </p>
+              </div>
+            ) : (
+              modelGroups.map((group) => (
             <div key={group.provider} className="py-2">
               {/* Provider Header */}
               <div className={`px-4 py-2.5 text-xs font-bold uppercase tracking-wider sticky top-0 backdrop-blur-xl z-10 ${
@@ -241,7 +300,9 @@ export const CompactModelSelector: React.FC<CompactModelSelectorProps> = ({
                 );
               })}
             </div>
-          ))}
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>

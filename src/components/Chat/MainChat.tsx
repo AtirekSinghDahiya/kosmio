@@ -57,7 +57,7 @@ export const MainChat: React.FC = () => {
   const { navigateTo } = useNavigation();
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { setMode, setProjectId: setStudioProjectId } = useStudioMode();
+  const { setMode, setProjectId: setStudioProjectId, setIsFullscreenGenerator } = useStudioMode();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -90,6 +90,9 @@ export const MainChat: React.FC = () => {
 
   // Update studio mode context when generators are shown
   useEffect(() => {
+    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showMusicGenerator || showVoiceoverGenerator;
+    setIsFullscreenGenerator(isAnyGeneratorOpen);
+
     if (showImageGenerator) {
       setMode('image');
       setStudioProjectId(activeProjectId);
@@ -106,7 +109,7 @@ export const MainChat: React.FC = () => {
       setMode('chat');
       setStudioProjectId(activeProjectId);
     }
-  }, [showImageGenerator, showVideoGenerator, showMusicGenerator, showVoiceoverGenerator, activeProjectId, setMode, setStudioProjectId]);
+  }, [showImageGenerator, showVideoGenerator, showMusicGenerator, showVoiceoverGenerator, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
 
   // Load user preferences on mount
   useEffect(() => {

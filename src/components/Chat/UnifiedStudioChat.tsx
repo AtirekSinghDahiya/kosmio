@@ -24,7 +24,7 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   onProjectNameChange,
 }) => {
   const { user } = useAuth();
-  const { mode, setMode } = useStudioMode();
+  const { mode, setMode, isFullscreenGenerator } = useStudioMode();
   const [showControlPanel, setShowControlPanel] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [premiumStatus, setPremiumStatus] = useState<UnifiedPremiumStatus | null>(null);
@@ -220,12 +220,12 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
   return (
     <div className="flex h-screen overflow-hidden relative">
       {/* Main Chat Component */}
-      <div className={`flex-1 overflow-hidden transition-all duration-300 ${showControlPanel && mode !== 'chat' ? 'mr-0 md:mr-80 lg:mr-96' : ''}`}>
+      <div className={`flex-1 overflow-hidden transition-all duration-300 ${showControlPanel && mode !== 'chat' && !isFullscreenGenerator ? 'mr-0 md:mr-80 lg:mr-96' : ''}`}>
         <MainChat />
       </div>
 
       {/* Floating Toggle Button - Only show for specific studios */}
-      {!showControlPanel && mode !== 'chat' && (
+      {!showControlPanel && mode !== 'chat' && !isFullscreenGenerator && (
         <button
           onClick={() => setShowControlPanel(true)}
           className="fixed bottom-24 right-6 z-30 p-4 rounded-full bg-gradient-to-br from-[#00FFF0] to-[#8A2BE2] text-white shadow-2xl hover:shadow-[#00FFF0]/50 transition-all hover:scale-110 group"
@@ -235,8 +235,8 @@ export const UnifiedStudioChat: React.FC<UnifiedStudioChatProps> = ({
         </button>
       )}
 
-      {/* Right Control Panel - Only show for specific studios, not for chat mode */}
-      {showControlPanel && mode !== 'chat' && (
+      {/* Right Control Panel - Only show for specific studios, not for chat mode or fullscreen generators */}
+      {showControlPanel && mode !== 'chat' && !isFullscreenGenerator && (
         <div className={`absolute top-0 right-0 h-full w-full md:w-80 lg:w-96 bg-black/40 backdrop-blur-2xl border-l border-[#00FFF0]/20 flex flex-col overflow-hidden z-20 shadow-2xl transition-all duration-300 ${
           isCollapsed ? 'translate-x-full md:translate-x-0 md:w-16 lg:w-16' : ''
         }`}>

@@ -7,6 +7,8 @@ interface StudioModeContextType {
   setMode: (mode: StudioMode) => void;
   projectId: string | null;
   setProjectId: (id: string | null) => void;
+  isFullscreenGenerator: boolean;
+  setIsFullscreenGenerator: (isFullscreen: boolean) => void;
 }
 
 const StudioModeContext = createContext<StudioModeContextType | undefined>(undefined);
@@ -14,9 +16,10 @@ const StudioModeContext = createContext<StudioModeContextType | undefined>(undef
 export const StudioModeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [mode, setMode] = useState<StudioMode>('chat');
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [isFullscreenGenerator, setIsFullscreenGenerator] = useState(false);
 
   return (
-    <StudioModeContext.Provider value={{ mode, setMode, projectId, setProjectId }}>
+    <StudioModeContext.Provider value={{ mode, setMode, projectId, setProjectId, isFullscreenGenerator, setIsFullscreenGenerator }}>
       {children}
     </StudioModeContext.Provider>
   );
