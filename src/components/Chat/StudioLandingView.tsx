@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Image, Video, Music, Code, Mic, MessageSquare, Zap, FileCode, Presentation, ChevronDown, ChevronRight, Send, FileText } from 'lucide-react';
 import { AI_MODELS } from '../../lib/aiModels';
+import { GenerationLimitsDisplay } from '../Common/GenerationLimitsDisplay';
 
 interface StudioLandingViewProps {
   onSelectMode: (mode: string, modelId?: string, initialPrompt?: string) => void;
@@ -250,13 +251,16 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="text-center pt-8 pb-6">
+        <div className="text-center pt-8 pb-4">
           <h1 className="text-5xl font-normal text-white mb-4">
             KroniQ AI Studio
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-lg mb-6">
             Create anything with AI
           </p>
+          <div className="flex justify-center">
+            <GenerationLimitsDisplay />
+          </div>
         </div>
 
         {/* Tabs */}
