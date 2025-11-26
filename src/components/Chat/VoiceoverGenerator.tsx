@@ -4,6 +4,8 @@ import { generateVoiceover } from '../../lib/voiceoverService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { analyzeScript, DialogueLine } from '../../lib/scriptAnalyzer';
+import { incrementGenerationCount } from '../../lib/generationLimitsService';
+import { useAuth } from '../../hooks/useAuth';
 
 interface VoiceoverGeneratorProps {
   onClose: () => void;
@@ -26,6 +28,7 @@ const VOICE_OPTIONS = [
 export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose, initialText = '' }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [text, setText] = useState(initialText);
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -112,6 +115,12 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
       setAudioBlob(combinedBlob);
       setAudioUrl(url);
       showToast('success', 'Dialogue Ready!', 'Multi-voice conversation generated successfully');
+
+      // Increment usage count for free users
+      if (user?.uid) {
+        await incrementGenerationCount(user.uid, 'tts');
+        console.log('✅ TTS generation count incremented');
+      }
     } catch (error: any) {
       console.error('Dialogue generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Unable to generate dialogue');
@@ -152,6 +161,12 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
       setAudioBlob(blob);
       setAudioUrl(url);
       showToast('success', 'Voiceover Ready!', 'Your audio has been generated successfully');
+
+      // Increment usage count for free users
+      if (user?.uid) {
+        await incrementGenerationCount(user.uid, 'tts');
+        console.log('✅ TTS generation count incremented');
+      }
     } catch (error: any) {
       console.error('Voiceover generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Unable to generate voiceover. Please try again.');

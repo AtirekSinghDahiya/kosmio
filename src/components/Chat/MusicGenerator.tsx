@@ -5,6 +5,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveMusicToProject } from '../../lib/contentSaveService';
+import { incrementGenerationCount } from '../../lib/generationLimitsService';
 
 interface MusicGeneratorProps {
   onClose: () => void;
@@ -62,9 +63,14 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initial
       setGeneratedTracks(tracks);
       showToast('success', 'Success!', 'Music generated successfully!');
 
-      // Save to project
+      // Save to project and increment count
       if (user && tracks.length > 0) {
         try {
+          // Increment usage count for free users
+          await incrementGenerationCount(user.uid, 'song');
+          console.log('✅ Song generation count incremented');
+
+          // Save to project
           await saveMusicToProject(user.uid, prompt, tracks[0].audioUrl, {
             model: 'suno-v3.5',
             title: tracks[0].title

@@ -5,6 +5,7 @@ import { generateWithNanoBanana } from '../../lib/geminiNanoBananaService';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveImageToProject } from '../../lib/contentSaveService';
+import { incrementGenerationCount } from '../../lib/generationLimitsService';
 
 interface SimpleImageGeneratorProps {
   onClose: () => void;
@@ -70,6 +71,11 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
 
       if (user) {
         try {
+          // Increment usage count for free users
+          await incrementGenerationCount(user.uid, 'image');
+          console.log('✅ Image generation count incremented');
+
+          // Save to project
           await saveImageToProject(user.uid, prompt, imageUrl, {
             model: selectedModel,
             dimensions: aspectRatio,

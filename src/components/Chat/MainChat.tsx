@@ -75,6 +75,8 @@ export const MainChat: React.FC = () => {
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
+  const [showVoiceGenerator, setShowVoiceGenerator] = useState(false);
+  const [selectedVoiceService, setSelectedVoiceService] = useState<'elevenlabs' | 'gemini'>('elevenlabs');
   const [showPPTGenerator, setShowPPTGenerator] = useState(false);
   const [pptTopic, setPPTTopic] = useState('');
   // Code studio disabled
@@ -1009,6 +1011,14 @@ export const MainChat: React.FC = () => {
                 setMusicPrompt('');
               }}
             />
+          ) : showVoiceGenerator ? (
+            <VoiceoverGenerator
+              onClose={() => {
+                setShowVoiceGenerator(false);
+                setVoiceoverText('');
+              }}
+              initialText={voiceoverText}
+            />
           ) : showLanding ? (
             <div className="h-full">
               <StudioLandingView
@@ -1062,10 +1072,16 @@ export const MainChat: React.FC = () => {
                       setImagePrompt(initialPrompt || '');
                       setShowImageGenerator(true);
                     }
-                    // Handle music generation
-                    else if (mode === 'music' || modelId === 'suno' || modelId === 'elevenlabs') {
+                    // Handle music generation (Suno only)
+                    else if (mode === 'music' || modelId === 'suno') {
                       setMusicPrompt(initialPrompt || '');
                       setShowMusicGenerator(true);
+                    }
+                    // Handle voice/TTS generation (ElevenLabs and Gemini TTS)
+                    else if (modelId === 'elevenlabs' || modelId === 'gemini-tts') {
+                      setVoiceoverText(initialPrompt || '');
+                      setSelectedVoiceService(modelId === 'elevenlabs' ? 'elevenlabs' : 'gemini');
+                      setShowVoiceGenerator(true);
                     }
                     // Handle code/PPT generation
                     else if (mode === 'code' || modelId === 'code-studio' || modelId === 'ppt-studio') {

@@ -16,8 +16,11 @@ export async function checkGenerationLimit(
   generationType: GenerationType
 ): Promise<GenerationLimitInfo> {
   try {
+    console.log('📊 Checking generation limit:', { userId, generationType });
+
     const accessInfo = await getUserAccessInfo(userId);
     const userType = accessInfo?.userType || 'free';
+    console.log('👤 User type:', userType);
 
     const { data, error } = await supabase.rpc('check_generation_limit', {
       p_user_id: userId,
@@ -26,7 +29,7 @@ export async function checkGenerationLimit(
     });
 
     if (error) {
-      console.error('Error checking generation limit:', error);
+      console.error('❌ Error checking generation limit:', error);
       return {
         canGenerate: false,
         current: 0,
@@ -36,6 +39,8 @@ export async function checkGenerationLimit(
       };
     }
 
+    console.log('✅ Generation limit check result:', data);
+
     return {
       canGenerate: data.can_generate,
       current: data.current,
@@ -44,7 +49,7 @@ export async function checkGenerationLimit(
       message: data.message
     };
   } catch (error) {
-    console.error('Exception checking generation limit:', error);
+    console.error('❌ Exception checking generation limit:', error);
     return {
       canGenerate: false,
       current: 0,
@@ -60,19 +65,22 @@ export async function incrementGenerationCount(
   generationType: GenerationType
 ): Promise<boolean> {
   try {
+    console.log('➕ Incrementing generation count:', { userId, generationType });
+
     const { data, error } = await supabase.rpc('increment_generation', {
       p_user_id: userId,
       p_generation_type: generationType
     });
 
     if (error) {
-      console.error('Error incrementing generation count:', error);
+      console.error('❌ Error incrementing generation count:', error);
       return false;
     }
 
+    console.log('✅ Successfully incremented generation count:', data);
     return data === true;
   } catch (error) {
-    console.error('Exception incrementing generation count:', error);
+    console.error('❌ Exception incrementing generation count:', error);
     return false;
   }
 }

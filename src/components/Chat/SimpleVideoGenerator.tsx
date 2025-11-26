@@ -7,6 +7,7 @@ import { generateWithHailuo } from '../../lib/minimaxHailuoService';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
 import { saveVideoToProject } from '../../lib/contentSaveService';
+import { incrementGenerationCount } from '../../lib/generationLimitsService';
 
 interface SimpleVideoGeneratorProps {
   onClose: () => void;
@@ -68,6 +69,11 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
 
       if (user) {
         try {
+          // Increment usage count for free users
+          await incrementGenerationCount(user.uid, 'video');
+          console.log('✅ Video generation count incremented');
+
+          // Save to project
           const providerMap = {
             'veo-2': 'veo-2',
             'veo-3': 'google-veo',

@@ -29,7 +29,6 @@ const ASPECT_RATIOS = [
 ];
 
 const OUTPUT_FORMATS = ['JPEG', 'PNG', 'WebP'];
-const IMAGE_COUNTS = [1, 2, 3, 4];
 
 export const ImageGenerator: React.FC<ImageGeneratorProps> = ({
   onClose,
@@ -47,7 +46,6 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({
   );
   const [aspectRatio, setAspectRatio] = useState('square');
   const [outputFormat, setOutputFormat] = useState('JPEG');
-  const [imageCount, setImageCount] = useState(1);
 
   useEffect(() => {
     if (initialPrompt) setPrompt(initialPrompt);
@@ -212,26 +210,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({
             </div>
           </div>
 
-          {/* Number of Images */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-white/60">Number of images: {imageCount}</label>
-            <div className="flex items-center gap-2">
-              {IMAGE_COUNTS.map((count) => (
-                <button
-                  key={count}
-                  onClick={() => setImageCount(count)}
-                  disabled={isGenerating}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-                    imageCount === count
-                      ? 'bg-teal-500/20 border border-teal-500/40 text-white'
-                      : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10'
-                  }`}
-                >
-                  {count}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Note: Generates 1 image per request for optimal quality */}
 
           {/* Output Format */}
           <div className="space-y-2">
