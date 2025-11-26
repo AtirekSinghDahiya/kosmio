@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal, Share2, Square } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, RotateCw, Copy, MoreHorizontal, Share2, Square, Download } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -1183,19 +1183,66 @@ export const MainChat: React.FC = () => {
                                 {attachments.map((attachment: any, idx: number) => (
                                   <div key={idx}>
                                     {attachment.type === 'image' || attachment.type?.startsWith('image/') ? (
-                                      <img
-                                        src={attachment.url}
-                                        alt={attachment.name || 'Attached image'}
-                                        className="rounded-lg max-w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-                                        onClick={() => window.open(attachment.url, '_blank')}
-                                      />
+                                      <div className="relative group">
+                                        <img
+                                          src={attachment.url}
+                                          alt={attachment.name || 'Attached image'}
+                                          className="rounded-lg max-w-full h-auto"
+                                        />
+                                        <button
+                                          onClick={async () => {
+                                            try {
+                                              const response = await fetch(attachment.url);
+                                              const blob = await response.blob();
+                                              const url = window.URL.createObjectURL(blob);
+                                              const a = document.createElement('a');
+                                              a.href = url;
+                                              a.download = attachment.name || `image-${Date.now()}.png`;
+                                              document.body.appendChild(a);
+                                              a.click();
+                                              window.URL.revokeObjectURL(url);
+                                              document.body.removeChild(a);
+                                            } catch (error) {
+                                              console.error('Download failed:', error);
+                                            }
+                                          }}
+                                          className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80"
+                                          title="Download image"
+                                        >
+                                          <Download className="w-4 h-4" />
+                                        </button>
+                                      </div>
                                     ) : attachment.type?.startsWith('audio/') ? (
                                       <div className="mt-2">
                                         <audio controls className="w-full max-w-md">
                                           <source src={attachment.url} type={attachment.type} />
                                           Your browser does not support the audio element.
                                         </audio>
-                                        <p className="text-xs mt-1 opacity-70">🎵 {attachment.name || 'Audio file'}</p>
+                                        <div className="flex items-center justify-between mt-2">
+                                          <p className="text-xs opacity-70">🎵 {attachment.name || 'Audio file'}</p>
+                                          <button
+                                            onClick={async () => {
+                                              try {
+                                                const response = await fetch(attachment.url);
+                                                const blob = await response.blob();
+                                                const url = window.URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = attachment.name || `audio-${Date.now()}.mp3`;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                window.URL.revokeObjectURL(url);
+                                                document.body.removeChild(a);
+                                              } catch (error) {
+                                                console.error('Download failed:', error);
+                                              }
+                                            }}
+                                            className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-[#00FFF0]/10 hover:bg-[#00FFF0]/20 text-[#00FFF0] border border-[#00FFF0]/30 transition-all"
+                                          >
+                                            <Download className="w-3 h-3" />
+                                            Download
+                                          </button>
+                                        </div>
                                       </div>
                                     ) : attachment.type?.startsWith('video/') ? (
                                       <div className="mt-2">
@@ -1203,7 +1250,31 @@ export const MainChat: React.FC = () => {
                                           <source src={attachment.url} type={attachment.type} />
                                           Your browser does not support the video element.
                                         </video>
-                                        <p className="text-xs mt-1 opacity-70">🎬 {attachment.name || 'Video file'}</p>
+                                        <div className="flex items-center justify-between mt-2">
+                                          <p className="text-xs opacity-70">🎬 {attachment.name || 'Video file'}</p>
+                                          <button
+                                            onClick={async () => {
+                                              try {
+                                                const response = await fetch(attachment.url);
+                                                const blob = await response.blob();
+                                                const url = window.URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = attachment.name || `video-${Date.now()}.mp4`;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                window.URL.revokeObjectURL(url);
+                                                document.body.removeChild(a);
+                                              } catch (error) {
+                                                console.error('Download failed:', error);
+                                              }
+                                            }}
+                                            className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-[#00FFF0]/10 hover:bg-[#00FFF0]/20 text-[#00FFF0] border border-[#00FFF0]/30 transition-all"
+                                          >
+                                            <Download className="w-3 h-3" />
+                                            Download
+                                          </button>
+                                        </div>
                                       </div>
                                     ) : (
                                       <a
