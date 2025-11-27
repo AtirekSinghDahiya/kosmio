@@ -12,9 +12,10 @@ import { getOpenRouterResponse, getOpenRouterResponseWithUsage } from '../../lib
 import { classifyIntent, shouldShowConfirmation, shouldAutoRoute } from '../../lib/intentClassifier';
 import { ChatSidebar } from './ChatSidebar';
 import { LandingView } from './LandingView';
-import { MobileLandingView } from './MobileLandingView';
+import { MobileLandingView} from './MobileLandingView';
 import { StudioLandingView } from './StudioLandingView';
 import { IntentDialog } from './IntentDialog';
+import { MessageSearchBar } from './MessageSearchBar';
 import { GroupedModelSelector } from './GroupedModelSelector';
 import { ProfileButton } from '../Common/ProfileButton';
 import { CompactModelSelector } from './CompactModelSelector';
@@ -90,6 +91,9 @@ export const MainChat: React.FC = () => {
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingText, setThinkingText] = useState('Thinking...');
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchResults, setSearchResults] = useState<number[]>([]);
+  const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

@@ -96,6 +96,14 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'New'
       },
       {
+        id: 'prime-intellect/intellect-3',
+        name: 'INTELLECT-3',
+        description: 'Advanced reasoning model with extended thinking capabilities',
+        icon: Zap,
+        category: 'chat',
+        badge: 'Reasoning'
+      },
+      {
         id: 'nano-banana',
         name: 'Nano Banana',
         description: 'Fast image generation with Flux Schnell model',

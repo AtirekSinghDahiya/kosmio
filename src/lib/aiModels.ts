@@ -193,6 +193,9 @@ export const AI_MODELS: AIModel[] = [
   { id: 'openrouter/sherlock-dash-alpha', name: 'Sherlock Dash Alpha', provider: 'Sherlock AI', description: 'Fast multimodal with vision', category: 'chat', tokensPerMessage: 7000, tier: 'MID' },
   { id: 'openrouter/sherlock-think-alpha', name: 'Sherlock Think Alpha', provider: 'Sherlock AI', description: 'Advanced reasoning model', category: 'chat', tokensPerMessage: 12000, tier: 'PREMIUM' },
 
+  // Prime Intellect Models (1)
+  { id: 'prime-intellect/intellect-3', name: 'INTELLECT-3', provider: 'Prime Intellect', description: 'Advanced reasoning model with extended thinking capabilities and reasoning tokens', category: 'chat', tokensPerMessage: 12000, tier: 'PREMIUM' },
+
   // Anthropic Claude Models (1)
   { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5', provider: 'Anthropic', description: 'Most capable Claude with vision support', category: 'chat', tokensPerMessage: 25000, tier: 'PREMIUM' },
 

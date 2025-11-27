@@ -247,6 +247,17 @@ export const MODEL_TOKEN_COSTS: Record<string, ModelTokenCost> = {
     icon: '💻',
     logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg'
   },
+  'prime-intellect/intellect-3': {
+    id: 'prime-intellect/intellect-3',
+    name: 'INTELLECT-3',
+    provider: 'Prime Intellect',
+    tokensPerMessage: 18000,
+    costPerMessage: 0.05,
+    tier: 'premium',
+    description: 'Advanced reasoning with thinking tokens',
+    icon: '🧠',
+    paidOnly: true
+  },
   'claude-haiku-4.5': {
     id: 'claude-haiku-4.5',
     name: 'Claude Haiku 4.5',
