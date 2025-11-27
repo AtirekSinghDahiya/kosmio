@@ -5,9 +5,11 @@ import { generateWithSora2 } from '../../lib/openaiSora2Service';
 import { generateWithVeo2 } from '../../lib/veo2Service';
 import { generateWithHailuo } from '../../lib/minimaxHailuoService';
 import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { saveVideoToProject } from '../../lib/contentSaveService';
-import { incrementGenerationCount } from '../../lib/generationLimitsService';
+import { checkGenerationLimit, incrementGenerationCount } from '../../lib/generationLimitsService';
+import { deductTokensForRequest } from '../../lib/tokenService';
+import { getModelCost } from '../../lib/modelTokenPricing';
 
 interface SimpleVideoGeneratorProps {
   onClose: () => void;
@@ -32,6 +34,18 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       showToast('error', 'Empty Prompt', 'Please enter a description for your video');
+      return;
+    }
+
+    if (!user?.uid) {
+      showToast('error', 'Authentication Required', 'Please log in to generate videos');
+      return;
+    }
+
+    // Check generation limit BEFORE generating
+    const limitCheck = await checkGenerationLimit(user.uid, 'video');
+    if (!limitCheck.canGenerate) {
+      showToast('error', 'Generation Limit Reached', limitCheck.message);
       return;
     }
 
@@ -65,30 +79,32 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
       }
 
       setGeneratedVideoUrl(videoUrl);
-      showToast('success', 'Video Generated!', 'Your video is ready');
 
-      if (user) {
-        try {
-          // Increment usage count for free users
-          await incrementGenerationCount(user.uid, 'video');
-          console.log('✅ Video generation count incremented');
+      // Deduct tokens
+      const modelCost = getModelCost(selectedModel);
+      const providerMap = {
+        'veo-2': 'veo-2',
+        'veo-3': 'google-veo',
+        'sora-2': 'openai-sora',
+        'hailuo': 'minimax-hailuo'
+      };
+      const provider = providerMap[selectedModel];
+      await deductTokensForRequest(user.uid, selectedModel, provider, modelCost.costPerMessage, 'video');
+      console.log('✅ Tokens deducted for video generation');
 
-          // Save to project
-          const providerMap = {
-            'veo-2': 'veo-2',
-            'veo-3': 'google-veo',
-            'sora-2': 'openai-sora',
-            'hailuo': 'minimax-hailuo'
-          };
-          await saveVideoToProject(user.uid, prompt, videoUrl, {
-            model: selectedModel,
-            duration,
-            provider: providerMap[selectedModel]
-          });
-        } catch (saveError) {
-          console.error('Failed to save video:', saveError);
-        }
-      }
+      // Increment usage count for free users
+      await incrementGenerationCount(user.uid, 'video');
+      console.log('✅ Video generation count incremented');
+
+      // Save to project
+      await saveVideoToProject(user.uid, prompt, videoUrl, {
+        model: selectedModel,
+        duration,
+        provider
+      });
+      console.log('✅ Video saved to project');
+
+      showToast('success', 'Video Generated!', 'Your video is ready and saved to projects');
     } catch (error: any) {
       console.error('Video generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Failed to generate video');

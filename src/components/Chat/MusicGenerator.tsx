@@ -1,305 +1,233 @@
-import React, { useState, useEffect } from 'react';
-import { Music, Loader2, Download, X } from 'lucide-react';
-import { generateAndWaitForMusic } from '../../lib/sunoService';
+import React, { useState } from 'react';
+import { Music, Loader, Download, Play, Pause } from 'lucide-react';
+import { generateSunoMusic } from '../../lib/sunoService';
 import { useToast } from '../../contexts/ToastContext';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
-import { saveMusicToProject } from '../../lib/contentSaveService';
-import { incrementGenerationCount } from '../../lib/generationLimitsService';
+import { useAuth } from '../../contexts/AuthContext';
+import { checkGenerationLimit, incrementGenerationCount } from '../../lib/generationLimitsService';
+import { deductTokensForRequest } from '../../lib/tokenService';
+import { getModelCost } from '../../lib/modelTokenPricing';
 
 interface MusicGeneratorProps {
   onClose: () => void;
   initialPrompt?: string;
 }
 
-export const MusicGenerator: React.FC<MusicGeneratorProps> = ({ onClose, initialPrompt = '' }) => {
-  const { theme } = useTheme();
+export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
+  onClose,
+  initialPrompt = ''
+}) => {
   const { showToast } = useToast();
   const { user } = useAuth();
-  const [prompt, setPrompt] = useState(initialPrompt);
-  const [style, setStyle] = useState('');
+  const [description, setDescription] = useState(initialPrompt);
+  const [genre, setGenre] = useState('');
   const [title, setTitle] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [progressMessage, setProgressMessage] = useState('');
-  const [generatedTracks, setGeneratedTracks] = useState<Array<{ audioUrl: string; title: string }>>([]);
-
-  useEffect(() => {
-    if (initialPrompt) {
-      setPrompt(initialPrompt);
-      setTitle(initialPrompt.substring(0, 80));
-    }
-  }, [initialPrompt]);
+  const [generatedMusic, setGeneratedMusic] = useState<{ audioUrl: string; title: string; tags: string } | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState('');
 
   const handleGenerate = async () => {
-    if (!prompt.trim() || !style.trim() || !title.trim()) {
-      showToast('warning', 'Missing Fields', 'Please fill in prompt, style, and title');
+    if (!description.trim()) {
+      showToast('error', 'Empty Description', 'Please describe the music you want to create');
       return;
     }
 
-    const apiKey = import.meta.env.VITE_SUNO_API_KEY;
-    if (!apiKey) {
-      showToast('error', 'Configuration Error', 'Music generation is not configured. Please contact support.');
+    if (!user?.uid) {
+      showToast('error', 'Authentication Required', 'Please log in to generate music');
       return;
     }
+
+    // Check generation limit BEFORE generating
+    const limitCheck = await checkGenerationLimit(user.uid, 'song');
+    if (!limitCheck.canGenerate) {
+      showToast('error', 'Generation Limit Reached', limitCheck.message);
+      return;
+    }
+
+    setIsGenerating(true);
+    setGeneratedMusic(null);
+    setProgress('Starting music generation...');
 
     try {
-      setIsGenerating(true);
-      setGeneratedTracks([]);
-      setProgressMessage('Starting music generation...');
+      const result = await generateSunoMusic({
+        description,
+        genre: genre || undefined,
+        title: title || undefined
+      }, (status) => setProgress(status));
 
-      const tracks = await generateAndWaitForMusic(
-        {
-          prompt,
-          style,
-          title,
-          customMode: true,
-          instrumental: false,
-          model: 'V3_5',
-        },
-        apiKey,
-        (status) => setProgressMessage(status)
-      );
+      setGeneratedMusic(result);
 
-      setGeneratedTracks(tracks);
-      showToast('success', 'Success!', 'Music generated successfully!');
+      // Deduct tokens
+      const modelCost = getModelCost('suno-ai');
+      await deductTokensForRequest(user.uid, 'suno-ai', 'suno', modelCost.costPerMessage, 'song');
+      console.log('✅ Tokens deducted for music generation');
 
-      // Save to project and increment count
-      if (user && tracks.length > 0) {
-        try {
-          // Increment usage count for free users
-          await incrementGenerationCount(user.uid, 'song');
-          console.log('✅ Song generation count incremented');
+      // Increment usage count for free users
+      await incrementGenerationCount(user.uid, 'song');
+      console.log('✅ Music generation count incremented');
 
-          // Save to project
-          await saveMusicToProject(user.uid, prompt, tracks[0].audioUrl, {
-            model: 'suno-v3.5',
-            title: tracks[0].title
-          });
-          console.log('✅ Music saved to project');
-        } catch (saveError) {
-          console.error('Failed to save music to project:', saveError);
-        }
-      }
+      showToast('success', 'Music Generated!', 'Your song is ready to play');
+      setProgress('');
     } catch (error: any) {
-      console.error('Suno generation error:', error);
-
-      let errorMessage = 'Failed to generate music';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
-      // Check for specific error types
-      if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
-        errorMessage = 'Invalid API key. Please check your KIE.ai API key.';
-      } else if (error?.message?.includes('429')) {
-        errorMessage = 'Rate limit exceeded. Please try again later.';
-      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
-        errorMessage = 'Network error. Please check your internet connection.';
-      }
-
-      showToast('error', 'Generation Failed', errorMessage);
+      console.error('Music generation error:', error);
+      showToast('error', 'Generation Failed', error.message || 'Failed to generate music');
+      setProgress('');
     } finally {
       setIsGenerating(false);
-      setProgressMessage('');
     }
   };
 
-  const handleDownload = async (url: string, trackTitle: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `${trackTitle}.mp3`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-      showToast('success', 'Downloaded', 'Music downloaded successfully!');
-    } catch (error) {
-      showToast('error', 'Download Failed', 'Failed to download music');
+  const handleDownload = () => {
+    if (generatedMusic) {
+      const link = document.createElement('a');
+      link.href = generatedMusic.audioUrl;
+      link.download = `${generatedMusic.title.replace(/[^a-z0-9]/gi, '_')}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('success', 'Downloaded!', 'Music file downloaded');
+    }
+  };
+
+  const togglePlay = () => {
+    const audio = document.getElementById('music-audio') as HTMLAudioElement;
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      setIsPlaying(!isPlaying);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-      <div className={`w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden animate-scale-in ${
-        theme === 'light'
-          ? 'bg-white border border-gray-200'
-          : 'bg-slate-900/95 backdrop-blur-xl border border-white/20'
-      }`}>
-        {/* Header */}
-        <div className={`p-6 border-b flex items-center justify-between ${
-          theme === 'light' ? 'border-gray-200 bg-gradient-to-r from-violet-50 to-purple-50' : 'border-white/10 bg-gradient-to-r from-violet-500/10 to-purple-500/10'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl">
-              <Music className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className={`text-2xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AI Music Generator</h2>
-              <p className={`text-sm ${theme === 'light' ? 'text-gray-600' : 'text-white/60'}`}>Powered by Suno V3.5</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className={`p-2 rounded-xl transition-colors ${
-              theme === 'light'
-                ? 'hover:bg-gray-200 text-gray-700'
-                : 'hover:bg-white/10 text-white/70 hover:text-white'
-            }`}
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <div className="h-full flex flex-col bg-black p-6">
+      {/* Input Section */}
+      <div className="space-y-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-white/70 mb-2">
+            Music Description *
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Describe the music you want to create (e.g., 'A calm and relaxing piano track with soft melodies')"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 resize-none"
+            rows={4}
+            maxLength={3000}
+          />
+          <div className="text-xs text-white/40 mt-1">{description.length}/3000</div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-4">
-          {/* Music Description */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className={`block font-medium mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
-              Music Description <span className={theme === 'light' ? 'text-red-600' : 'text-red-400'}>*</span>
-            </label>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Describe the music you want to create (e.g., 'A calm and relaxing piano track with soft melodies')"
-              maxLength={3000}
-              rows={4}
-              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 resize-none transition-all ${
-                theme === 'light'
-                  ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-violet-500'
-                  : 'bg-slate-800/50 border-white/10 text-white placeholder-white/30 focus:ring-violet-500'
-              }`}
-            />
-            <div className={`text-right text-sm mt-1 ${theme === 'light' ? 'text-gray-500' : 'text-white/40'}`}>
-              {prompt.length}/3000
-            </div>
-          </div>
-
-          {/* Style/Genre */}
-          <div>
-            <label className={`block font-medium mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
-              Style/Genre <span className={theme === 'light' ? 'text-red-600' : 'text-red-400'}>*</span>
+            <label className="block text-sm font-medium text-white/70 mb-2">
+              Style/Genre
             </label>
             <input
               type="text"
-              value={style}
-              onChange={(e) => setStyle(e.target.value)}
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
               placeholder="e.g., Classical, Jazz, Pop, Electronic, Rock"
-              maxLength={200}
-              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all ${
-                theme === 'light'
-                  ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-violet-500'
-                  : 'bg-slate-800/50 border-white/10 text-white placeholder-white/30 focus:ring-violet-500'
-              }`}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50"
             />
           </div>
 
-          {/* Title */}
           <div>
-            <label className={`block font-medium mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white/90'}`}>
-              Title <span className={theme === 'light' ? 'text-red-600' : 'text-red-400'}>*</span>
+            <label className="block text-sm font-medium text-white/70 mb-2">
+              Title
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Peaceful Piano Meditation"
-              maxLength={80}
-              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 transition-all ${
-                theme === 'light'
-                  ? 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-violet-500'
-                  : 'bg-slate-800/50 border-white/10 text-white placeholder-white/30 focus:ring-violet-500'
-              }`}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50"
             />
           </div>
+        </div>
 
-          {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full py-4 px-6 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-violet-500/20"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Generating Music...
-              </>
-            ) : (
-              <>
-                <Music className="w-5 h-5" />
-                Generate Music
-              </>
-            )}
-          </button>
-
-          {/* Progress Message */}
-          {progressMessage && (
-            <div className={`text-center animate-pulse ${theme === 'light' ? 'text-violet-600' : 'text-violet-400'}`}>
-              {progressMessage}
-            </div>
+        <button
+          onClick={handleGenerate}
+          disabled={isGenerating || !description.trim()}
+          className="w-full py-3 px-6 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+        >
+          {isGenerating ? (
+            <>
+              <Loader className="w-5 h-5 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Music className="w-5 h-5" />
+              Generate Music
+            </>
           )}
+        </button>
+      </div>
 
-          {/* Generated Tracks */}
-          {generatedTracks.length > 0 && (
-            <div className={`rounded-xl p-4 space-y-3 border ${
-              theme === 'light'
-                ? 'bg-gray-50 border-gray-200'
-                : 'bg-slate-800/50 border-white/10'
-            }`}>
-              <h3 className={`font-bold flex items-center gap-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                <Music className="w-5 h-5 text-violet-500" />
-                Generated Tracks
-              </h3>
+      {/* Progress */}
+      {progress && (
+        <div className="mb-4 p-4 bg-white/5 border border-white/10 rounded-lg">
+          <p className="text-sm text-[#00FFF0]">{progress}</p>
+        </div>
+      )}
 
-              <div className="space-y-3">
-                {generatedTracks.map((track, index) => (
-                  <div
-                    key={index}
-                    className={`rounded-lg p-3 flex items-center justify-between ${
-                      theme === 'light' ? 'bg-white border border-gray-200' : 'bg-slate-700/50'
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                        {track.title}
-                      </p>
-                      <audio
-                        src={track.audioUrl}
-                        controls
-                        className="w-full mt-2"
-                      />
-                    </div>
-
-                    <button
-                      onClick={() => handleDownload(track.audioUrl, track.title)}
-                      className="ml-3 p-2 bg-violet-500 hover:bg-violet-600 text-white rounded-lg transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tips */}
-          <div className={`rounded-xl p-4 border ${
-            theme === 'light'
-              ? 'bg-gray-50 border-gray-200'
-              : 'bg-slate-800/50 border-white/10'
-          }`}>
-            <h3 className={`font-bold mb-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Tips</h3>
-            <ul className={`space-y-1 text-sm ${theme === 'light' ? 'text-gray-700' : 'text-white/70'}`}>
-              <li>• Be detailed in your prompt - include emotions, rhythm, instruments</li>
-              <li>• Specify the genre or style clearly</li>
-              <li>• Generation typically takes 1-3 minutes</li>
-              <li>• Each generation produces 2 unique variations</li>
-            </ul>
+      {/* Generated Music */}
+      {generatedMusic && (
+        <div className="p-6 bg-white/5 border border-white/10 rounded-lg space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-1">{generatedMusic.title}</h3>
+            <p className="text-sm text-white/50">{generatedMusic.tags}</p>
           </div>
+
+          <audio
+            id="music-audio"
+            src={generatedMusic.audioUrl}
+            onEnded={() => setIsPlaying(false)}
+            className="hidden"
+          />
+
+          <div className="flex gap-3">
+            <button
+              onClick={togglePlay}
+              className="flex-1 py-3 px-6 bg-[#00FFF0]/20 border border-[#00FFF0]/50 text-[#00FFF0] rounded-lg font-medium hover:bg-[#00FFF0]/30 transition-all flex items-center justify-center gap-2"
+            >
+              {isPlaying ? (
+                <>
+                  <Pause className="w-5 h-5" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5" />
+                  Play
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleDownload}
+              className="py-3 px-6 bg-white/10 border border-white/20 text-white rounded-lg font-medium hover:bg-white/20 transition-all flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Download
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tips */}
+      <div className="mt-auto pt-6">
+        <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+          <h4 className="text-sm font-semibold text-white mb-2">Tips</h4>
+          <ul className="text-xs text-white/60 space-y-1">
+            <li>• Be detailed in your prompt - include emotions, rhythm, instruments</li>
+            <li>• Specify the genre or style clearly</li>
+            <li>• Generation typically takes 1-3 minutes</li>
+            <li>• Each generation produces 2 unique variations</li>
+          </ul>
         </div>
       </div>
     </div>

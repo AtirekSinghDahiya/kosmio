@@ -23,7 +23,6 @@ import { ChatInput } from './ChatInput';
 import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
-import { MusicGenerator } from './MusicGenerator';
 import { AudioStudio } from './AudioStudio';
 import { PPTGenerator } from './PPTGenerator';
 // Studio components disabled
@@ -77,7 +76,6 @@ export const MainChat: React.FC = () => {
   const [videoPrompt, setVideoPrompt] = useState('');
   const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
-  const [showMusicGenerator, setShowMusicGenerator] = useState(false);
   const [showVoiceGenerator, setShowVoiceGenerator] = useState(false);
   const [showAudioStudio, setShowAudioStudio] = useState(false);
   const [selectedVoiceService, setSelectedVoiceService] = useState<'elevenlabs' | 'gemini'>('elevenlabs');
@@ -99,7 +97,7 @@ export const MainChat: React.FC = () => {
 
   // Update studio mode context when generators are shown
   useEffect(() => {
-    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showMusicGenerator || showVoiceoverGenerator || showAudioStudio;
+    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showVoiceoverGenerator || showAudioStudio;
     setIsFullscreenGenerator(isAnyGeneratorOpen);
 
     if (showImageGenerator) {
@@ -108,7 +106,7 @@ export const MainChat: React.FC = () => {
     } else if (showVideoGenerator) {
       setMode('video');
       setStudioProjectId(activeProjectId);
-    } else if (showMusicGenerator || showAudioStudio) {
+    } else if (showAudioStudio) {
       setMode('music');
       setStudioProjectId(activeProjectId);
     } else if (showVoiceoverGenerator) {
@@ -118,7 +116,7 @@ export const MainChat: React.FC = () => {
       setMode('chat');
       setStudioProjectId(activeProjectId);
     }
-  }, [showImageGenerator, showVideoGenerator, showMusicGenerator, showVoiceoverGenerator, showAudioStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
+  }, [showImageGenerator, showVideoGenerator, showVoiceoverGenerator, showAudioStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
 
   // Load user preferences on mount
   useEffect(() => {
@@ -1016,14 +1014,6 @@ export const MainChat: React.FC = () => {
               onClose={() => {
                 setShowAudioStudio(false);
               }}
-            />
-          ) : showMusicGenerator ? (
-            <MusicGenerator
-              onClose={() => {
-                setShowMusicGenerator(false);
-                setMusicPrompt('');
-              }}
-              initialPrompt={musicPrompt}
             />
           ) : showVoiceGenerator ? (
             <VoiceoverGenerator

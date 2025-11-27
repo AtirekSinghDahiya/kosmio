@@ -3,9 +3,11 @@ import { X, Wand2, Loader, ChevronDown, ChevronUp } from 'lucide-react';
 import { generateWithImagen } from '../../lib/googleImagenService';
 import { generateWithNanoBanana } from '../../lib/geminiNanoBananaService';
 import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { saveImageToProject } from '../../lib/contentSaveService';
-import { incrementGenerationCount } from '../../lib/generationLimitsService';
+import { checkGenerationLimit, incrementGenerationCount } from '../../lib/generationLimitsService';
+import { deductTokensForRequest } from '../../lib/tokenService';
+import { getModelCost } from '../../lib/modelTokenPricing';
 
 interface SimpleImageGeneratorProps {
   onClose: () => void;
@@ -39,6 +41,18 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
       return;
     }
 
+    if (!user?.uid) {
+      showToast('error', 'Authentication Required', 'Please log in to generate images');
+      return;
+    }
+
+    // Check generation limit BEFORE generating
+    const limitCheck = await checkGenerationLimit(user.uid, 'image');
+    if (!limitCheck.canGenerate) {
+      showToast('error', 'Generation Limit Reached', limitCheck.message);
+      return;
+    }
+
     setIsGenerating(true);
     setGeneratedImageUrl(null);
     setProgress('Starting...');
@@ -67,24 +81,26 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
       }
 
       setGeneratedImageUrl(imageUrl);
-      showToast('success', 'Image Generated!', 'Your image is ready');
 
-      if (user) {
-        try {
-          // Increment usage count for free users
-          await incrementGenerationCount(user.uid, 'image');
-          console.log('✅ Image generation count incremented');
+      // Deduct tokens
+      const modelCost = getModelCost(selectedModel === 'imagen-4' ? 'imagen-4' : 'nano-banana');
+      const provider = selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini';
+      await deductTokensForRequest(user.uid, selectedModel, provider, modelCost.costPerMessage, 'image');
+      console.log('✅ Tokens deducted for image generation');
 
-          // Save to project
-          await saveImageToProject(user.uid, prompt, imageUrl, {
-            model: selectedModel,
-            dimensions: aspectRatio,
-            provider: selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini'
-          });
-        } catch (saveError) {
-          console.error('Failed to save image:', saveError);
-        }
-      }
+      // Increment usage count for free users
+      await incrementGenerationCount(user.uid, 'image');
+      console.log('✅ Image generation count incremented');
+
+      // Save to project
+      await saveImageToProject(user.uid, prompt, imageUrl, {
+        model: selectedModel,
+        dimensions: aspectRatio,
+        provider
+      });
+      console.log('✅ Image saved to project');
+
+      showToast('success', 'Image Generated!', 'Your image is ready and saved to projects');
     } catch (error: any) {
       console.error('Image generation error:', error);
       const errorMessage = error.message || 'Failed to generate image. Please check your API key and try again.';

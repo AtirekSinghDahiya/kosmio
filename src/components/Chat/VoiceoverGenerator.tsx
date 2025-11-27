@@ -4,8 +4,10 @@ import { generateVoiceover } from '../../lib/voiceoverService';
 import { useToast } from '../../contexts/ToastContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { analyzeScript, DialogueLine } from '../../lib/scriptAnalyzer';
-import { incrementGenerationCount } from '../../lib/generationLimitsService';
-import { useAuth } from '../../hooks/useAuth';
+import { checkGenerationLimit, incrementGenerationCount } from '../../lib/generationLimitsService';
+import { useAuth } from '../../contexts/AuthContext';
+import { deductTokensForRequest } from '../../lib/tokenService';
+import { getModelCost } from '../../lib/modelTokenPricing';
 
 interface VoiceoverGeneratorProps {
   onClose: () => void;
@@ -143,6 +145,18 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
       return;
     }
 
+    if (!user?.uid) {
+      showToast('error', 'Authentication Required', 'Please log in to generate voiceovers');
+      return;
+    }
+
+    // Check generation limit BEFORE generating
+    const limitCheck = await checkGenerationLimit(user.uid, 'tts');
+    if (!limitCheck.canGenerate) {
+      showToast('error', 'Generation Limit Reached', limitCheck.message);
+      return;
+    }
+
     console.log('🎤 Starting voiceover generation:', textToUse);
     setIsGenerating(true);
 
@@ -161,13 +175,17 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
       const url = URL.createObjectURL(blob);
       setAudioBlob(blob);
       setAudioUrl(url);
-      showToast('success', 'Voiceover Ready!', 'Your audio has been generated successfully');
+
+      // Deduct tokens
+      const modelCost = getModelCost('elevenlabs-tts');
+      await deductTokensForRequest(user.uid, 'elevenlabs-tts', 'elevenlabs', modelCost.costPerMessage, 'tts');
+      console.log('✅ Tokens deducted for TTS generation');
 
       // Increment usage count for free users
-      if (user?.uid) {
-        await incrementGenerationCount(user.uid, 'tts');
-        console.log('✅ TTS generation count incremented');
-      }
+      await incrementGenerationCount(user.uid, 'tts');
+      console.log('✅ TTS generation count incremented');
+
+      showToast('success', 'Voiceover Ready!', 'Your audio has been generated and saved');
     } catch (error: any) {
       console.error('Voiceover generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Unable to generate voiceover. Please try again.');
