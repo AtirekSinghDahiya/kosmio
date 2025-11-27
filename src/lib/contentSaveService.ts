@@ -6,7 +6,7 @@
 import { createProject, createMessage } from './dataService';
 import { auth } from './firebase';
 
-export type ContentType = 'image' | 'video' | 'music' | 'voiceover' | 'ppt' | 'code' | 'design';
+export type ContentType = 'image' | 'video' | 'music' | 'voice' | 'ppt' | 'code';
 
 const getCurrentUserId = (): string => {
   const user = auth.currentUser;
@@ -32,7 +32,7 @@ export async function saveImageToProject(
 
     const project = await createProject(
       `Image: ${prompt.substring(0, 40)}...`,
-      'design',
+      'image',
       prompt,
       metadata?.model || 'flux-schnell'
     );
@@ -116,7 +116,7 @@ export async function saveMusicToProject(
 
     const project = await createProject(
       `Music: ${metadata?.title || prompt.substring(0, 40)}...`,
-      'voice',
+      'music',
       prompt,
       metadata?.model || 'suno'
     );
@@ -197,7 +197,7 @@ export async function savePPTToProject(
 
     const project = await createProject(
       `Presentation: ${prompt.substring(0, 40)}...`,
-      'design',
+      'ppt',
       prompt,
       'presentation'
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Trash2, Edit2, Settings, Menu, X } from 'lucide-react';
+import { Plus, Search, LogOut, MessageSquare, Code, Palette, Video, Music, Mic, Presentation, Image as ImageIcon, Trash2, Edit2, Settings, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -62,8 +62,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const getProjectIcon = (type: string) => {
     switch (type) {
       case 'code': return Code;
-      case 'design': return Palette;
+      case 'image': return ImageIcon;
       case 'video': return Video;
+      case 'music': return Music;
+      case 'voice': return Mic;
+      case 'ppt': return Presentation;
+      // Legacy types for backward compatibility
+      case 'design': return Palette;
       default: return MessageSquare;
     }
   };

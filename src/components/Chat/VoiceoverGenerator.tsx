@@ -10,6 +10,7 @@ import { useAuth } from '../../hooks/useAuth';
 interface VoiceoverGeneratorProps {
   onClose: () => void;
   initialText?: string;
+  selectedService?: 'elevenlabs' | 'gemini';
 }
 
 const VOICE_OPTIONS = [
@@ -25,7 +26,7 @@ const VOICE_OPTIONS = [
   { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', description: 'Casual, friendly male voice' },
 ];
 
-export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose, initialText = '' }) => {
+export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose, initialText = '', selectedService = 'elevenlabs' }) => {
   const { theme } = useTheme();
   const { showToast } = useToast();
   const { user } = useAuth();

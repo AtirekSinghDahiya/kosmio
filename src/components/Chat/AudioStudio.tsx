@@ -38,8 +38,9 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
       case 'suno':
         return <MusicGenerator onClose={() => {}} />;
       case 'elevenlabs':
+        return <VoiceoverGenerator onClose={() => {}} selectedService="elevenlabs" />;
       case 'gemini':
-        return <VoiceoverGenerator onClose={() => {}} />;
+        return <VoiceoverGenerator onClose={() => {}} selectedService="gemini" />;
       default:
         return null;
     }

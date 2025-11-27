@@ -5,7 +5,7 @@ export interface Project {
   id: string;
   user_id: string;
   name: string;
-  type: 'chat' | 'code' | 'design' | 'video' | 'voice';
+  type: 'chat' | 'code' | 'image' | 'video' | 'music' | 'voice' | 'ppt';
   description: string;
   ai_model: string;
   status: 'active' | 'archived';

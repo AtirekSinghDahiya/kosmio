@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { X, Presentation, Loader, Download } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../hooks/useAuth';
+import { generatePPTContent, generatePPTXFile, downloadPPTX, GeneratedPPT } from '../../lib/pptGenerationService';
+import { savePPTToProject } from '../../lib/contentSaveService';
+import { incrementGenerationCount } from '../../lib/generationLimitsService';
 
 interface PPTGeneratorProps {
   onClose: () => void;
@@ -18,7 +21,9 @@ export const PPTGenerator: React.FC<PPTGeneratorProps> = ({
   const [slideCount, setSlideCount] = useState(5);
   const [theme, setTheme] = useState('professional');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPPT, setGeneratedPPT] = useState<string | null>(null);
+  const [generatedPPT, setGeneratedPPT] = useState<GeneratedPPT | null>(null);
+  const [pptBlob, setPPTBlob] = useState<Blob | null>(null);
+  const [progress, setProgress] = useState('');
 
   const themes = [
     { id: 'professional', name: 'Professional', description: 'Clean business style' },
@@ -35,28 +40,62 @@ export const PPTGenerator: React.FC<PPTGeneratorProps> = ({
       return;
     }
 
+    if (!user) {
+      showToast('error', 'Authentication Required', 'Please log in to generate presentations');
+      return;
+    }
+
     setIsGenerating(true);
+    setGeneratedPPT(null);
+    setPPTBlob(null);
 
     try {
-      showToast('info', 'Coming Soon', 'PPT generation will be available soon. Stay tuned!');
+      // Step 1: Generate content with AI
+      setProgress('Generating presentation content with AI...');
+      const pptData = await generatePPTContent({
+        topic,
+        slideCount,
+        theme: theme as 'professional' | 'modern' | 'creative' | 'minimal'
+      });
 
-      // TODO: Implement actual PPT generation
-      // const result = await generatePPT({
-      //   topic,
-      //   slideCount,
-      //   theme
-      // });
+      setGeneratedPPT(pptData);
 
-      // For now, simulate success
-      setTimeout(() => {
-        setGeneratedPPT('PPT will be generated here');
-        showToast('success', 'PPT Generated!', 'Your presentation is ready');
-        setIsGenerating(false);
-      }, 2000);
+      // Step 2: Create downloadable file
+      setProgress('Creating downloadable file...');
+      const blob = await generatePPTXFile(pptData);
+      setPPTBlob(blob);
+
+      // Step 3: Save to project
+      setProgress('Saving to your projects...');
+      await savePPTToProject(
+        user.uid,
+        topic,
+        pptData,
+        {
+          slideCount,
+          theme
+        }
+      );
+
+      // Step 4: Track generation
+      await incrementGenerationCount(user.uid, 'image'); // Using 'image' type for now
+
+      showToast('success', 'PPT Generated!', `Your ${slideCount}-slide presentation is ready`);
+      setProgress('');
     } catch (error: any) {
       console.error('PPT generation error:', error);
       showToast('error', 'Generation Failed', error.message || 'Failed to generate presentation');
+      setProgress('');
+    } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (pptBlob && generatedPPT) {
+      const filename = `${topic.replace(/[^a-z0-9]/gi, '_')}_presentation`;
+      downloadPPTX(pptBlob, filename);
+      showToast('success', 'Downloaded!', 'Presentation file downloaded');
     }
   };
 
@@ -84,18 +123,44 @@ export const PPTGenerator: React.FC<PPTGeneratorProps> = ({
           {isGenerating ? (
             <div className="flex flex-col items-center gap-4">
               <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-orange-400" />
-              <p className="text-white/60 text-sm sm:text-base text-center px-4">Generating your presentation...</p>
+              <p className="text-white/60 text-sm sm:text-base text-center px-4">{progress || 'Generating your presentation...'}</p>
             </div>
           ) : generatedPPT ? (
-            <div className="max-w-full w-full text-center">
+            <div className="max-w-full w-full text-center space-y-6 max-h-[60vh] overflow-y-auto px-4">
               <div className="p-8 rounded-lg border border-white/10 bg-white/5">
                 <Presentation className="w-24 h-24 mx-auto mb-4 text-orange-400" />
                 <h3 className="text-xl font-bold text-white mb-2">Presentation Ready!</h3>
-                <p className="text-white/60 mb-6">{slideCount} slides created</p>
-                <button className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium flex items-center gap-2 mx-auto">
+                <p className="text-white/60 mb-2">{generatedPPT.title}</p>
+                <p className="text-white/40 mb-6">{slideCount} slides created</p>
+                <button
+                  onClick={handleDownload}
+                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium flex items-center gap-2 mx-auto transition-colors"
+                >
                   <Download className="w-5 h-5" />
-                  Download PPTX
+                  Download Presentation
                 </button>
+              </div>
+
+              {/* Preview slides */}
+              <div className="space-y-4">
+                <h4 className="text-white font-medium text-left">Preview:</h4>
+                {generatedPPT.slides.map((slide, index) => (
+                  <div key={index} className="p-4 rounded-lg border border-white/10 bg-white/5 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-orange-400 font-bold">Slide {index + 1}</span>
+                      <span className="text-white/40 text-sm">({slide.layout})</span>
+                    </div>
+                    <h5 className="text-white font-semibold mb-2">{slide.title}</h5>
+                    <ul className="space-y-1 text-white/60 text-sm">
+                      {slide.content.map((point, i) => (
+                        <li key={i}>• {point}</li>
+                      ))}
+                    </ul>
+                    {slide.notes && (
+                      <p className="mt-2 text-white/40 text-xs italic">Notes: {slide.notes}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           ) : (

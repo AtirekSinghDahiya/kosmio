@@ -23,6 +23,7 @@ import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
+import { AudioStudio } from './AudioStudio';
 import { PPTGenerator } from './PPTGenerator';
 // Studio components disabled
 // import { PPTStudio } from '../Studio/PPTStudio';
@@ -77,6 +78,7 @@ export const MainChat: React.FC = () => {
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showMusicGenerator, setShowMusicGenerator] = useState(false);
   const [showVoiceGenerator, setShowVoiceGenerator] = useState(false);
+  const [showAudioStudio, setShowAudioStudio] = useState(false);
   const [selectedVoiceService, setSelectedVoiceService] = useState<'elevenlabs' | 'gemini'>('elevenlabs');
   const [showPPTGenerator, setShowPPTGenerator] = useState(false);
   const [pptTopic, setPPTTopic] = useState('');
@@ -93,7 +95,7 @@ export const MainChat: React.FC = () => {
 
   // Update studio mode context when generators are shown
   useEffect(() => {
-    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showMusicGenerator || showVoiceoverGenerator;
+    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showMusicGenerator || showVoiceoverGenerator || showAudioStudio;
     setIsFullscreenGenerator(isAnyGeneratorOpen);
 
     if (showImageGenerator) {
@@ -102,7 +104,7 @@ export const MainChat: React.FC = () => {
     } else if (showVideoGenerator) {
       setMode('video');
       setStudioProjectId(activeProjectId);
-    } else if (showMusicGenerator) {
+    } else if (showMusicGenerator || showAudioStudio) {
       setMode('music');
       setStudioProjectId(activeProjectId);
     } else if (showVoiceoverGenerator) {
@@ -112,7 +114,7 @@ export const MainChat: React.FC = () => {
       setMode('chat');
       setStudioProjectId(activeProjectId);
     }
-  }, [showImageGenerator, showVideoGenerator, showMusicGenerator, showVoiceoverGenerator, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
+  }, [showImageGenerator, showVideoGenerator, showMusicGenerator, showVoiceoverGenerator, showAudioStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
 
   // Load user preferences on mount
   useEffect(() => {
@@ -1005,6 +1007,12 @@ export const MainChat: React.FC = () => {
               }}
               initialPrompt={videoPrompt}
             />
+          ) : showAudioStudio ? (
+            <AudioStudio
+              onClose={() => {
+                setShowAudioStudio(false);
+              }}
+            />
           ) : showMusicGenerator ? (
             <MusicGenerator
               onClose={() => {
@@ -1082,16 +1090,10 @@ export const MainChat: React.FC = () => {
                       setImagePrompt(initialPrompt || '');
                       setShowImageGenerator(true);
                     }
-                    // Handle music generation (Suno only)
-                    else if (mode === 'music' || modelId === 'suno') {
-                      setMusicPrompt(initialPrompt || '');
-                      setShowMusicGenerator(true);
-                    }
-                    // Handle voice/TTS generation (ElevenLabs and Gemini TTS)
-                    else if (modelId === 'elevenlabs' || modelId === 'gemini-tts') {
-                      setVoiceoverText(initialPrompt || '');
-                      setSelectedVoiceService(modelId === 'elevenlabs' ? 'elevenlabs' : 'gemini');
-                      setShowVoiceGenerator(true);
+                    // Handle audio studio (unified music and voice interface)
+                    else if (mode === 'music' || modelId === 'suno' || modelId === 'elevenlabs' || modelId === 'gemini-tts') {
+                      console.log('🎵 Opening Audio Studio');
+                      setShowAudioStudio(true);
                     }
                     // Handle PPT generation
                     else if (modelId === 'ppt-generator' || modelId === 'ppt-studio') {
