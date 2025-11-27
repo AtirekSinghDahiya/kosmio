@@ -74,6 +74,7 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     { id: 'images' as Tab, label: 'Images', icon: Image },
     { id: 'video' as Tab, label: 'Video', icon: Video },
     { id: 'audio' as Tab, label: 'Audio', icon: Music },
+    { id: 'code' as Tab, label: 'Code & PPT', icon: Code },
   ];
 
   const modelCards: Record<Tab, ModelCard[]> = {
@@ -142,6 +143,14 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         category: 'audio',
         badge: 'Audio'
       },
+      {
+        id: 'ppt-generator',
+        name: 'PPT Generator',
+        description: 'Create professional presentations with AI',
+        icon: Presentation,
+        category: 'code',
+        badge: 'PPT'
+      },
     ],
     chat: [],
     images: [
@@ -206,7 +215,16 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'Voice'
       },
     ],
-    code: []
+    code: [
+      {
+        id: 'ppt-generator',
+        name: 'PPT Generator',
+        description: 'Create professional presentations with AI',
+        icon: Presentation,
+        category: 'code',
+        badge: 'PPT'
+      },
+    ]
   };
 
   const handleCardClick = (card: ModelCard) => {

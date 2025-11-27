@@ -23,6 +23,7 @@ import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { MusicGenerator } from './MusicGenerator';
+import { PPTGenerator } from './PPTGenerator';
 // Studio components disabled
 // import { PPTStudio } from '../Studio/PPTStudio';
 // import { ImageStudioView } from '../Studio/ImageStudioView';
@@ -1005,11 +1006,12 @@ export const MainChat: React.FC = () => {
               initialPrompt={videoPrompt}
             />
           ) : showMusicGenerator ? (
-            <SimpleMusicStudio
-              onBack={() => {
+            <MusicGenerator
+              onClose={() => {
                 setShowMusicGenerator(false);
                 setMusicPrompt('');
               }}
+              initialPrompt={musicPrompt}
             />
           ) : showVoiceGenerator ? (
             <VoiceoverGenerator
@@ -1018,6 +1020,14 @@ export const MainChat: React.FC = () => {
                 setVoiceoverText('');
               }}
               initialText={voiceoverText}
+            />
+          ) : showPPTGenerator ? (
+            <PPTGenerator
+              onClose={() => {
+                setShowPPTGenerator(false);
+                setPPTTopic('');
+              }}
+              initialTopic={pptTopic}
             />
           ) : showLanding ? (
             <div className="h-full">
@@ -1083,15 +1093,10 @@ export const MainChat: React.FC = () => {
                       setSelectedVoiceService(modelId === 'elevenlabs' ? 'elevenlabs' : 'gemini');
                       setShowVoiceGenerator(true);
                     }
-                    // Handle code/PPT generation
-                    else if (mode === 'code' || modelId === 'code-studio' || modelId === 'ppt-studio') {
-                      if (modelId === 'ppt-studio') {
-                        setPPTTopic(initialPrompt || '');
-                        setShowPPTGenerator(true);
-                      } else if (modelId === 'code-studio') {
-                        setCodePrompt(initialPrompt || '');
-                        setShowCodeStudio(true);
-                      }
+                    // Handle PPT generation
+                    else if (modelId === 'ppt-generator' || modelId === 'ppt-studio') {
+                      setPPTTopic(initialPrompt || '');
+                      setShowPPTGenerator(true);
                     }
                     else {
                       showToast('info', 'Coming Soon', `${mode.charAt(0).toUpperCase() + mode.slice(1)} studio will open here`);

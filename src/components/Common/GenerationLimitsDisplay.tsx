@@ -47,6 +47,39 @@ export const GenerationLimitsDisplay: React.FC = () => {
     };
 
     fetchLimits();
+
+    // Real-time subscription to generation limits changes
+    if (!user?.uid) return;
+
+    console.log('🔔 Setting up real-time subscription for generation limits');
+
+    const channel = supabase
+      .channel(`generation-limits-${user.uid}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'generation_limits',
+          filter: `user_id=eq.${user.uid}`
+        },
+        (payload) => {
+          console.log('🔄 Generation limits updated via realtime:', payload);
+          fetchLimits();
+        }
+      )
+      .subscribe();
+
+    // Refresh every 10 seconds as fallback
+    const interval = setInterval(() => {
+      console.log('⏰ Polling generation limits...');
+      fetchLimits();
+    }, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [user?.uid]);
 
   const getIcon = (type: GenerationType) => {

@@ -47,9 +47,16 @@ export const TokenBalanceDisplay: React.FC<TokenBalanceDisplayProps> = ({ isExpa
         const freeTokens = profile.free_tokens_balance || 0;
         const dailyTokens = profile.daily_free_tokens_remaining || 0;
 
-        const totalTokens = userType === 'paid'
-          ? paidTokens
-          : dailyTokens + freeTokens;
+        // Use tokens_balance as primary source (most reliable)
+        const totalTokens = profile.tokens_balance || (userType === 'paid' ? paidTokens : freeTokens);
+
+        console.log('📊 Token calculation:', {
+          tokens_balance: profile.tokens_balance,
+          free_tokens_balance: freeTokens,
+          paid_tokens_balance: paidTokens,
+          calculated_total: totalTokens,
+          user_type: userType
+        });
 
         setBalance({
           tier: userType === 'paid' || paidTokens > 0 || profile.is_paid ? 'premium' : 'free',
