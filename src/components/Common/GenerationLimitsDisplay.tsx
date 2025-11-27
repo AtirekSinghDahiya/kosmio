@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, Video, Music, Mic } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { checkGenerationLimit, GenerationType } from '../../lib/generationLimitsService';
+import { supabase } from '../../lib/supabaseClient';
 
 interface GenerationLimit {
   type: GenerationType;
