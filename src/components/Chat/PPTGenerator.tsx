@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { X, Presentation, Loader, Download } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { generatePPTContent, generatePPTXFile, downloadPPTX, GeneratedPPT } from '../../lib/pptGenerationService';
 import { savePPTToProject } from '../../lib/contentSaveService';
-import { incrementGenerationCount } from '../../lib/generationLimitsService';
+import { checkGenerationLimit, incrementGenerationCount } from '../../lib/generationLimitsService';
 
 interface PPTGeneratorProps {
   onClose: () => void;
@@ -40,8 +40,15 @@ export const PPTGenerator: React.FC<PPTGeneratorProps> = ({
       return;
     }
 
-    if (!user) {
+    if (!user?.uid) {
       showToast('error', 'Authentication Required', 'Please log in to generate presentations');
+      return;
+    }
+
+    // Check generation limit
+    const limitCheck = await checkGenerationLimit(user.uid, 'ppt');
+    if (!limitCheck.canGenerate) {
+      showToast('error', 'Generation Limit Reached', limitCheck.message);
       return;
     }
 
@@ -78,7 +85,7 @@ export const PPTGenerator: React.FC<PPTGeneratorProps> = ({
       );
 
       // Step 4: Track generation
-      await incrementGenerationCount(user.uid, 'image'); // Using 'image' type for now
+      await incrementGenerationCount(user.uid, 'ppt');
 
       showToast('success', 'PPT Generated!', `Your ${slideCount}-slide presentation is ready`);
       setProgress('');

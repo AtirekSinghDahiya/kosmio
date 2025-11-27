@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { getUserAccessInfo } from './modelAccessControl';
 
-export type GenerationType = 'image' | 'video' | 'song' | 'tts';
+export type GenerationType = 'image' | 'video' | 'song' | 'tts' | 'ppt';
 
 export interface GenerationLimitInfo {
   canGenerate: boolean;
@@ -98,7 +98,9 @@ export function getGenerationLimitText(type: GenerationType, userType: 'free' | 
     case 'song':
       return '1 song per month';
     case 'tts':
-      return '5 TTS per month';
+      return '2 TTS per month';
+    case 'ppt':
+      return '1 PPT per month';
     default:
       return 'Unknown limit';
   }
