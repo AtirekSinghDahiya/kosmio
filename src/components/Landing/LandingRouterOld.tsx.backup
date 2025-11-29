@@ -1,78 +1,94 @@
-import React, { useRef, useEffect } from 'react';
-import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
 import { LandingNavbar } from './LandingNavbar';
+import { HomePage } from './HomePage';
+import { AboutPage } from './AboutPage';
+import { PricingPage } from './PricingPage';
+import { ContactPage } from './ContactPage';
+import { ServicesPage } from './ServicesPage';
+import { CareersPage } from './CareersPage';
+import { DocsPage } from './DocsPage';
+import { LegalPages } from '../Legal/LegalPages';
 import { FloatingElements } from './FloatingElements';
 import { CosmicBackground } from '../Layout/CosmicBackground';
 import { useTheme } from '../../contexts/ThemeContext';
-import { LandingRoutes } from '../../routes/LandingRoutes';
-import { HelmetProvider } from 'react-helmet-async';
+import PromoLandingPage from '../Promo/PromoLandingPage';
 
 interface LandingRouterProps {
   onGetStarted: () => void;
 }
 
-const ScrollToTop: React.FC = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    const container = document.querySelector('.landing-scroll-container');
-    if (container) {
-      container.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [location.pathname]);
-
-  return null;
-};
-
-const LandingContent: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
+export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
   const { theme } = useTheme();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState<'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security' | 'promo'>('home');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleNavigate = (page: string) => {
-    const routes: Record<string, string> = {
-      'home': '/',
-      'about': '/about',
-      'pricing': '/pricing',
-      'contact': '/contact',
-      'services': '/services',
-      'careers': '/careers',
-      'docs': '/docs',
-      'privacy': '/privacy',
-      'terms': '/terms',
-      'cookies': '/cookies',
-      'security': '/security',
-      'promo': '/promo'
-    };
-    navigate(routes[page] || '/');
+  const handleNavigate = (page: 'home' | 'about' | 'pricing' | 'contact' | 'services' | 'careers' | 'docs' | 'privacy' | 'terms' | 'cookies' | 'security' | 'promo') => {
+    setCurrentPage(page);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
-  const getCurrentPage = (): string => {
-    const path = location.pathname;
-    if (path === '/') return 'home';
-    return path.substring(1);
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo(0, 0);
+    }
+
+    const hash = window.location.hash.substring(1);
+    if (hash === 'promo' || hash === 'first100') {
+      setCurrentPage('promo');
+    }
+  }, [currentPage]);
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <HomePage onGetStarted={onGetStarted} />;
+      case 'about':
+        return <AboutPage />;
+      case 'pricing':
+        return <PricingPage onGetStarted={onGetStarted} />;
+      case 'contact':
+        return <ContactPage />;
+      case 'services':
+        return <ServicesPage />;
+      case 'careers':
+        return <CareersPage />;
+      case 'docs':
+        return <DocsPage />;
+      case 'privacy':
+        return <LegalPages page="privacy" />;
+      case 'terms':
+        return <LegalPages page="terms" />;
+      case 'cookies':
+        return <LegalPages page="cookies" />;
+      case 'security':
+        return <LegalPages page="security" />;
+      case 'promo':
+        return <PromoLandingPage />;
+      default:
+        return <HomePage onGetStarted={onGetStarted} />;
+    }
   };
 
   return (
     <div className="h-screen w-screen overflow-hidden gradient-background">
       <CosmicBackground />
       <FloatingElements />
-      <ScrollToTop />
 
       <div
         ref={scrollContainerRef}
-        className="landing-scroll-container h-full w-full overflow-y-auto overflow-x-hidden relative z-10"
+        className="h-full w-full overflow-y-auto overflow-x-hidden relative z-10"
         style={{ scrollBehavior: 'smooth' }}
       >
         <LandingNavbar
-          currentPage={getCurrentPage()}
+          currentPage={currentPage}
           onNavigate={handleNavigate}
           onGetStarted={onGetStarted}
         />
 
         <div className="relative">
-          <LandingRoutes onGetStarted={onGetStarted} />
+          {renderPage()}
         </div>
 
         {/* Footer */}
@@ -92,22 +108,22 @@ const LandingContent: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
                 <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Product</h4>
                 <ul className="space-y-3 text-sm text-white/60">
                   <li>
-                    <button onClick={() => navigate('/')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('home')} className="hover:text-white transition-colors">
                       Features
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/services')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('services')} className="hover:text-white transition-colors">
                       Services
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/pricing')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('pricing')} className="hover:text-white transition-colors">
                       Pricing
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/docs')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('docs')} className="hover:text-white transition-colors">
                       Documentation
                     </button>
                   </li>
@@ -118,17 +134,17 @@ const LandingContent: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
                 <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Company</h4>
                 <ul className="space-y-3 text-sm text-white/60">
                   <li>
-                    <button onClick={() => navigate('/about')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('about')} className="hover:text-white transition-colors">
                       About
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/careers')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('careers')} className="hover:text-white transition-colors">
                       Careers
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/contact')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('contact')} className="hover:text-white transition-colors">
                       Contact
                     </button>
                   </li>
@@ -139,22 +155,22 @@ const LandingContent: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
                 <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Legal</h4>
                 <ul className="space-y-3 text-sm text-white/60">
                   <li>
-                    <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('privacy')} className="hover:text-white transition-colors">
                       Privacy Policy
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/terms')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('terms')} className="hover:text-white transition-colors">
                       Terms of Service
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/cookies')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('cookies')} className="hover:text-white transition-colors">
                       Cookie Policy
                     </button>
                   </li>
                   <li>
-                    <button onClick={() => navigate('/security')} className="hover:text-white transition-colors">
+                    <button onClick={() => handleNavigate('security')} className="hover:text-white transition-colors">
                       Security
                     </button>
                   </li>
@@ -180,15 +196,5 @@ const LandingContent: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
         </footer>
       </div>
     </div>
-  );
-};
-
-export const LandingRouter: React.FC<LandingRouterProps> = ({ onGetStarted }) => {
-  return (
-    <HelmetProvider>
-      <BrowserRouter>
-        <LandingContent onGetStarted={onGetStarted} />
-      </BrowserRouter>
-    </HelmetProvider>
   );
 };

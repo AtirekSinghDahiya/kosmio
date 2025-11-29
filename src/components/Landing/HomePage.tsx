@@ -5,6 +5,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { getTokenPacks, getTotalTokens } from '../../lib/subscriptionManagementService';
 import { trackPageVisit, trackGetStartedClick, trackEvent } from '../../lib/analyticsService';
 import { AI_MODELS } from '../../lib/aiModels';
+import { PageMeta } from '../SEO/PageMeta';
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -82,10 +83,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onGetStarted }) => {
 
   return (
     <div className="relative w-full">
-      {/* Animated Background Orbs */}
-      <AnimatedGradientOrb className="top-20 left-10 w-96 h-96" />
-      <AnimatedGradientOrb className="bottom-20 right-10 w-[500px] h-[500px]" />
-      <AnimatedGradientOrb className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]" />
+      <PageMeta
+        title="AI-Powered Creative Platform"
+        description="Create stunning content with KroniQ AI - Your all-in-one platform for AI chat, code generation, design, video editing, and more. Join 50+ active users today."
+        keywords="AI platform, AI chat, code generation, design tools, video editing, artificial intelligence, creative AI, KroniQ"
+      />
+      {/* Optimized Background Orb - Reduced to 1 for better performance */}
+      <AnimatedGradientOrb className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-60" />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-32 pb-20">

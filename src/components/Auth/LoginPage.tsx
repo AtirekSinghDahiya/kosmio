@@ -135,6 +135,13 @@ export const LoginPage: React.FC = () => {
           pageName: 'signup',
         });
       } else {
+        const strength = getPasswordStrength();
+        if (strength.strength === 'weak') {
+          clearTimeout(timeoutId);
+          setError('Password is too weak. Please include: 8+ characters, uppercase, lowercase, number, and special character.');
+          setLoading(false);
+          return;
+        }
         const userCredential = await signUp(email, password, displayName);
         console.log('✅ Sign up successful, waiting for redirect...');
 

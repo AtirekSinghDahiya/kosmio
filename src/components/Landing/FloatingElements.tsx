@@ -108,9 +108,9 @@ export const Floating3DCard: React.FC<{ children: React.ReactNode; delay?: numbe
 export const AnimatedGradientOrb: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
     <div className={`absolute ${className} pointer-events-none`}>
-      <div className="relative w-full h-full">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute inset-0 bg-gradient-to-tl from-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-full blur-2xl animate-spin-slow" />
+      <div className="relative w-full h-full will-change-transform">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/30 to-[#8A2BE2]/30 rounded-full blur-3xl animate-pulse-slow" style={{ transform: 'translateZ(0)' }} />
+        <div className="absolute inset-0 bg-gradient-to-tl from-[#8A2BE2]/20 to-[#00FFF0]/20 rounded-full blur-2xl animate-spin-slow" style={{ transform: 'translateZ(0)' }} />
       </div>
     </div>
   );

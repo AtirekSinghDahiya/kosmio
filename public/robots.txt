@@ -1,27 +1,29 @@
-# Robots.txt for Kroniq AI Development Studio
-# https://kroniq.ai
-
+# KroniQ AI - robots.txt
 User-agent: *
 Allow: /
 
-# Sitemap location
-Sitemap: https://bolt.new/sitemap.xml
+# Sitemaps
+Sitemap: https://kroniq.ai/sitemap.xml
 
-# Crawl-delay for politeness
+# Crawl-delay for polite bots
 Crawl-delay: 1
 
-# Disallow admin and API routes
-Disallow: /api/
-Disallow: /admin/
-Disallow: /_next/
-Disallow: /private/
+# Disallow admin/private areas (when authenticated app is accessed)
+Disallow: /admin
+Disallow: /settings
+Disallow: /profile
+Disallow: /billing
 
-# Allow public assets
-Allow: /logo.svg
-Allow: /favicon.svg
-Allow: /*.css
-Allow: /*.js
-Allow: /*.png
-Allow: /*.jpg
-Allow: /*.jpeg
-Allow: /*.webp
+# Allow all landing pages
+Allow: /
+Allow: /about
+Allow: /pricing
+Allow: /contact
+Allow: /services
+Allow: /careers
+Allow: /docs
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /security
+Allow: /promo
