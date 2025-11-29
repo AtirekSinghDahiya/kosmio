@@ -231,7 +231,7 @@ export const DraggableProfileButton: React.FC = () => {
     <div
       ref={buttonRef}
       style={buttonStyle}
-      className={`${!position ? 'relative' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`draggable-element ${!position ? 'relative' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >

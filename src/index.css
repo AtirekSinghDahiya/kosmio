@@ -1291,3 +1291,174 @@ button,
     height: auto;
   }
 }
+
+/* ===================================================================
+   MOBILE RESPONSIVENESS IMPROVEMENTS
+   =================================================================== */
+
+/* Mobile viewport fixes */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Touch-friendly draggable elements */
+  .cursor-grab {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Ensure draggable elements are accessible on mobile */
+  [data-drag-handle] {
+    touch-action: none;
+    cursor: grab;
+  }
+
+  /* Studio landing view mobile adjustments */
+  .studio-landing {
+    padding: 1rem;
+  }
+
+  /* Model cards responsive grid */
+  .model-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Tab navigation mobile */
+  .tab-navigation {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .tab-navigation::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Generation limits display mobile */
+  .generation-limits {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Token balance display mobile */
+  .token-balance {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Chat input mobile */
+  .chat-input {
+    padding: 0.75rem;
+    font-size: 16px;
+  }
+
+  /* Button touch targets (min 44x44px for accessibility) */
+  button {
+    min-height: 44px;
+  }
+
+  /* Modal mobile adjustments */
+  .modal-overlay {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 1rem;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .studio-landing {
+    padding: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  .flex-row-mobile {
+    flex-direction: column;
+  }
+
+  .mobile-full-width {
+    width: 100%;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .studio-landing {
+    padding: 0.5rem;
+  }
+
+  .header {
+    padding: 0.5rem;
+  }
+
+  .model-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .model-grid > * {
+    min-width: 280px;
+    flex-shrink: 0;
+  }
+}
+
+/* Touch improvements for all devices */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  button:active,
+  a:active,
+  [role="button"]:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Prevent text selection on draggable elements */
+.draggable-element {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Safe area insets for notch devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  .mobile-safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .mobile-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

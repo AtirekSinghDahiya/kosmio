@@ -10,6 +10,7 @@ import { Coins, CreditCard, RefreshCw, Wallet } from 'lucide-react';
 import { SubscriptionManager } from './SubscriptionManager';
 import { TokenPackPricing } from './TokenPackPricing';
 import { MessagePackPricing } from './MessagePackPricing';
+import { SimpleProUpgrade } from './SimpleProUpgrade';
 import { MessageCreditsService, UserCreditsInfo } from '../../lib/messageCreditsService';
 import { supabase } from '../../lib/supabase';
 import { clearUnifiedCache } from '../../lib/unifiedPremiumAccess';
@@ -21,7 +22,7 @@ export const BillingView: React.FC = () => {
   const [tokenBalances, setTokenBalances] = useState({ total: 0, paid: 0, free: 0, tier: 'free' as 'free' | 'paid' });
   const [messageCredits, setMessageCredits] = useState<UserCreditsInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'buy-messages' | 'subscription'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'buy-messages' | 'subscription' | 'upgrade'>('overview');
 
   useEffect(() => {
     if (user?.uid) {
@@ -113,6 +114,7 @@ export const BillingView: React.FC = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Wallet },
+    { id: 'upgrade', label: 'Upgrade to Pro', icon: CreditCard },
     { id: 'buy-messages', label: 'Buy Tokens', icon: Coins },
     { id: 'subscription', label: 'Subscription', icon: RefreshCw },
   ];
@@ -267,6 +269,8 @@ export const BillingView: React.FC = () => {
               </div>
             </div>
           )}
+
+          {activeTab === 'upgrade' && <SimpleProUpgrade />}
 
           {activeTab === 'buy-messages' && <MessagePackPricing />}
 
