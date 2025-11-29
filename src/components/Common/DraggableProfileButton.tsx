@@ -24,46 +24,76 @@ export const DraggableProfileButton: React.FC = () => {
 
   // Fetch real-time token balance from Supabase
   useEffect(() => {
-    if (!currentUser?.uid) return;
+    if (!currentUser?.uid) {
+      setTokenBalance(0);
+      return;
+    }
 
     const fetchTokenBalance = async () => {
       try {
+        console.log('💰 [Draggable] Fetching token balance for:', currentUser.uid);
+
         const { data, error } = await supabase
           .from('profiles')
-          .select('tokens_balance')
+          .select('tokens_balance, free_tokens_balance, paid_tokens_balance')
           .eq('id', currentUser.uid)
           .maybeSingle();
 
-        if (!error && data) {
-          setTokenBalance(data.tokens_balance || 0);
+        if (error) {
+          console.error('❌ [Draggable] Error fetching token balance:', error);
+          setTokenBalance(0);
+          return;
+        }
+
+        if (data) {
+          const total = data.tokens_balance ??
+            (data.free_tokens_balance ?? 0) + (data.paid_tokens_balance ?? 0);
+
+          console.log('✅ [Draggable] Token balance updated:', {
+            tokens_balance: data.tokens_balance,
+            free_tokens: data.free_tokens_balance,
+            paid_tokens: data.paid_tokens_balance,
+            calculated_total: total
+          });
+
+          setTokenBalance(total);
+        } else {
+          console.warn('⚠️ [Draggable] No profile found');
+          setTokenBalance(0);
         }
       } catch (err) {
-        console.error('Error fetching token balance:', err);
+        console.error('❌ [Draggable] Exception:', err);
+        setTokenBalance(0);
       }
     };
 
     fetchTokenBalance();
 
     const channel = supabase
-      .channel(`token-balance-${currentUser.uid}`)
+      .channel(`draggable-token-balance-${currentUser.uid}`)
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'profiles',
           filter: `id=eq.${currentUser.uid}`
         },
         (payload) => {
-          if (payload.new && 'tokens_balance' in payload.new) {
-            setTokenBalance(payload.new.tokens_balance);
-          }
+          console.log('🔔 [Draggable] Profile updated:', payload);
+          fetchTokenBalance();
         }
       )
       .subscribe();
 
+    const interval = setInterval(() => {
+      console.log('⏰ [Draggable] Polling token balance...');
+      fetchTokenBalance();
+    }, 10000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [currentUser?.uid]);
 

@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { getUserAccessInfo } from './modelAccessControl';
+import { getUserTier } from './userTierService';
 
 export type GenerationType = 'image' | 'video' | 'song' | 'tts' | 'ppt';
 
@@ -18,9 +19,9 @@ export async function checkGenerationLimit(
   try {
     console.log('📊 Checking generation limit:', { userId, generationType });
 
-    const accessInfo = await getUserAccessInfo(userId);
-    const userType = accessInfo?.userType || 'free';
-    console.log('👤 User type:', userType);
+    const tierInfo = await getUserTier(userId);
+    const userType = tierInfo.isPremium ? 'paid' : 'free';
+    console.log('👤 User type from tier service:', userType, 'isPremium:', tierInfo.isPremium);
 
     const { data, error } = await supabase.rpc('check_generation_limit', {
       p_user_id: userId,

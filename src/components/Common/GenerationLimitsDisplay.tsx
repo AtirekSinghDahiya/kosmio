@@ -3,6 +3,7 @@ import { Image, Video, Music, Mic } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { checkGenerationLimit, GenerationType } from '../../lib/generationLimitsService';
 import { supabase } from '../../lib/supabaseClient';
+import { getUserTier } from '../../lib/userTierService';
 
 interface GenerationLimit {
   type: GenerationType;
@@ -23,6 +24,19 @@ export const GenerationLimitsDisplay: React.FC = () => {
 
     const fetchLimits = async () => {
       try {
+        console.log('🎬 [GenerationLimits] Fetching limits for user:', user.uid);
+
+        const tierInfo = await getUserTier(user.uid);
+        const isPremiumUser = tierInfo.isPremium;
+
+        console.log('👤 [GenerationLimits] User tier check:', {
+          userId: user.uid,
+          tier: tierInfo.tier,
+          isPremium: isPremiumUser,
+          hasPaidTokens: tierInfo.hasPaidTokens,
+          tokenBalance: tierInfo.tokenBalance
+        });
+
         const types: GenerationType[] = ['image', 'video', 'song', 'tts'];
         const limitsData: GenerationLimit[] = [];
 
@@ -35,13 +49,14 @@ export const GenerationLimitsDisplay: React.FC = () => {
             label: getLabel(type),
             current: limitInfo.current,
             limit: limitInfo.limit,
-            isPaid: limitInfo.isPaid,
+            isPaid: isPremiumUser,
           });
         }
 
+        console.log('✅ [GenerationLimits] Limits calculated:', limitsData);
         setLimits(limitsData);
       } catch (error) {
-        console.error('Error fetching generation limits:', error);
+        console.error('❌ [GenerationLimits] Error fetching generation limits:', error);
       } finally {
         setLoading(false);
       }
