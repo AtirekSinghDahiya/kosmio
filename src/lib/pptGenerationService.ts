@@ -115,6 +115,7 @@ Guidelines:
 function createFallbackPPT(topic: string, slideCount: number, aiResponse: string): GeneratedPPT {
   const slides: SlideContent[] = [];
 
+  // Title slide
   slides.push({
     title: topic,
     content: ['Professional Presentation', 'Created with AI'],
@@ -122,21 +123,41 @@ function createFallbackPPT(topic: string, slideCount: number, aiResponse: string
     layout: 'title'
   });
 
-  const sections = aiResponse.split('\n\n').filter(s => s.trim());
-  for (let i = 1; i < slideCount - 1 && i < sections.length + 1; i++) {
+  // Generate content slides to match requested count
+  const contentSlideCount = slideCount - 2; // -2 for title and conclusion
+  const sections = [
+    'Introduction & Overview',
+    'Key Concepts',
+    'Benefits & Advantages',
+    'Implementation Strategy',
+    'Technical Details',
+    'Market Analysis',
+    'Competitive Landscape',
+    'Use Cases & Applications',
+    'Success Metrics',
+    'Best Practices',
+    'Challenges & Solutions',
+    'Future Roadmap',
+    'Investment & ROI'
+  ];
+
+  for (let i = 0; i < contentSlideCount; i++) {
+    const sectionTitle = sections[i % sections.length];
     slides.push({
-      title: `Key Point ${i}`,
+      title: `${sectionTitle}`,
       content: [
-        sections[i - 1]?.substring(0, 80) || 'Content point 1',
-        'Supporting detail',
-        'Additional information',
-        'Key insight'
+        `Key point about ${topic.toLowerCase()}`,
+        `Important consideration for success`,
+        `Strategic implementation approach`,
+        `Measurable outcomes and impact`,
+        `Next steps and action items`
       ],
-      notes: 'Detailed explanation of this point',
+      notes: `Detailed explanation of ${sectionTitle.toLowerCase()} related to ${topic}`,
       layout: 'content'
     });
   }
 
+  // Conclusion slide
   slides.push({
     title: 'Thank You',
     content: ['Questions?', 'Contact information', 'Next steps'],
@@ -164,101 +185,214 @@ export async function generatePPTXFile(pptData: GeneratedPPT): Promise<Blob> {
 
   pres.layout = 'LAYOUT_WIDE';
 
-  const themeColors = {
-    professional: { primary: '1E40AF', secondary: '3B82F6', text: '1F2937' },
-    modern: { primary: '7C3AED', secondary: 'A78BFA', text: '1F2937' },
-    creative: { primary: 'DC2626', secondary: 'F97316', text: '1F2937' },
-    minimal: { primary: '374151', secondary: '6B7280', text: '1F2937' }
+  const themeConfigs = {
+    professional: {
+      primary: '1E3A8A',
+      secondary: '3B82F6',
+      accent: '60A5FA',
+      text: '1F2937',
+      light: 'E0F2FE',
+      gradient: ['1E3A8A', '3B82F6']
+    },
+    modern: {
+      primary: '6366F1',
+      secondary: '8B5CF6',
+      accent: 'A78BFA',
+      text: '1F2937',
+      light: 'EDE9FE',
+      gradient: ['6366F1', 'A78BFA']
+    },
+    creative: {
+      primary: 'DC2626',
+      secondary: 'F59E0B',
+      accent: 'FBBF24',
+      text: '1F2937',
+      light: 'FEF3C7',
+      gradient: ['DC2626', 'F59E0B']
+    },
+    minimal: {
+      primary: '111827',
+      secondary: '374151',
+      accent: '6B7280',
+      text: '1F2937',
+      light: 'F3F4F6',
+      gradient: ['111827', '374151']
+    }
   };
 
-  const theme = themeColors[pptData.theme as keyof typeof themeColors] || themeColors.professional;
+  const theme = themeConfigs[pptData.theme as keyof typeof themeConfigs] || themeConfigs.professional;
 
   pptData.slides.forEach((slideData, index) => {
     const slide = pres.addSlide();
 
     if (slideData.layout === 'title') {
-      slide.background = { color: 'FFFFFF' };
+      // Title slide with gradient background
+      slide.background = { fill: theme.gradient[0] };
 
-      slide.addText(slideData.title, {
-        x: 0.5,
-        y: '40%',
-        w: '90%',
-        h: 1.5,
-        fontSize: 44,
-        bold: true,
-        color: theme.primary,
-        align: 'center',
-        valign: 'middle'
-      });
-
-      if (pptData.subtitle) {
-        slide.addText(pptData.subtitle, {
-          x: 0.5,
-          y: '55%',
-          w: '90%',
-          h: 0.6,
-          fontSize: 24,
-          color: theme.secondary,
-          align: 'center',
-          valign: 'middle'
-        });
-      }
-
-      slide.addShape(pres.ShapeType.rect, {
-        x: 1,
-        y: 6.8,
-        w: 8,
-        h: 0.05,
-        fill: { color: theme.primary }
-      });
-
-    } else {
-      slide.background = { color: 'FFFFFF' };
-
+      // Add decorative shapes
       slide.addShape(pres.ShapeType.rect, {
         x: 0,
         y: 0,
         w: '100%',
-        h: 0.8,
+        h: '100%',
+        fill: { type: 'solid', color: theme.gradient[0] }
+      });
+
+      slide.addShape(pres.ShapeType.rect, {
+        x: '70%',
+        y: 0,
+        w: '30%',
+        h: '100%',
+        fill: { type: 'solid', color: theme.gradient[1], transparency: 30 },
+        rotate: 15
+      });
+
+      // Large decorative circle
+      slide.addShape(pres.ShapeType.ellipse, {
+        x: 7.5,
+        y: 4.5,
+        w: 3.5,
+        h: 3.5,
+        fill: { color: theme.accent, transparency: 20 }
+      });
+
+      // Main title
+      slide.addText(slideData.title, {
+        x: 0.8,
+        y: 2.5,
+        w: 7,
+        h: 1.5,
+        fontSize: 54,
+        bold: true,
+        color: 'FFFFFF',
+        align: 'left',
+        valign: 'middle',
+        shadow: { type: 'outer', blur: 10, opacity: 0.3, angle: 45 }
+      });
+
+      // Subtitle
+      if (pptData.subtitle) {
+        slide.addText(pptData.subtitle, {
+          x: 0.8,
+          y: 4.2,
+          w: 6,
+          h: 0.8,
+          fontSize: 24,
+          color: theme.light,
+          align: 'left',
+          valign: 'middle'
+        });
+      }
+
+      // Decorative accent line
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0.8,
+        y: 4.0,
+        w: 2.5,
+        h: 0.08,
+        fill: { color: theme.accent }
+      });
+
+    } else {
+      // Content slides with modern design
+      slide.background = { color: 'F9FAFB' };
+
+      // Header with gradient
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0,
+        y: 0,
+        w: '100%',
+        h: 1.2,
         fill: { color: theme.primary }
       });
 
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0,
+        y: 0,
+        w: 0.15,
+        h: 1.2,
+        fill: { color: theme.accent }
+      });
+
+      // Title text
       slide.addText(slideData.title, {
         x: 0.5,
-        y: 0.15,
-        w: '90%',
-        h: 0.5,
-        fontSize: 32,
+        y: 0.25,
+        w: 8.5,
+        h: 0.7,
+        fontSize: 36,
         bold: true,
         color: 'FFFFFF',
         align: 'left',
         valign: 'middle'
       });
 
+      // Decorative side element
+      slide.addShape(pres.ShapeType.ellipse, {
+        x: -0.5,
+        y: 2,
+        w: 1.5,
+        h: 1.5,
+        fill: { color: theme.accent, transparency: 80 }
+      });
+
+      // Content area with shadow
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0.6,
+        y: 1.8,
+        w: 8.8,
+        h: 4.4,
+        fill: { color: 'FFFFFF' },
+        line: { color: theme.light, width: 1 },
+        shadow: { type: 'outer', blur: 15, opacity: 0.1, offset: 3, angle: 90 }
+      });
+
+      // Bullet points
       slide.addText(slideData.content.map((point, i) => ({
-        text: point,
+        text: `${point}`,
         options: {
-          bullet: { type: 'number', numberStartAt: i + 1 },
-          breakLine: true
+          bullet: { code: '2022', color: theme.accent },
+          breakLine: true,
+          lineSpacing: 24
         }
       })), {
-        x: 0.7,
-        y: 1.5,
-        w: 8.6,
-        h: 4.5,
-        fontSize: 20,
+        x: 1.2,
+        y: 2.3,
+        w: 7.6,
+        h: 3.4,
+        fontSize: 18,
         color: theme.text,
         valign: 'top'
       });
 
-      slide.addText(`${index + 1} / ${pptData.slides.length}`, {
+      // Footer with page number
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0,
+        y: 6.8,
+        w: '100%',
+        h: 0.7,
+        fill: { color: theme.light }
+      });
+
+      slide.addText(`${index + 1}`, {
+        x: 9,
+        y: 6.85,
+        w: 0.8,
+        h: 0.6,
+        fontSize: 16,
+        bold: true,
+        color: theme.primary,
+        align: 'center',
+        valign: 'middle'
+      });
+
+      // Decorative corner element
+      slide.addShape(pres.ShapeType.ellipse, {
         x: 9.2,
-        y: 6.9,
-        w: 0.5,
-        h: 0.3,
-        fontSize: 12,
-        color: theme.secondary,
-        align: 'right'
+        y: -0.3,
+        w: 1.2,
+        h: 1.2,
+        fill: { color: theme.secondary, transparency: 70 }
       });
     }
 
