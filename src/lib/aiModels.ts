@@ -152,10 +152,11 @@ export const AI_MODELS: AIModel[] = [
   { id: 'openai/gpt-5.1-chat', name: 'GPT-5.1 Chat', provider: 'OpenAI', description: 'Chat-optimized GPT-5.1', category: 'chat', tokensPerMessage: 18000, tier: 'PREMIUM' },
   { id: 'gpt-5-chat', name: 'GPT-5 Chat', provider: 'OpenAI', description: 'Latest ChatGPT', category: 'chat', tokensPerMessage: 16000, tier: 'PREMIUM' },
 
-  // DeepSeek Models (5)
+  // DeepSeek Models (6)
   { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', description: 'Chat model', category: 'chat', tokensPerMessage: 2000, tier: 'BUDGET' },
   { id: 'deepseek/deepseek-coder', name: 'DeepSeek Coder', provider: 'DeepSeek', description: 'Code model', category: 'code', tokensPerMessage: 3000, tier: 'BUDGET' },
   { id: 'deepseek/deepseek-reasoner', name: 'DeepSeek Reasoner', provider: 'DeepSeek', description: 'Reasoning model', category: 'chat', tokensPerMessage: 5000, tier: 'BUDGET' },
+  { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Latest with reasoning tokens', category: 'chat', tokensPerMessage: 6000, tier: 'MID' },
   { id: 'deepseek-v3.1-free', name: 'DeepSeek V3.1 Free', provider: 'DeepSeek', description: 'Free efficient model', category: 'chat', tokensPerMessage: 1000, tier: 'FREE' },
   { id: 'deepseek-v3.2', name: 'DeepSeek V3.2', provider: 'DeepSeek', description: 'Most advanced DeepSeek', category: 'chat', tokensPerMessage: 6000, tier: 'MID' },
 
@@ -164,7 +165,9 @@ export const AI_MODELS: AIModel[] = [
   { id: 'nemotron-nano-free', name: 'Nemotron Nano 9B V2', provider: 'NVIDIA', description: 'Fast nano model', category: 'chat', tokensPerMessage: 1500, tier: 'FREE' },
   { id: 'nemotron-super', name: 'Nemotron Super 49B', provider: 'NVIDIA', description: 'Powerful reasoning', category: 'chat', tokensPerMessage: 8000, tier: 'MID' },
 
-  // Amazon Models (4)
+  // Amazon Models (6)
+  { id: 'amazon/nova-2-lite-v1:free', name: 'Nova 2 Lite (free)', provider: 'Amazon', description: 'Free fast multimodal with reasoning', category: 'chat', tokensPerMessage: 1000, tier: 'FREE' },
+  { id: 'amazon/nova-2-lite-v1', name: 'Nova 2 Lite', provider: 'Amazon', description: 'Fast multimodal with reasoning tokens', category: 'chat', tokensPerMessage: 2500, tier: 'BUDGET' },
   { id: 'amazon/nova-lite-v1', name: 'Nova Lite 1.0', provider: 'Amazon', description: 'Fast multimodal', category: 'chat', tokensPerMessage: 2000, tier: 'BUDGET' },
   { id: 'amazon/nova-micro-v1', name: 'Nova Micro 1.0', provider: 'Amazon', description: 'Ultra-fast text', category: 'chat', tokensPerMessage: 1200, tier: 'FREE' },
   { id: 'amazon/nova-pro-v1', name: 'Nova Pro 1.0', provider: 'Amazon', description: 'Professional multimodal', category: 'chat', tokensPerMessage: 8000, tier: 'MID' },

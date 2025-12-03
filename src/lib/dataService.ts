@@ -132,7 +132,7 @@ export const createMessage = async (
       project_id: projectId,
       role,
       content,
-      metadata
+      payload: metadata // Use 'payload' instead of 'metadata' to match the actual column name
     })
     .select()
     .single();

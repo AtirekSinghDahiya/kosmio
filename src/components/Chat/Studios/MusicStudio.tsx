@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Music, X, Loader, Download, Play, Pause, Sparkles, Clock } from 'lucide-react';
-import { generateWithSuno } from '../../../lib/sunoMusicService';
+import { generateMusicWithBeatoven } from '../../../lib/beatovenMusicService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { createProject, addMessage } from '../../../lib/chatService';
@@ -177,23 +177,28 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose, projectId: in
 
       await addMessage(projectId, 'user', description);
 
-      setProgress('Starting music generation with Suno AI...');
+      setProgress('Starting music generation with Beatoven AI...');
 
-      const audioUrl = await generateWithSuno({
-        prompt: description,
-        style: selectedGenre || 'Folk Pop',
-        makeInstrumental: instrumental,
-        model: 'V3_5'
-      }, setProgress);
+      // Build Beatoven prompt with genre and style
+      let beatovenPrompt = description;
+      if (selectedGenre) {
+        beatovenPrompt += ` in ${selectedGenre} style`;
+      }
+      if (instrumental) {
+        beatovenPrompt += ', instrumental version';
+      }
+      beatovenPrompt += `, approximately ${durationOptions[duration].value} seconds`;
 
-      const modelCost = getModelCost('suno-ai');
+      const audioUrl = await generateMusicWithBeatoven(beatovenPrompt, setProgress);
+
+      const modelCost = getModelCost('beatoven-ai');
       const tokensToDeduct = modelCost.costPerMessage;
 
       setProgress('Deducting tokens...');
       await deductTokensForRequest(
         user.uid,
-        'suno-ai',
-        'suno',
+        'beatoven-ai',
+        'beatoven',
         tokensToDeduct,
         'song'
       );
