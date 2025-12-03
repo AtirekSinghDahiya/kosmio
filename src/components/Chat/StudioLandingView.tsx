@@ -145,11 +145,11 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
       },
       {
         id: 'elevenlabs',
-        name: 'ElevenLabs TTS',
+        name: 'Text to Speech',
         description: 'Professional voice synthesis with 10 voice options',
         icon: Mic,
         category: 'audio',
-        badge: 'Audio'
+        badge: 'Voice'
       },
       {
         id: 'ppt-generator',
@@ -208,7 +208,7 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
       },
       {
         id: 'elevenlabs',
-        name: 'ElevenLabs TTS',
+        name: 'Text to Speech',
         description: 'Professional voice synthesis with 10 voice options',
         icon: Mic,
         category: 'audio',
@@ -230,16 +230,29 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
   const handleCardClick = (card: ModelCard) => {
     console.log('🎯 Card clicked:', card.name, 'ID:', card.id, 'Category:', card.category);
 
-    // Map card categories to studio modes
-    const categoryToMode: Record<string, string> = {
-      'chat': 'chat',
-      'image': 'image',
-      'video': 'video',
-      'audio': 'music', // Audio maps to music mode
-      'code': 'code',
-    };
+    // Handle specific card routing
+    let mode = card.category;
 
-    const mode = categoryToMode[card.category] || card.category;
+    // Route ElevenLabs to voice studio
+    if (card.id === 'elevenlabs') {
+      mode = 'voice';
+    }
+    // Route Suno to music studio
+    else if (card.id === 'suno') {
+      mode = 'music';
+    }
+    // Map other categories
+    else {
+      const categoryToMode: Record<string, string> = {
+        'chat': 'chat',
+        'image': 'image',
+        'video': 'video',
+        'audio': 'music',
+        'code': 'code',
+      };
+      mode = categoryToMode[card.category] || card.category;
+    }
+
     console.log('🔄 Mapped mode:', mode);
 
     // For chat mode, pass the selected model ID
