@@ -312,27 +312,57 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-black">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-xl font-bold truncate">Image Generation Studio</h1>
-              <p className="text-xs sm:text-sm text-white/50 truncate">{limitInfo}</p>
-            </div>
-          </div>
+        {/* Top Bar - Enhanced */}
+        <div className="relative border-b border-white/10 bg-gradient-to-r from-black via-black to-black overflow-hidden">
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/5 via-transparent to-[#8A2BE2]/5 opacity-50" />
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
-              <Sparkles className="w-4 h-4 text-[#00FFF0]" />
-              <span className="text-sm font-medium">{tokenBalance.toLocaleString()}</span>
-              <span className="text-xs text-white/40">tokens</span>
+          <div className="relative flex items-center justify-between px-6 sm:px-8 py-5 sm:py-6">
+            <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+              {/* Studio Icon */}
+              <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
+                <ImageIcon className="w-6 h-6 text-[#00FFF0]" />
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                    Image Generation Studio
+                  </h1>
+                  <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-semibold bg-[#00FFF0]/10 text-[#00FFF0] border border-[#00FFF0]/30 rounded-full">
+                    AI Powered
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-white/50 truncate">{limitInfo}</p>
+              </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+              {/* Token Balance - Enhanced */}
+              <div className="hidden sm:flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl backdrop-blur-sm hover:border-[#00FFF0]/30 transition-all">
+                <div className="w-8 h-8 rounded-lg bg-[#00FFF0]/10 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-white/50 leading-none mb-1">Balance</span>
+                  <span className="text-sm font-bold text-white leading-none">{tokenBalance.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Mobile token display */}
+              <div className="sm:hidden flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg">
+                <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+                <span className="text-sm font-medium">{tokenBalance > 999 ? `${Math.floor(tokenBalance/1000)}k` : tokenBalance}</span>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="p-2.5 hover:bg-white/10 active:scale-95 rounded-lg transition-all group"
+                title="Close Studio"
+              >
+                <X className="w-5 h-5 group-hover:text-red-400 transition-colors" />
+              </button>
+            </div>
           </div>
         </div>
 
