@@ -20,11 +20,11 @@ import { GroupedModelSelector } from './GroupedModelSelector';
 import { ProfileButton } from '../Common/ProfileButton';
 import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
-import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { AudioStudio } from './AudioStudio';
 import { TTSStudio } from './Studios/TTSStudio';
 import { PPTStudio } from './Studios/PPTStudio';
+import { ImageStudio } from './Studios/ImageStudio';
 // Studio components disabled
 // import { PPTStudio } from '../Studio/PPTStudio';
 // import { ImageStudioView } from '../Studio/ImageStudioView';
@@ -994,7 +994,7 @@ export const MainChat: React.FC = () => {
         <div className="flex-1 ml-0 md:ml-16 overflow-y-auto">
           {/* Show generators fullscreen when active */}
           {showImageGenerator ? (
-            <SimpleImageGenerator
+            <ImageStudio
               onClose={() => {
                 setShowImageGenerator(false);
                 setImagePrompt('');
