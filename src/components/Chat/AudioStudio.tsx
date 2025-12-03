@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Music, Mic, Volume2, X, Loader, Download, Play, Pause, Sparkles } from 'lucide-react';
-import { generateSunoMusic } from '../../lib/sunoService';
+import { Mic, Volume2, X, Loader, Sparkles } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { executeGeneration, getGenerationLimitMessage } from '../../lib/unifiedGenerationService';
@@ -11,16 +10,14 @@ interface AudioStudioProps {
   onClose?: () => void;
 }
 
-type AudioService = 'suno' | 'elevenlabs' | 'gemini';
+type AudioService = 'elevenlabs' | 'gemini';
 
 export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
 
-  const [selectedService, setSelectedService] = useState<AudioService>('suno');
+  const [selectedService, setSelectedService] = useState<AudioService>('elevenlabs');
   const [description, setDescription] = useState('');
-  const [genre, setGenre] = useState('');
-  const [title, setTitle] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAudio, setGeneratedAudio] = useState<{ audioUrl: string; title: string; tags?: string } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -29,12 +26,6 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
   const [tokenBalance, setTokenBalance] = useState(0);
 
   const services = [
-    {
-      id: 'suno' as AudioService,
-      label: 'Suno AI Music',
-      icon: Music,
-      description: 'Generate complete songs with vocals and instruments',
-    },
     {
       id: 'elevenlabs' as AudioService,
       label: 'ElevenLabs TTS',
@@ -66,7 +57,7 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
       setTokenBalance(profile.tokens_balance || 0);
     }
 
-    const generationType = selectedService === 'suno' ? 'song' : 'voiceover';
+    const generationType = 'voiceover';
     const limit = await checkGenerationLimit(user.uid, generationType);
     setLimitInfo(getGenerationLimitMessage(generationType, limit.isPaid, limit.current, limit.limit));
   };
@@ -85,35 +76,7 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
     setIsGenerating(true);
     setGeneratedAudio(null);
 
-    if (selectedService === 'suno') {
-      const result = await executeGeneration({
-        userId: user.uid,
-        generationType: 'song',
-        modelId: 'suno-ai',
-        provider: 'suno',
-        onProgress: setProgress
-      }, async () => {
-        return await generateSunoMusic({
-          description,
-          genre: genre || undefined,
-          title: title || undefined
-        }, setProgress);
-      });
-
-      if (result.success && result.data) {
-        setGeneratedAudio(result.data);
-        showToast('success', 'Music Generated!', 'Your song is ready to play');
-        await loadData();
-      } else if (result.limitReached) {
-        showToast('error', 'Limit Reached', result.error || 'Generation limit exceeded');
-      } else if (result.insufficientTokens) {
-        showToast('error', 'Insufficient Tokens', result.error || 'Not enough tokens');
-      } else {
-        showToast('error', 'Generation Failed', result.error || 'Failed to generate music');
-      }
-    } else {
-      showToast('info', 'Coming Soon', `${selectedService} integration will be available soon`);
-    }
+    showToast('info', 'Coming Soon', `${selectedService} integration will be available soon`);
 
     setIsGenerating(false);
     setProgress('');
@@ -150,12 +113,12 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
         <div className="flex items-center justify-between px-6 sm:px-8 py-5 sm:py-6">
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/20">
-              <Music className="w-6 h-6 text-white" />
+              <Mic className="w-6 h-6 text-white" />
             </div>
 
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-xl sm:text-2xl font-bold text-white">Audio Studio</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">Voice Studio</h1>
                 <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-semibold bg-white/10 text-white border border-white/20 rounded-full">
                   AI Powered
                 </span>
@@ -226,15 +189,13 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
             <div className="max-w-3xl mx-auto">
               <div className="bg-white/5 border border-white/10 rounded-xl p-6 sm:p-8 mb-6">
                 <label className="block text-sm font-semibold text-white mb-3">
-                  {selectedService === 'suno' ? 'Music Description' : 'Voice Script'} *
+                  Voice Script *
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={
-                    selectedService === 'suno'
-                      ? "Describe the music you want to create (e.g., 'A calm and relaxing piano track with soft melodies')"
-                      : "Enter the text you want to convert to speech"
+"Enter the text you want to convert to speech"
                   }
                   className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 focus:border-white/30 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
                   disabled={isGenerating}
@@ -244,33 +205,6 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
                 </div>
               </div>
 
-              {selectedService === 'suno' && (
-                <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-white mb-3">Style/Genre</label>
-                    <input
-                      type="text"
-                      value={genre}
-                      onChange={(e) => setGenre(e.target.value)}
-                      placeholder="e.g., Classical, Jazz, Pop, Electronic, Rock"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 focus:border-white/30 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none transition-colors"
-                      disabled={isGenerating}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-white mb-3">Title</label>
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g., Peaceful Piano Meditation"
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 focus:border-white/30 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none transition-colors"
-                      disabled={isGenerating}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Generate Button */}
               <div className="max-w-3xl mx-auto">
@@ -286,8 +220,8 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
                     </>
                   ) : (
                     <>
-                      <Music className="w-5 h-5" />
-                      <span>Generate {selectedService === 'suno' ? 'Music' : 'Voice'}</span>
+                      <Mic className="w-5 h-5" />
+                      <span>Generate Voice</span>
                     </>
                   )}
                 </button>
@@ -300,17 +234,6 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
               )}
 
               {/* Tips Section */}
-              {selectedService === 'suno' && (
-                <div className="max-w-3xl mx-auto mt-8 bg-white/5 border border-white/10 rounded-xl p-6">
-                  <h3 className="text-sm font-semibold text-white mb-3">Tips</h3>
-                  <ul className="space-y-2 text-sm text-white/60">
-                    <li>• Be detailed in your prompt - include emotions, rhythm, instruments</li>
-                    <li>• Specify the genre or style clearly</li>
-                    <li>• Generation typically takes 1-3 minutes</li>
-                    <li>• Each generation produces 2 unique variations</li>
-                  </ul>
-                </div>
-              )}
             </div>
           ) : (
             <div className="max-w-2xl mx-auto">
