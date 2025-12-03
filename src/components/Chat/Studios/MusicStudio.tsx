@@ -10,6 +10,8 @@ import { supabase } from '../../../lib/supabase';
 import { useStudioMode } from '../../../contexts/StudioModeContext';
 import { createStudioProject, updateProjectState, loadProject, generateStudioProjectName } from '../../../lib/studioProjectService';
 import { executeGeneration } from '../../../lib/unifiedGenerationService';
+import { StudioMessageView, type StudioMessage } from './StudioMessageView';
+import { saveStudioGeneration, loadStudioMessages, formatMusicMessage } from '../../../lib/studioMessagesService';
 
 interface MusicStudioProps {
   onClose: () => void;
@@ -36,6 +38,7 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose, projectId: in
   const { projectId: activeProjectId } = useStudioMode();
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProjectId || activeProjectId || null);
   const [generatedSongs, setGeneratedSongs] = useState<GeneratedSong[]>([]);
+  const [messages, setMessages] = useState<StudioMessage[]>([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
   const [progress, setProgress] = useState('');
   const [tokenBalance, setTokenBalance] = useState(0);

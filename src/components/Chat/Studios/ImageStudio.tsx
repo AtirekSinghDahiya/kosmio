@@ -13,6 +13,8 @@ import { executeGeneration, getGenerationLimitMessage } from '../../../lib/unifi
 import { checkGenerationLimit } from '../../../lib/generationLimitsService';
 import { supabase } from '../../../lib/supabase';
 import { createStudioProject, updateProjectState, loadProject, generateStudioProjectName } from '../../../lib/studioProjectService';
+import { StudioMessageView, type StudioMessage } from './StudioMessageView';
+import { saveStudioGeneration, loadStudioMessages, formatImageMessage } from '../../../lib/studioMessagesService';
 
 interface GeneratedImage {
   id: string;
@@ -42,6 +44,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [imageHistory, setImageHistory] = useState<GeneratedImage[]>([]);
+  const [messages, setMessages] = useState<StudioMessage[]>([]);
   const [progress, setProgress] = useState('');
   const [showSidebar, setShowSidebar] = useState(false); // Start collapsed on mobile
   const [showSettings, setShowSettings] = useState(false);
@@ -105,6 +108,13 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     try {
       const result = await loadProject(projectId);
       if (result.success && result.project) {
+        setCurrentProjectId(projectId);
+
+        // Load messages from database
+        const projectMessages = await loadStudioMessages(projectId);
+        setMessages(projectMessages as StudioMessage[]);
+
+        // Load other state from session_state
         const state = result.project.session_state || {};
         setPrompt(state.prompt || '');
         setCurrentImage(state.currentImage || null);
@@ -112,7 +122,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
         setSelectedModel(state.selectedModel || 'nano-banana');
         setAspectRatio(state.aspectRatio || 'square');
         setTemperature(state.temperature || 1.0);
-        console.log('✅ Loaded existing project:', projectId);
+        console.log('✅ Loaded existing project:', projectId, 'with', projectMessages.length, 'messages');
       }
     } catch (error) {
       console.error('Error loading project:', error);
@@ -263,6 +273,31 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
       setCurrentImage(result.data);
       saveToHistory(result.data, prompt);
 
+      // Save or create project
+      let projectId = currentProjectId;
+      if (!projectId) {
+        projectId = await saveProjectState();
+      }
+
+      // Save messages to database
+      if (projectId) {
+        const dimensions = aspectRatios.find(r => r.id === aspectRatio)?.dimensions || '1024×1024';
+        const assistantMessage = formatImageMessage(result.data, selectedModel, dimensions);
+
+        await saveStudioGeneration(projectId, prompt, assistantMessage, {
+          type: 'image',
+          url: result.data,
+          model: selectedModel,
+          dimensions: dimensions,
+          aspectRatio: aspectRatio,
+          provider: selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini'
+        });
+
+        // Reload messages to show new ones
+        const updatedMessages = await loadStudioMessages(projectId);
+        setMessages(updatedMessages as StudioMessage[]);
+      }
+
       await saveImageToProject(user.uid, prompt, result.data, {
         model: selectedModel,
         dimensions: aspectRatio,
@@ -271,7 +306,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
       showToast('success', 'Image Generated!', 'Your image is ready');
       await loadData();
-      await saveProjectState();
+      setPrompt(''); // Clear prompt for next generation
     } else if (result.limitReached) {
       showToast('error', 'Limit Reached', result.error || 'Generation limit exceeded');
     } else if (result.insufficientTokens) {
@@ -448,95 +483,91 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Canvas - Center area with prompt at bottom */}
           <div className="flex-1 flex flex-col bg-black relative overflow-hidden">
-            {/* Image Display Area */}
-            <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-auto">
+            {/* Messages Display Area */}
+            <div className="flex-1 flex flex-col overflow-hidden">
             {isGenerating ? (
-              <div className="flex flex-col items-center gap-6">
-                <div className="relative">
-                  <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-white" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Wand2 className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
-                  </div>
-                </div>
-                <div className="text-center px-4">
-                  <p className="text-white/80 font-medium mb-2 text-sm sm:text-base">Generating your image...</p>
-                  <p className="text-xs sm:text-sm text-white/50">{progress || 'Please wait'}</p>
-                </div>
-              </div>
-            ) : currentImage ? (
-              <div className="max-w-5xl w-full">
-                <div className="relative rounded-lg sm:rounded-xl overflow-hidden border border-white/10 shadow-2xl mb-4">
-                  <img
-                    src={currentImage}
-                    alt="Generated"
-                    className="w-full h-auto"
-                  />
-                  <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-2">
-                    <button
-                      onClick={() => handleDownload(currentImage)}
-                      className="p-2 bg-black/60 backdrop-blur-sm hover:bg-black/80 rounded-lg border border-white/10 transition-all"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = currentImage;
-                        link.target = '_blank';
-                        link.click();
-                      }}
-                      className="p-2 bg-black/60 backdrop-blur-sm hover:bg-black/80 rounded-lg border border-white/10 transition-all"
-                      title="View full size"
-                    >
-                      <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                  </div>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm text-white/60 mb-1">Prompt</p>
-                      <p className="text-sm sm:text-base text-white break-words">{prompt}</p>
+              <div className="flex-1 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-6">
+                  <div className="relative">
+                    <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-white" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Wand2 className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
                     </div>
-                    <button
-                      onClick={() => copyPrompt(prompt)}
-                      className="p-2 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0"
-                      title="Copy prompt"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
+                  </div>
+                  <div className="text-center px-4">
+                    <p className="text-white/80 font-medium mb-2 text-sm sm:text-base">Generating your image...</p>
+                    <p className="text-xs sm:text-sm text-white/50">{progress || 'Please wait'}</p>
                   </div>
                 </div>
               </div>
+            ) : messages.length > 0 ? (
+              <StudioMessageView
+                messages={messages}
+                onDownload={handleDownload}
+                onCopy={(text) => {
+                  navigator.clipboard.writeText(text);
+                  showToast('success', 'Copied', 'Text copied to clipboard');
+                }}
+                renderMedia={(message) => {
+                  if (message.payload?.type === 'image' && message.payload?.url) {
+                    return (
+                      <div className="relative rounded-lg overflow-hidden border border-white/10 max-w-2xl">
+                        <img
+                          src={message.payload.url}
+                          alt="Generated image"
+                          className="w-full h-auto"
+                        />
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const link = document.createElement('a');
+                              link.href = message.payload.url;
+                              link.target = '_blank';
+                              link.click();
+                            }}
+                            className="p-2 bg-black/60 backdrop-blur-sm hover:bg-black/80 rounded-lg border border-white/10 transition-all"
+                            title="View full size"
+                          >
+                            <Maximize2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
             ) : (
-              <div className="text-center max-w-2xl px-4">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-6 sm:mb-8 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent animate-pulse" />
-                  <Wand2 className="w-16 h-16 sm:w-20 sm:h-20 text-white/80 relative z-10" />
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Create Your Vision</h3>
-                <p className="text-sm sm:text-base text-white/50 mb-8 max-w-lg mx-auto">
-                  Describe your image in the prompt below. Be detailed for best results - include style, mood, lighting, and subject details.
-                </p>
-                <div className="space-y-4">
-                  <div className="text-xs sm:text-sm text-white/40 font-medium mb-3">Try these examples:</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      'A serene mountain landscape at sunset with golden light',
-                      'Futuristic cityscape with neon lights and flying cars',
-                      'Abstract geometric art with monochrome gradients',
-                      'Professional portrait in natural lighting'
-                    ].map((example) => (
-                      <button
-                        key={example}
-                        onClick={() => setPrompt(example)}
-                        className="px-4 py-3 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg transition-all text-left"
-                      >
-                        <span className="text-white mr-2">→</span>
-                        {example}
-                      </button>
-                    ))}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center max-w-2xl px-4">
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-6 sm:mb-8 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent animate-pulse" />
+                    <Wand2 className="w-16 h-16 sm:w-20 sm:h-20 text-white/80 relative z-10" />
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Create Your Vision</h3>
+                  <p className="text-sm sm:text-base text-white/50 mb-8 max-w-lg mx-auto">
+                    Describe your image in the prompt below. Be detailed for best results - include style, mood, lighting, and subject details.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="text-xs sm:text-sm text-white/40 font-medium mb-3">Try these examples:</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        'A serene mountain landscape at sunset with golden light',
+                        'Futuristic cityscape with neon lights and flying cars',
+                        'Abstract geometric art with monochrome gradients',
+                        'Professional portrait in natural lighting'
+                      ].map((example) => (
+                        <button
+                          key={example}
+                          onClick={() => setPrompt(example)}
+                          className="px-4 py-3 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg transition-all text-left"
+                        >
+                          <span className="text-white mr-2">→</span>
+                          {example}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
