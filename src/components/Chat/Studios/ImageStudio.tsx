@@ -227,7 +227,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
           <div className="p-4 border-b border-white/10">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-[#00FFF0]" />
+                <ImageIcon className="w-5 h-5 text-white" />
                 <h2 className="font-semibold">KroniQ AI</h2>
               </div>
               <button
@@ -243,7 +243,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                 setPrompt('');
                 setCurrentImage(null);
               }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#00FFF0] hover:bg-[#00FFF0]/90 text-black rounded-lg font-medium transition-all"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-white/90 text-black rounded-lg font-medium transition-all"
             >
               <Plus className="w-4 h-4" />
               New Generation
@@ -268,7 +268,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                   {imageHistory.map((img) => (
                     <div
                       key={img.id}
-                      className="group relative rounded-lg overflow-hidden border border-white/10 hover:border-[#00FFF0]/30 transition-all cursor-pointer"
+                      className="group relative rounded-lg overflow-hidden border border-white/10 hover:border-white/20 transition-all cursor-pointer"
                       onClick={() => {
                         setCurrentImage(img.url);
                         setPrompt(img.prompt);
@@ -315,13 +315,13 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
         {/* Top Bar - Enhanced */}
         <div className="relative border-b border-white/10 bg-gradient-to-r from-black via-black to-black overflow-hidden">
           {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#00FFF0]/5 via-transparent to-[#8A2BE2]/5 opacity-50" />
+          {/* Black & White Only - No colored overlays */}
 
           <div className="relative flex items-center justify-between px-6 sm:px-8 py-5 sm:py-6">
             <div className="flex items-center gap-4 sm:gap-6 min-w-0">
               {/* Studio Icon */}
-              <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30">
-                <ImageIcon className="w-6 h-6 text-[#00FFF0]" />
+              <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/20">
+                <ImageIcon className="w-6 h-6 text-white" />
               </div>
 
               <div className="min-w-0">
@@ -329,7 +329,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                   <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
                     Image Generation Studio
                   </h1>
-                  <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-semibold bg-[#00FFF0]/10 text-[#00FFF0] border border-[#00FFF0]/30 rounded-full">
+                  <span className="hidden sm:inline-flex px-2.5 py-1 text-xs font-semibold bg-white/10 text-white border border-white/20 rounded-full">
                     AI Powered
                   </span>
                 </div>
@@ -339,9 +339,9 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
             <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
               {/* Token Balance - Enhanced */}
-              <div className="hidden sm:flex items-center gap-2.5 px-4 py-2.5 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-xl backdrop-blur-sm hover:border-[#00FFF0]/30 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-[#00FFF0]/10 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+              <div className="hidden sm:flex items-center gap-2.5 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs text-white/50 leading-none mb-1">Balance</span>
@@ -351,7 +351,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
               {/* Mobile token display */}
               <div className="sm:hidden flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg">
-                <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+                <Sparkles className="w-4 h-4 text-white" />
                 <span className="text-sm font-medium">{tokenBalance > 999 ? `${Math.floor(tokenBalance/1000)}k` : tokenBalance}</span>
               </div>
 
@@ -375,9 +375,9 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
             {isGenerating ? (
               <div className="flex flex-col items-center gap-6">
                 <div className="relative">
-                  <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-[#00FFF0]" />
+                  <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-white" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Wand2 className="w-6 h-6 sm:w-8 sm:h-8 text-[#00FFF0] animate-pulse" />
+                    <Wand2 className="w-6 h-6 sm:w-8 sm:h-8 text-white animate-pulse" />
                   </div>
                 </div>
                 <div className="text-center px-4">
@@ -433,9 +433,9 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
               </div>
             ) : (
               <div className="text-center max-w-2xl px-4">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-6 sm:mb-8 rounded-2xl bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20 flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/5 to-transparent animate-pulse" />
-                  <Wand2 className="w-16 h-16 sm:w-20 sm:h-20 text-[#00FFF0]/80 relative z-10" />
+                <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-6 sm:mb-8 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent animate-pulse" />
+                  <Wand2 className="w-16 h-16 sm:w-20 sm:h-20 text-white/80 relative z-10" />
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Create Your Vision</h3>
                 <p className="text-sm sm:text-base text-white/50 mb-8 max-w-lg mx-auto">
@@ -447,15 +447,15 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                     {[
                       'A serene mountain landscape at sunset with golden light',
                       'Futuristic cityscape with neon lights and flying cars',
-                      'Abstract geometric art in cyan and purple gradients',
+                      'Abstract geometric art with monochrome gradients',
                       'Professional portrait in natural lighting'
                     ].map((example) => (
                       <button
                         key={example}
                         onClick={() => setPrompt(example)}
-                        className="px-4 py-3 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#00FFF0]/30 rounded-lg transition-all text-left"
+                        className="px-4 py-3 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg transition-all text-left"
                       >
-                        <span className="text-[#00FFF0] mr-2">→</span>
+                        <span className="text-white mr-2">→</span>
                         {example}
                       </button>
                     ))}
@@ -474,7 +474,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="Describe your image in detail... e.g., 'A serene mountain landscape at sunset with snow-capped peaks'"
-                      className="w-full h-20 sm:h-16 px-4 py-3 bg-white/5 border border-white/10 focus:border-[#00FFF0]/40 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
+                      className="w-full h-20 sm:h-16 px-4 py-3 bg-white/5 border border-white/10 focus:border-white/30 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
                       disabled={isGenerating}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -491,7 +491,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                   <button
                     onClick={handleGenerate}
                     disabled={isGenerating || !prompt.trim()}
-                    className="flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3 bg-[#00FFF0] hover:bg-[#00FFF0]/90 disabled:bg-white/5 text-black font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed h-20 sm:h-16"
+                    className="flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-white/90 disabled:bg-white/5 text-black font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed h-20 sm:h-16"
                   >
                     {isGenerating ? (
                       <>
@@ -515,7 +515,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
             {/* Model Selection */}
             <div className="p-4 sm:p-6 border-b border-white/10">
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+                <Sparkles className="w-4 h-4 text-white" />
                 <span className="text-sm font-semibold">AI Model</span>
               </div>
               <div className="space-y-2">
@@ -526,7 +526,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                     disabled={isGenerating}
                     className={`w-full text-left p-3 sm:p-4 rounded-lg border transition-all ${
                       selectedModel === model.id
-                        ? 'border-[#00FFF0]/40 bg-[#00FFF0]/10'
+                        ? 'border-white/30 bg-white/10'
                         : 'border-white/10 bg-white/5 hover:bg-white/10'
                     }`}
                   >
@@ -558,13 +558,13 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                     disabled={isGenerating}
                     className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
                       aspectRatio === ar.id
-                        ? 'bg-[#00FFF0]/20 border-[#00FFF0]/50 text-white'
+                        ? 'bg-white/20 border-white/30 text-white'
                         : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded border-2 flex items-center justify-center ${
-                        aspectRatio === ar.id ? 'border-[#00FFF0]' : 'border-white/20'
+                        aspectRatio === ar.id ? 'border-white/30' : 'border-white/20'
                       }`}>
                         <div
                           className="bg-white/40 rounded-sm"
@@ -611,7 +611,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                       step="0.1"
                       value={temperature}
                       onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00FFF0]"
+                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white"
                     />
                     <p className="text-xs text-white/40 mt-1">Controls creativity and variation</p>
                   </div>
