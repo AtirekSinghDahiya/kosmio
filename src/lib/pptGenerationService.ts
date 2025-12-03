@@ -1,9 +1,5 @@
-/**
- * PPT Generation Service
- * Generates professional presentations using AI content generation
- */
-
 import { getOpenRouterResponse } from './openRouterService';
+import pptxgen from 'pptxgenjs';
 
 export interface SlideContent {
   title: string;
@@ -26,20 +22,16 @@ export interface GeneratedPPT {
   theme: string;
 }
 
-/**
- * Generate presentation content using AI
- */
 export async function generatePPTContent(options: PPTGenerationOptions): Promise<GeneratedPPT> {
   const { topic, slideCount, theme } = options;
 
   console.log('🎯 Generating PPT content:', { topic, slideCount, theme });
 
-  // Create a detailed prompt for AI to generate presentation structure
   const prompt = `Create a professional presentation outline about "${topic}" with exactly ${slideCount} slides.
 
 For each slide, provide:
 1. Slide title (concise and clear)
-2. 3-5 bullet points of content
+2. 3-5 bullet points of content (each max 10 words)
 3. Speaker notes (2-3 sentences)
 
 Theme: ${theme}
@@ -69,13 +61,10 @@ Guidelines:
 - Last slide should be conclusion/thank you (layout: "content")
 - Middle slides should be content slides (layout: "content")
 - Make content professional, clear, and actionable
-- Keep bullet points concise (max 10 words each)
-- Include relevant details in speaker notes
-
-Generate the presentation now:`;
+- Keep bullet points concise
+- Include relevant details in speaker notes`;
 
   try {
-    // Use OpenRouter to generate content
     const response = await getOpenRouterResponse(
       prompt,
       'anthropic/claude-3.5-sonnet',
@@ -84,11 +73,9 @@ Generate the presentation now:`;
 
     console.log('✅ Received AI response');
 
-    // Parse the JSON response
     let pptData: GeneratedPPT;
 
     try {
-      // Try to extract JSON from response
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         pptData = JSON.parse(jsonMatch[0]);
@@ -97,14 +84,10 @@ Generate the presentation now:`;
       }
     } catch (parseError) {
       console.error('❌ Failed to parse AI response:', parseError);
-
-      // Fallback: Create structured data from text response
       pptData = createFallbackPPT(topic, slideCount, response);
     }
 
-    // Validate and ensure we have the right number of slides
     if (pptData.slides.length < slideCount) {
-      // Add more slides if needed
       while (pptData.slides.length < slideCount) {
         pptData.slides.push({
           title: `Additional Point ${pptData.slides.length}`,
@@ -114,7 +97,6 @@ Generate the presentation now:`;
         });
       }
     } else if (pptData.slides.length > slideCount) {
-      // Trim excess slides
       pptData.slides = pptData.slides.slice(0, slideCount);
     }
 
@@ -127,13 +109,9 @@ Generate the presentation now:`;
   }
 }
 
-/**
- * Create fallback PPT structure if AI parsing fails
- */
 function createFallbackPPT(topic: string, slideCount: number, aiResponse: string): GeneratedPPT {
   const slides: SlideContent[] = [];
 
-  // Title slide
   slides.push({
     title: topic,
     content: ['Professional Presentation', 'Created with AI'],
@@ -141,7 +119,6 @@ function createFallbackPPT(topic: string, slideCount: number, aiResponse: string
     layout: 'title'
   });
 
-  // Content slides
   const sections = aiResponse.split('\n\n').filter(s => s.trim());
   for (let i = 1; i < slideCount - 1 && i < sections.length + 1; i++) {
     slides.push({
@@ -157,7 +134,6 @@ function createFallbackPPT(topic: string, slideCount: number, aiResponse: string
     });
   }
 
-  // Conclusion slide
   slides.push({
     title: 'Thank You',
     content: ['Questions?', 'Contact information', 'Next steps'],
@@ -173,45 +149,132 @@ function createFallbackPPT(topic: string, slideCount: number, aiResponse: string
   };
 }
 
-/**
- * Generate downloadable PPTX file
- * Note: This creates a simple text-based format. For actual PPTX, you would need a library like pptxgenjs
- */
 export async function generatePPTXFile(pptData: GeneratedPPT): Promise<Blob> {
-  console.log('📊 Generating PPTX file...');
+  console.log('📊 Generating professional PPTX file...');
 
-  // Create a simple text representation (in production, use pptxgenjs or similar)
-  let content = `PRESENTATION: ${pptData.title}\n`;
-  content += `SUBTITLE: ${pptData.subtitle}\n\n`;
-  content += `=========================================\n\n`;
+  const pres = new pptxgen();
 
-  pptData.slides.forEach((slide, index) => {
-    content += `SLIDE ${index + 1}: ${slide.title}\n`;
-    content += `Layout: ${slide.layout}\n\n`;
-    slide.content.forEach((point, i) => {
-      content += `  ${i + 1}. ${point}\n`;
-    });
-    if (slide.notes) {
-      content += `\nSpeaker Notes: ${slide.notes}\n`;
+  pres.author = 'KroniQ AI';
+  pres.company = 'KroniQ';
+  pres.subject = pptData.title;
+  pres.title = pptData.title;
+
+  pres.layout = 'LAYOUT_WIDE';
+
+  const themeColors = {
+    professional: { primary: '1E40AF', secondary: '3B82F6', text: '1F2937' },
+    modern: { primary: '7C3AED', secondary: 'A78BFA', text: '1F2937' },
+    creative: { primary: 'DC2626', secondary: 'F97316', text: '1F2937' },
+    minimal: { primary: '374151', secondary: '6B7280', text: '1F2937' }
+  };
+
+  const theme = themeColors[pptData.theme as keyof typeof themeColors] || themeColors.professional;
+
+  pptData.slides.forEach((slideData, index) => {
+    const slide = pres.addSlide();
+
+    if (slideData.layout === 'title') {
+      slide.background = { color: 'FFFFFF' };
+
+      slide.addText(slideData.title, {
+        x: 0.5,
+        y: '40%',
+        w: '90%',
+        h: 1.5,
+        fontSize: 44,
+        bold: true,
+        color: theme.primary,
+        align: 'center',
+        valign: 'middle'
+      });
+
+      if (pptData.subtitle) {
+        slide.addText(pptData.subtitle, {
+          x: 0.5,
+          y: '55%',
+          w: '90%',
+          h: 0.6,
+          fontSize: 24,
+          color: theme.secondary,
+          align: 'center',
+          valign: 'middle'
+        });
+      }
+
+      slide.addShape(pres.ShapeType.rect, {
+        x: 1,
+        y: 6.8,
+        w: 8,
+        h: 0.05,
+        fill: { color: theme.primary }
+      });
+
+    } else {
+      slide.background = { color: 'FFFFFF' };
+
+      slide.addShape(pres.ShapeType.rect, {
+        x: 0,
+        y: 0,
+        w: '100%',
+        h: 0.8,
+        fill: { color: theme.primary }
+      });
+
+      slide.addText(slideData.title, {
+        x: 0.5,
+        y: 0.15,
+        w: '90%',
+        h: 0.5,
+        fontSize: 32,
+        bold: true,
+        color: 'FFFFFF',
+        align: 'left',
+        valign: 'middle'
+      });
+
+      slide.addText(slideData.content.map((point, i) => ({
+        text: point,
+        options: {
+          bullet: { type: 'number', numberStartAt: i + 1 },
+          breakLine: true
+        }
+      })), {
+        x: 0.7,
+        y: 1.5,
+        w: 8.6,
+        h: 4.5,
+        fontSize: 20,
+        color: theme.text,
+        valign: 'top'
+      });
+
+      slide.addText(`${index + 1} / ${pptData.slides.length}`, {
+        x: 9.2,
+        y: 6.9,
+        w: 0.5,
+        h: 0.3,
+        fontSize: 12,
+        color: theme.secondary,
+        align: 'right'
+      });
     }
-    content += `\n=========================================\n\n`;
+
+    if (slideData.notes) {
+      slide.addNotes(slideData.notes);
+    }
   });
 
-  // Create blob
-  const blob = new Blob([content], { type: 'text/plain' });
+  const blob = await pres.write({ outputType: 'blob' }) as Blob;
 
-  console.log('✅ PPTX file generated');
+  console.log('✅ Professional PPTX file generated');
   return blob;
 }
 
-/**
- * Download the generated PPTX file
- */
 export function downloadPPTX(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${filename}.txt`; // In production: .pptx
+  link.download = `${filename}.pptx`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
