@@ -51,16 +51,16 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10">
         <div className="flex items-center gap-2 sm:gap-3">
-          <Music className="w-5 h-5 sm:w-6 sm:h-6 text-[#00FFF0]" />
+          <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           <h1 className="text-lg sm:text-xl font-bold text-white">Audio Studio</h1>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-2 rounded-lg bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/30 hover:border-[#00FFF0]/50 text-[#00FFF0] hover:scale-110 transition-all"
+            className="p-2.5 hover:bg-white/10 active:scale-95 rounded-lg transition-all"
             title="Exit Audio Studio"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-white" />
           </button>
         )}
       </div>
@@ -77,11 +77,11 @@ export const AudioStudio: React.FC<AudioStudioProps> = ({ onClose }) => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-all whitespace-nowrap min-h-[44px] ${
                 isActive
-                  ? 'bg-gradient-to-r from-[#00FFF0]/20 to-[#8A2BE2]/20 border-2 border-[#00FFF0]/50 text-white'
+                  ? 'bg-white/10 border-2 border-white/30 text-white'
                   : 'bg-white/5 border-2 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20 hover:text-white'
               }`}
             >
-              <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isActive ? 'text-[#00FFF0]' : ''}`} />
+              <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${isActive ? 'text-white' : ''}`} />
               <div className="flex flex-col items-start">
                 <span className="text-xs sm:text-sm font-semibold">{tab.label}</span>
                 <span className="hidden md:block text-[10px] sm:text-xs text-white/50">{tab.description}</span>

@@ -256,15 +256,15 @@ export const VoiceoverGenerator: React.FC<VoiceoverGeneratorProps> = ({ onClose,
             )}
 
             {isDialogue && dialogueLines.length > 0 && (
-              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl p-4">
+              <div className="bg-white/5 border border-white/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Users className="w-5 h-5 text-purple-400" />
-                  <p className="text-sm font-medium text-purple-300">Multi-Speaker Dialogue Detected</p>
+                  <Users className="w-5 h-5 text-white" />
+                  <p className="text-sm font-medium text-white">Multi-Speaker Dialogue Detected</p>
                 </div>
                 <div className="space-y-2">
                   {dialogueLines.map((line, idx) => (
                     <div key={idx} className="text-sm text-gray-300">
-                      <span className="font-semibold text-purple-300">{line.speaker}</span>
+                      <span className="font-semibold text-white">{line.speaker}</span>
                       <span className="text-gray-500 mx-2">({line.voiceName})</span>
                       <span className="text-gray-400">: {line.text}</span>
                     </div>

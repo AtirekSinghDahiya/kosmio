@@ -113,7 +113,7 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe the music you want to create (e.g., 'A calm and relaxing piano track with soft melodies')"
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50 resize-none"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/30 resize-none"
             rows={4}
             maxLength={3000}
           />
@@ -130,7 +130,7 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
               placeholder="e.g., Classical, Jazz, Pop, Electronic, Rock"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/30"
             />
           </div>
 
@@ -143,7 +143,7 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g., Peaceful Piano Meditation"
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#00FFF0]/50"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/30"
             />
           </div>
         </div>
@@ -151,7 +151,7 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
         <button
           onClick={handleGenerate}
           disabled={isGenerating || !description.trim()}
-          className="w-full py-3 px-6 bg-gradient-to-r from-[#00FFF0] to-[#8A2BE2] text-white rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          className="w-full py-3 px-6 bg-white hover:bg-white/90 text-black rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
         >
           {isGenerating ? (
             <>
@@ -170,7 +170,7 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
       {/* Progress */}
       {progress && (
         <div className="mb-4 p-4 bg-white/5 border border-white/10 rounded-lg">
-          <p className="text-sm text-[#00FFF0]">{progress}</p>
+          <p className="text-sm text-white/50">{progress}</p>
         </div>
       )}
 
@@ -192,7 +192,7 @@ export const MusicGenerator: React.FC<MusicGeneratorProps> = ({
           <div className="flex gap-3">
             <button
               onClick={togglePlay}
-              className="flex-1 py-3 px-6 bg-[#00FFF0]/20 border border-[#00FFF0]/50 text-[#00FFF0] rounded-lg font-medium hover:bg-[#00FFF0]/30 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-6 bg-white/10 border border-white/20 text-white rounded-lg font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
             >
               {isPlaying ? (
                 <>
