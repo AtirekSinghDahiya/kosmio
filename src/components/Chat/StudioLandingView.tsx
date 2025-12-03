@@ -214,14 +214,6 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         category: 'audio',
         badge: 'Voice'
       },
-      {
-        id: 'gemini-tts',
-        name: 'Gemini TTS',
-        description: 'Google text-to-speech generation',
-        icon: Mic,
-        category: 'audio',
-        badge: 'Voice'
-      },
     ],
     code: [
       {
