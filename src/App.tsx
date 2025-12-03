@@ -13,21 +13,17 @@ import { MainChat } from './components/Chat/MainChat';
 import { UnifiedStudioChat } from './components/Chat/UnifiedStudioChat';
 import { AudioStudio } from './components/Chat/AudioStudio';
 import { ProjectsView } from './components/Projects/ProjectsView';
-// Studio components temporarily disabled
-// import { VoiceStudio } from './components/Studio/VoiceStudio';
-// import { CodeStudio } from './components/Studio/CodeStudio';
-// import { DesignStudio } from './components/Studio/DesignStudio';
-// import { VideoStudio } from './components/Studio/VideoStudio';
-// import { PPTStudio } from './components/Studio/PPTStudio';
+import { StudioRouter } from './components/Studios/StudioRouter';
 import { BillingView } from './components/Billing/BillingView';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
 import { AdminAnalyticsDashboard } from './components/Admin/AdminAnalyticsDashboard';
-import { SettingsView } from './components/Settings/SettingsView';
+import { NewSettingsView } from './components/Settings/NewSettingsView';
 import { ProfilePage } from './components/Profile/ProfilePage';
 import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
+import { ComingSoon } from './components/Common/ComingSoon';
 import { StudioModeProvider } from './contexts/StudioModeContext';
 import { Project } from './types';
 
@@ -88,35 +84,33 @@ const MainApp: React.FC = () => {
   const renderView = () => {
     switch (currentView) {
       case 'chat':
-        return <UnifiedStudioChat projectId={activeProject?.id} projectName={activeProject?.name} />;
-      case 'projects':
-        return <ProjectsView onOpenProject={handleOpenProject} />;
       case 'voice':
-        return <AudioStudio onClose={() => navigateTo('chat')} />;
       case 'code':
       case 'design':
       case 'video':
       case 'ppt':
-        return <UnifiedStudioChat projectId={activeProject?.id} projectName={activeProject?.name} />;
+        return <StudioRouter />;
+      case 'projects':
+        return <ProjectsView onOpenProject={handleOpenProject} />;
       case 'billing':
         return <BillingView />;
       case 'admin':
-        return userData?.plan === 'enterprise' ? <AdminDashboard /> : <UnifiedStudioChat />;
+        return userData?.plan === 'enterprise' ? <AdminDashboard /> : <StudioRouter />;
       case 'analytics':
         return <AdminAnalyticsDashboard />;
       case 'settings':
-        return <SettingsView />;
+        return <NewSettingsView />;
       case 'profile':
         return <ProfilePage onClose={() => navigateTo('chat')} />;
       case 'backup':
         return <BackupView />;
       default:
-        return <UnifiedStudioChat />;
+        return <StudioRouter />;
     }
   };
 
-  // Studios render independently (no sidebar/navbar)
-  if (['voice', 'code', 'design', 'video', 'ppt'].includes(currentView)) {
+  // Studios and chat render independently (no sidebar/navbar)
+  if (['chat', 'voice', 'code', 'design', 'video', 'ppt'].includes(currentView)) {
     return (
       <div className="h-screen overflow-hidden bg-black relative">
         <div className="relative z-10 h-screen">
@@ -130,7 +124,7 @@ const MainApp: React.FC = () => {
   return (
     <div className="h-screen overflow-hidden bg-black relative">
       <div className="relative z-10 h-screen">
-        {currentView === 'chat' || currentView === 'settings' ? (
+        {currentView === 'settings' ? (
           renderView()
         ) : (
           <div className="flex h-screen">
