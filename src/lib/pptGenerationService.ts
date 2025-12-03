@@ -1,5 +1,5 @@
 import { getOpenRouterResponse } from './openRouterService';
-import pptxgen from 'pptxgenjs';
+import PptxGenJS from 'pptxgenjs';
 
 export interface SlideContent {
   title: string;
@@ -152,7 +152,7 @@ function createFallbackPPT(topic: string, slideCount: number, aiResponse: string
 export async function generatePPTXFile(pptData: GeneratedPPT): Promise<Blob> {
   console.log('📊 Generating professional PPTX file...');
 
-  const pres = new pptxgen();
+  const pres = new PptxGenJS();
 
   pres.author = 'KroniQ AI';
   pres.company = 'KroniQ';
