@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Music, X, Loader, Download, Play, Pause, Sparkles, Plus, Volume2 } from 'lucide-react';
-import { generateSunoMusic } from '../../../lib/sunoService';
+import { generateWithSuno } from '../../../lib/sunoMusicService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { executeGeneration, getGenerationLimitMessage } from '../../../lib/unifiedGenerationService';
@@ -94,11 +94,18 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
       provider: 'suno',
       onProgress: setProgress
     }, async () => {
-      return await generateSunoMusic({
-        description,
-        genre: genre || undefined,
-        title: undefined
+      const audioUrl = await generateWithSuno({
+        prompt: description,
+        style: genre || 'Folk Pop',
+        makeInstrumental: instrumental,
+        model: 'V3_5'
       }, setProgress);
+
+      return {
+        audioUrl,
+        title: description.substring(0, 50) + (description.length > 50 ? '...' : ''),
+        tags: genre || 'Music'
+      };
     });
 
     if (result.success && result.data) {
