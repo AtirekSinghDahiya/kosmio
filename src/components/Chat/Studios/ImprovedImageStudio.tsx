@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   X, Wand2, Loader, Download, Trash2, Menu, Plus,
   Image as ImageIcon, ChevronDown, Settings, Sparkles,
-  History, Grid, Maximize2, Copy
+  History, Grid, Maximize2, Copy, Share2
 } from 'lucide-react';
 import { generateWithImagen } from '../../../lib/googleImagenService';
 import { generateWithNanoBanana } from '../../../lib/geminiNanoBananaService';
@@ -27,7 +27,7 @@ interface ImageStudioProps {
   initialPrompt?: string;
 }
 
-export const ImageStudio: React.FC<ImageStudioProps> = ({
+export const ImprovedImageStudio: React.FC<ImageStudioProps> = ({
   onClose,
   initialPrompt = ''
 }) => {
@@ -40,7 +40,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [imageHistory, setImageHistory] = useState<GeneratedImage[]>([]);
   const [progress, setProgress] = useState('');
-  const [showSidebar, setShowSidebar] = useState(false); // Start collapsed on mobile
+  const [showSidebar, setShowSidebar] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [limitInfo, setLimitInfo] = useState<string>('');
@@ -52,14 +52,6 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
   useEffect(() => {
     loadData();
-
-    // Check screen size and show sidebar on desktop
-    const handleResize = () => {
-      setShowSidebar(window.innerWidth >= 1024);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, [user]);
 
   const loadData = async () => {
@@ -80,14 +72,10 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     const limit = await checkGenerationLimit(user.uid, 'image');
     setLimitInfo(getGenerationLimitMessage('image', limit.isPaid, limit.current, limit.limit));
 
-    // Load image history from localStorage
+    // Load image history from localStorage for now
     const stored = localStorage.getItem(`image_history_${user.uid}`);
     if (stored) {
-      try {
-        setImageHistory(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse image history:', e);
-      }
+      setImageHistory(JSON.parse(stored));
     }
   };
 
@@ -101,7 +89,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
       aspectRatio
     };
 
-    const updated = [newImage, ...imageHistory].slice(0, 50);
+    const updated = [newImage, ...imageHistory].slice(0, 50); // Keep last 50
     setImageHistory(updated);
 
     if (user?.uid) {
@@ -120,36 +108,6 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     showToast('success', 'Deleted', 'Image removed from history');
   };
 
-  const copyPrompt = (text: string) => {
-    navigator.clipboard.writeText(text);
-    showToast('success', 'Copied', 'Prompt copied to clipboard');
-  };
-
-  const models = [
-    {
-      id: 'nano-banana',
-      name: 'Nano Banana',
-      description: 'Gemini 2.5 Flash powered image generation',
-      speed: 'Fast',
-      quality: 'High'
-    },
-    {
-      id: 'imagen-4',
-      name: 'Imagen 4.0',
-      description: 'Latest Google AI model with enhanced quality',
-      speed: 'Medium',
-      quality: 'Premium'
-    }
-  ];
-
-  const aspectRatios = [
-    { id: 'square' as const, label: 'Square', ratio: '1:1', dimensions: '1024×1024' },
-    { id: 'landscape' as const, label: 'Landscape', ratio: '16:9', dimensions: '1792×1024' },
-    { id: 'portrait' as const, label: 'Portrait', ratio: '9:16', dimensions: '1024×1792' },
-    { id: '4:3' as const, label: 'Standard', ratio: '4:3', dimensions: '1408×1024' },
-    { id: '3:4' as const, label: 'Vertical', ratio: '3:4', dimensions: '1024×1408' }
-  ];
-
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       showToast('error', 'Empty Prompt', 'Please enter a description for your image');
@@ -162,7 +120,8 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     }
 
     setIsGenerating(true);
-    setGeneratedImageUrl(null);
+    setCurrentImage(null);
+    setProgress('Initializing...');
 
     const result = await executeGeneration({
       userId: user.uid,
@@ -218,10 +177,40 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     showToast('success', 'Downloaded', 'Image saved to your device');
   };
 
+  const copyPrompt = (text: string) => {
+    navigator.clipboard.writeText(text);
+    showToast('success', 'Copied', 'Prompt copied to clipboard');
+  };
+
+  const models = [
+    {
+      id: 'nano-banana',
+      name: 'Nano Banana',
+      description: 'Gemini 2.5 Flash powered image generation',
+      speed: 'Fast',
+      quality: 'High'
+    },
+    {
+      id: 'imagen-4',
+      name: 'Imagen 4.0',
+      description: 'Latest Google AI model with enhanced quality',
+      speed: 'Medium',
+      quality: 'Premium'
+    }
+  ];
+
+  const aspectRatios = [
+    { id: 'square' as const, label: 'Square', ratio: '1:1', dimensions: '1024×1024' },
+    { id: 'landscape' as const, label: 'Landscape', ratio: '16:9', dimensions: '1792×1024' },
+    { id: 'portrait' as const, label: 'Portrait', ratio: '9:16', dimensions: '1024×1792' },
+    { id: '4:3' as const, label: 'Standard', ratio: '4:3', dimensions: '1408×1024' },
+    { id: '3:4' as const, label: 'Vertical', ratio: '3:4', dimensions: '1024×1408' }
+  ];
+
   return (
-    <div className="h-screen flex bg-black text-white overflow-hidden">
+    <div className="h-screen flex bg-black text-white">
       {/* Left Sidebar - History */}
-      <div className={`${showSidebar ? 'w-full sm:w-72' : 'w-0'} border-r border-white/10 flex-shrink-0 transition-all duration-300 overflow-hidden fixed lg:relative z-30 h-full bg-black`}>
+      <div className={`${showSidebar ? 'w-72' : 'w-0'} border-r border-white/10 flex-shrink-0 transition-all duration-300 overflow-hidden`}>
         <div className="h-full flex flex-col">
           {/* Sidebar Header */}
           <div className="p-4 border-b border-white/10">
@@ -232,12 +221,13 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
               </div>
               <button
                 onClick={() => setShowSidebar(false)}
-                className="p-1 hover:bg-white/5 rounded transition-colors"
+                className="lg:hidden p-1 hover:bg-white/5 rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
+            {/* New Generation Button */}
             <button
               onClick={() => {
                 setPrompt('');
@@ -272,7 +262,6 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                       onClick={() => {
                         setCurrentImage(img.url);
                         setPrompt(img.prompt);
-                        if (window.innerWidth < 1024) setShowSidebar(false);
                       }}
                     >
                       <img
@@ -313,28 +302,30 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-black">
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+          <div className="flex items-center gap-4">
             {!showSidebar && (
               <button
                 onClick={() => setShowSidebar(true)}
-                className="p-2 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0"
+                className="p-2 hover:bg-white/5 rounded-lg transition-colors"
               >
                 <Menu className="w-5 h-5" />
               </button>
             )}
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-xl font-bold truncate">Image Generation Studio</h1>
-              <p className="text-xs sm:text-sm text-white/50 truncate">{limitInfo}</p>
+            <div>
+              <h1 className="text-xl font-bold">Image Generation Studio</h1>
+              <p className="text-sm text-white/50">{limitInfo}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            {/* Token Balance */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
               <Sparkles className="w-4 h-4 text-[#00FFF0]" />
               <span className="text-sm font-medium">{tokenBalance.toLocaleString()}</span>
               <span className="text-xs text-white/40">tokens</span>
             </div>
+
             <button
               onClick={onClose}
               className="p-2 hover:bg-white/5 rounded-lg transition-colors"
@@ -345,37 +336,39 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
         </div>
 
         {/* Main Canvas Area */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div className="flex-1 flex overflow-hidden">
           {/* Canvas */}
-          <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black relative overflow-auto">
+          <div className="flex-1 flex items-center justify-center p-8 bg-black relative overflow-auto">
             {isGenerating ? (
               <div className="flex flex-col items-center gap-6">
                 <div className="relative">
-                  <Loader className="w-12 h-12 sm:w-16 sm:h-16 animate-spin text-[#00FFF0]" />
+                  <Loader className="w-16 h-16 animate-spin text-[#00FFF0]" />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Wand2 className="w-6 h-6 sm:w-8 sm:h-8 text-[#00FFF0] animate-pulse" />
+                    <Wand2 className="w-8 h-8 text-[#00FFF0] animate-pulse" />
                   </div>
                 </div>
-                <div className="text-center px-4">
-                  <p className="text-white/80 font-medium mb-2 text-sm sm:text-base">Generating your image...</p>
-                  <p className="text-xs sm:text-sm text-white/50">{progress || 'Please wait'}</p>
+                <div className="text-center">
+                  <p className="text-white/80 font-medium mb-2">Generating your image...</p>
+                  <p className="text-sm text-white/50">{progress || 'Please wait'}</p>
                 </div>
               </div>
             ) : currentImage ? (
               <div className="max-w-5xl w-full">
-                <div className="relative rounded-lg sm:rounded-xl overflow-hidden border border-white/10 shadow-2xl mb-4">
+                <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl mb-4">
                   <img
                     src={currentImage}
                     alt="Generated"
                     className="w-full h-auto"
                   />
-                  <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-2">
+
+                  {/* Image Actions Overlay */}
+                  <div className="absolute top-4 right-4 flex gap-2">
                     <button
                       onClick={() => handleDownload(currentImage)}
                       className="p-2 bg-black/60 backdrop-blur-sm hover:bg-black/80 rounded-lg border border-white/10 transition-all"
                       title="Download"
                     >
-                      <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Download className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => {
@@ -387,19 +380,21 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                       className="p-2 bg-black/60 backdrop-blur-sm hover:bg-black/80 rounded-lg border border-white/10 transition-all"
                       title="View full size"
                     >
-                      <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <Maximize2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-lg p-3 sm:p-4">
+
+                {/* Prompt Display */}
+                <div className="bg-white/5 border border-white/10 rounded-lg p-4">
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm text-white/60 mb-1">Prompt</p>
-                      <p className="text-sm sm:text-base text-white break-words">{prompt}</p>
+                    <div className="flex-1">
+                      <p className="text-sm text-white/60 mb-1">Prompt</p>
+                      <p className="text-white">{prompt}</p>
                     </div>
                     <button
                       onClick={() => copyPrompt(prompt)}
-                      className="p-2 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0"
+                      className="p-2 hover:bg-white/5 rounded-lg transition-colors"
                       title="Copy prompt"
                     >
                       <Copy className="w-4 h-4" />
@@ -408,20 +403,20 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="text-center max-w-md px-4">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30 flex items-center justify-center">
-                  <Wand2 className="w-12 h-12 sm:w-16 sm:h-16 text-[#00FFF0]/60" />
+              <div className="text-center max-w-md">
+                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30 flex items-center justify-center">
+                  <Wand2 className="w-16 h-16 text-[#00FFF0]/60" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">Create Something Amazing</h3>
-                <p className="text-sm sm:text-base text-white/50 mb-6">
-                  Enter a detailed description and let KroniQ AI bring your vision to life
+                <h3 className="text-2xl font-bold text-white mb-3">Create Something Amazing</h3>
+                <p className="text-white/50 mb-6">
+                  Enter a detailed description below and let KroniQ AI bring your vision to life
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {['Sunset over mountains', 'Futuristic cityscape', 'Abstract art'].map((example) => (
                     <button
                       key={example}
                       onClick={() => setPrompt(example)}
-                      className="px-3 py-1.5 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all"
+                      className="px-3 py-1.5 text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all"
                     >
                       {example}
                     </button>
@@ -432,32 +427,35 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
           </div>
 
           {/* Right Settings Panel */}
-          <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-black overflow-y-auto max-h-[50vh] lg:max-h-none">
+          <div className="w-96 border-l border-white/10 flex flex-col bg-black overflow-y-auto">
             {/* Model Selection */}
-            <div className="p-4 sm:p-6 border-b border-white/10">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-[#00FFF0]" />
-                <span className="text-sm font-semibold">AI Model</span>
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#00FFF0]" />
+                  <span className="text-sm font-semibold">AI Model</span>
+                </div>
               </div>
+
               <div className="space-y-2">
                 {models.map((model) => (
                   <button
                     key={model.id}
                     onClick={() => setSelectedModel(model.id)}
                     disabled={isGenerating}
-                    className={`w-full text-left p-3 sm:p-4 rounded-lg border transition-all ${
+                    className={`w-full text-left p-4 rounded-lg border transition-all ${
                       selectedModel === model.id
                         ? 'border-[#00FFF0]/40 bg-[#00FFF0]/10'
                         : 'border-white/10 bg-white/5 hover:bg-white/10'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <span className="font-medium text-sm sm:text-base">{model.name}</span>
-                      <div className="flex gap-1 flex-shrink-0">
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+                      <span className="font-medium">{model.name}</span>
+                      <div className="flex gap-1">
+                        <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
                           {model.speed}
                         </span>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
                           {model.quality}
                         </span>
                       </div>
@@ -469,7 +467,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
             </div>
 
             {/* Aspect Ratio */}
-            <div className="p-4 sm:p-6 border-b border-white/10">
+            <div className="p-6 border-b border-white/10">
               <label className="text-sm font-semibold text-white mb-3 block">Aspect Ratio</label>
               <div className="space-y-2">
                 {aspectRatios.map((ar) => (
@@ -507,7 +505,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
             </div>
 
             {/* Advanced Settings */}
-            <div className="p-4 sm:p-6 border-b border-white/10">
+            <div className="p-6 border-b border-white/10">
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 className="flex items-center justify-between w-full mb-4"
@@ -518,6 +516,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                 </div>
                 <ChevronDown className={`w-4 h-4 transition-transform ${showSettings ? 'rotate-180' : ''}`} />
               </button>
+
               {showSettings && (
                 <div className="space-y-4">
                   <div>
@@ -532,7 +531,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                       step="0.1"
                       value={temperature}
                       onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00FFF0]"
+                      className="w-full"
                     />
                     <p className="text-xs text-white/40 mt-1">Controls creativity and variation</p>
                   </div>
@@ -541,7 +540,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
             </div>
 
             {/* Prompt Input */}
-            <div className="p-4 sm:p-6 mt-auto">
+            <div className="p-6 mt-auto">
               <label className="text-sm font-semibold text-white mb-3 block">
                 Describe your image
               </label>
@@ -549,7 +548,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="A serene mountain landscape at sunset, with snow-capped peaks reflecting golden light, pine trees in the foreground, and a crystal clear lake..."
-                className="w-full h-24 sm:h-32 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border border-white/10 focus:border-[#00FFF0]/40 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
+                className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 focus:border-[#00FFF0]/40 rounded-lg text-white placeholder-white/30 focus:outline-none resize-none transition-colors"
                 disabled={isGenerating}
               />
               <div className="flex justify-between items-center mt-2 mb-4">
@@ -559,7 +558,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating || !prompt.trim()}
-                className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-[#00FFF0] hover:bg-[#00FFF0]/90 disabled:bg-white/5 text-black font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#00FFF0] hover:bg-[#00FFF0]/90 disabled:bg-white/5 text-black font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isGenerating ? (
                   <>
