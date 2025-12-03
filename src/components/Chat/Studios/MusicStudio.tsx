@@ -1,53 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { Music, X, Loader, Download, Play, Pause, Sparkles, Plus, Volume2 } from 'lucide-react';
+import { Music, X, Loader, Download, Play, Pause, Sparkles, Clock } from 'lucide-react';
 import { generateWithSuno } from '../../../lib/sunoMusicService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { executeGeneration, getGenerationLimitMessage } from '../../../lib/unifiedGenerationService';
-import { checkGenerationLimit } from '../../../lib/generationLimitsService';
+import { createProject, addMessage, getProjects, subscribeToProjects, Project } from '../../../lib/chatService';
+import { deductTokensForRequest } from '../../../lib/tokenService';
+import { getModelCost } from '../../../lib/modelTokenPricing';
 import { supabase } from '../../../lib/supabase';
 
 interface MusicStudioProps {
   onClose: () => void;
 }
 
-type MusicMode = 'simple' | 'custom';
+interface GeneratedSong {
+  audioUrl: string;
+  title: string;
+  genre: string;
+  duration: string;
+  projectId: string;
+}
 
 export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
 
-  const [mode, setMode] = useState<MusicMode>('simple');
   const [description, setDescription] = useState('');
-  const [includeAudio, setIncludeAudio] = useState(true);
-  const [includeLyrics, setIncludeLyrics] = useState(true);
+  const [selectedGenre, setSelectedGenre] = useState('');
+  const [duration, setDuration] = useState<'short' | 'medium' | 'long'>('medium');
   const [instrumental, setInstrumental] = useState(false);
-  const [selectedInspiration, setSelectedInspiration] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedSongs, setGeneratedSongs] = useState<Array<{ audioUrl: string; title: string; tags?: string }>>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [generatedSongs, setGeneratedSongs] = useState<GeneratedSong[]>([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
   const [progress, setProgress] = useState('');
-  const [limitInfo, setLimitInfo] = useState<string>('');
   const [tokenBalance, setTokenBalance] = useState(0);
 
-  const inspirationGenres = [
-    'lo-fi',
-    'pop rock',
-    'country',
-    'folk song',
-    'electronic',
-    'hip-hop',
-    'jazz',
-    'classical',
-    'r&b',
-    'blues'
+  const genres = [
+    'Pop',
+    'Rock',
+    'Hip-Hop',
+    'R&B',
+    'Electronic',
+    'Jazz',
+    'Classical',
+    'Country',
+    'Folk',
+    'Blues',
+    'Metal',
+    'Indie'
   ];
 
+  const durationOptions = {
+    short: { label: '30s', value: 30 },
+    medium: { label: '1min', value: 60 },
+    long: { label: '2min', value: 120 }
+  };
+
   useEffect(() => {
-    loadData();
+    if (user?.uid) {
+      loadTokenBalance();
+      loadMusicProjects();
+
+      const unsubscribe = subscribeToProjects((updatedProjects) => {
+        const musicProjects = updatedProjects.filter(p => p.type === 'music');
+        setProjects(musicProjects);
+      });
+
+      return () => unsubscribe();
+    }
   }, [user]);
 
-  const loadData = async () => {
+  const loadTokenBalance = async () => {
     if (!user?.uid) return;
 
     const { data: profile } = await supabase
@@ -59,17 +83,22 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
     if (profile) {
       setTokenBalance(profile.tokens_balance || 0);
     }
-
-    const limit = await checkGenerationLimit(user.uid, 'song');
-    setLimitInfo(getGenerationLimitMessage('song', limit.isPaid, limit.current, limit.limit));
   };
 
-  const toggleInspiration = (genre: string) => {
-    setSelectedInspiration(prev =>
-      prev.includes(genre)
-        ? prev.filter(g => g !== genre)
-        : [...prev, genre]
-    );
+  const loadMusicProjects = async () => {
+    if (!user?.uid) return;
+
+    try {
+      const allProjects = await getProjects();
+      const musicProjects = allProjects.filter(p => p.type === 'music');
+      setProjects(musicProjects);
+
+      if (musicProjects.length > 0 && !activeProjectId) {
+        setActiveProjectId(musicProjects[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load music projects:', error);
+    }
   };
 
   const handleCreate = async () => {
@@ -84,47 +113,78 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
     }
 
     setIsGenerating(true);
+    setProgress('Initializing music generation...');
 
-    const genre = selectedInspiration.join(', ');
+    try {
+      let projectId = activeProjectId;
 
-    const result = await executeGeneration({
-      userId: user.uid,
-      generationType: 'song',
-      modelId: 'suno-ai',
-      provider: 'suno',
-      onProgress: setProgress
-    }, async () => {
+      if (!projectId) {
+        setProgress('Creating music project...');
+        const newProject = await createProject(
+          `Music: ${description.substring(0, 30)}${description.length > 30 ? '...' : ''}`,
+          'music',
+          description
+        );
+        projectId = newProject.id;
+        setActiveProjectId(projectId);
+      }
+
+      await addMessage(projectId, 'user', description);
+
+      setProgress('Starting music generation with Suno AI...');
+
       const audioUrl = await generateWithSuno({
         prompt: description,
-        style: genre || 'Folk Pop',
+        style: selectedGenre || 'Folk Pop',
         makeInstrumental: instrumental,
         model: 'V3_5'
       }, setProgress);
 
-      return {
+      const modelCost = getModelCost('suno-ai');
+      const tokensToDeduct = modelCost.costPerMessage;
+
+      setProgress('Deducting tokens...');
+      await deductTokensForRequest(
+        user.uid,
+        'suno-ai',
+        'suno',
+        tokensToDeduct,
+        'song'
+      );
+
+      await loadTokenBalance();
+
+      const songData: GeneratedSong = {
         audioUrl,
         title: description.substring(0, 50) + (description.length > 50 ? '...' : ''),
-        tags: genre || 'Music'
+        genre: selectedGenre || 'Music',
+        duration: durationOptions[duration].label,
+        projectId
       };
-    });
 
-    if (result.success && result.data) {
-      setGeneratedSongs(prev => [result.data!, ...prev]);
-      showToast('success', 'Music Generated!', 'Your song is ready to play');
-      await loadData();
-    } else if (result.limitReached) {
-      showToast('error', 'Limit Reached', result.error || 'Generation limit exceeded');
-    } else if (result.insufficientTokens) {
-      showToast('error', 'Insufficient Tokens', result.error || 'Not enough tokens');
-    } else {
-      showToast('error', 'Generation Failed', result.error || 'Failed to generate music');
+      await addMessage(projectId, 'assistant', JSON.stringify({
+        type: 'music',
+        audioUrl,
+        title: songData.title,
+        genre: songData.genre,
+        duration: songData.duration
+      }));
+
+      setGeneratedSongs(prev => [songData, ...prev]);
+      showToast('success', 'Music Generated!', `Deducted ${tokensToDeduct.toLocaleString()} tokens`);
+
+      setDescription('');
+      setProgress('');
+    } catch (error: any) {
+      console.error('Music generation error:', error);
+      showToast('error', 'Generation Failed', error.message || 'Failed to generate music');
+    } finally {
+      setIsGenerating(false);
+      setProgress('');
     }
-
-    setIsGenerating(false);
-    setProgress('');
   };
 
-  const handleDownload = (song: { audioUrl: string; title: string }, index: number) => {
+  const handleDownload = (song: GeneratedSong) => {
     const link = document.createElement('a');
     link.href = song.audioUrl;
     link.download = `${song.title.replace(/[^a-z0-9]/gi, '_')}.mp3`;
@@ -151,228 +211,216 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
     }
   };
 
+  const selectProject = (projectId: string) => {
+    setActiveProjectId(projectId);
+  };
+
+  const createNewProject = async () => {
+    if (!user?.uid) return;
+
+    try {
+      const newProject = await createProject(
+        `Music Project ${projects.length + 1}`,
+        'music',
+        'New music generation project'
+      );
+      setActiveProjectId(newProject.id);
+      showToast('success', 'Project Created', 'New music project ready');
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      showToast('error', 'Failed', 'Could not create project');
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-black text-white overflow-hidden">
-      {/* Top Header */}
-      <div className="relative border-b border-white/10 bg-black">
-        <div className="flex items-center justify-between px-6 py-4">
-          {/* Left: Music count and mode tabs */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg">
-              <Music className="w-4 h-4" />
-              <span className="text-sm font-semibold">{generatedSongs.length}</span>
-            </div>
+    <div className="h-screen flex bg-black text-white overflow-hidden">
+      {/* Left Sidebar - Projects */}
+      <div className="w-64 border-r border-white/10 flex flex-col bg-black">
+        <div className="p-4 border-b border-white/10">
+          <button
+            onClick={createNewProject}
+            className="w-full py-2 px-4 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-all flex items-center justify-center gap-2"
+          >
+            <Music className="w-4 h-4" />
+            <span>New Project</span>
+          </button>
+        </div>
 
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
-              <button
-                onClick={() => setMode('simple')}
-                className={`px-4 py-1.5 text-sm font-medium rounded transition-all ${
-                  mode === 'simple'
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/50 hover:text-white'
-                }`}
-              >
-                Simple
-              </button>
-              <button
-                onClick={() => setMode('custom')}
-                className={`px-4 py-1.5 text-sm font-medium rounded transition-all ${
-                  mode === 'custom'
-                    ? 'bg-white/10 text-white'
-                    : 'text-white/50 hover:text-white'
-                }`}
-              >
-                Custom
-              </button>
-            </div>
-          </div>
-
-          {/* Center: Version selector (placeholder) */}
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <button className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all">
-              v4.5-all
-            </button>
-          </div>
-
-          {/* Right: Workspace, tokens, close */}
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-white/50">
-              <span className="text-white/70">Workspaces</span>
-              <span className="mx-2">›</span>
-              <span>My Workspace</span>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-semibold">{tokenBalance.toLocaleString()}</span>
-            </div>
-
+        <div className="flex-1 overflow-y-auto">
+          {projects.map((project) => (
             <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/10 active:scale-95 rounded-lg transition-all"
-              title="Close Studio"
+              key={project.id}
+              onClick={() => selectProject(project.id)}
+              className={`w-full p-4 text-left border-b border-white/10 hover:bg-white/5 transition-all ${
+                activeProjectId === project.id ? 'bg-white/10' : ''
+              }`}
             >
-              <X className="w-5 h-5" />
+              <div className="flex items-start gap-3">
+                <Music className="w-4 h-4 mt-1 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{project.name}</p>
+                  <p className="text-xs text-white/40 mt-1">
+                    {new Date(project.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
             </button>
-          </div>
+          ))}
+
+          {projects.length === 0 && (
+            <div className="p-4 text-center text-white/40 text-sm">
+              No music projects yet
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        <div className="w-[420px] border-r border-white/10 flex flex-col bg-black">
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* Song Description */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-semibold text-white">Song Description</label>
-                <button className="p-1 hover:bg-white/10 rounded">
-                  <X className="w-4 h-4 text-white/40" />
-                </button>
-              </div>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Hip-hop, R&B, upbeat"
-                className="w-full h-24 px-4 py-3 bg-white/5 border border-white/10 focus:border-white/30 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
-                disabled={isGenerating}
-              />
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Header */}
+        <div className="border-b border-white/10 bg-black">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Music className="w-6 h-6" />
+              <h1 className="text-xl font-bold">Music Studio</h1>
             </div>
 
-            {/* Audio and Lyrics toggles */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIncludeAudio(!includeAudio)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
-                  includeAudio
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'bg-white/5 border-white/10 text-white/50'
-                }`}
-              >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm">Audio</span>
-              </button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-semibold">{tokenBalance.toLocaleString()}</span>
+              </div>
 
               <button
-                onClick={() => setIncludeLyrics(!includeLyrics)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${
-                  includeLyrics
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'bg-white/5 border-white/10 text-white/50'
-                }`}
+                onClick={onClose}
+                className="p-2 hover:bg-white/10 active:scale-95 rounded-lg transition-all"
+                title="Close Studio"
               >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm">Lyrics</span>
-              </button>
-
-              <button
-                onClick={() => setInstrumental(!instrumental)}
-                className={`px-4 py-2 rounded-lg border text-sm transition-all ${
-                  instrumental
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'bg-white/5 border-white/10 text-white/50'
-                }`}
-              >
-                Instrumental
+                <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* Inspiration */}
-            <div>
-              <label className="block text-sm font-semibold text-white mb-3">Inspiration</label>
-              <div className="flex flex-wrap gap-2">
-                {inspirationGenres.map((genre) => (
-                  <button
-                    key={genre}
-                    onClick={() => toggleInspiration(genre)}
-                    className={`px-3 py-1.5 text-sm rounded-lg border transition-all ${
-                      selectedInspiration.includes(genre)
-                        ? 'bg-white/10 border-white/20 text-white'
-                        : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    <span className="mr-1.5">+</span>
-                    {genre}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Limit Info */}
-            {limitInfo && (
-              <div className="text-xs text-white/40">
-                {limitInfo}
-              </div>
-            )}
-          </div>
-
-          {/* Create Button */}
-          <div className="p-6 border-t border-white/10">
-            <button
-              onClick={handleCreate}
-              disabled={isGenerating || !description.trim()}
-              className="w-full py-3 px-6 bg-white/10 hover:bg-white/20 disabled:bg-white/5 text-white font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  <span>Creating...</span>
-                </>
-              ) : (
-                <>
-                  <Music className="w-5 h-5" />
-                  <span>Create</span>
-                </>
-              )}
-            </button>
-
-            {isGenerating && progress && (
-              <p className="text-xs text-white/40 text-center mt-3">{progress}</p>
-            )}
           </div>
         </div>
 
-        {/* Right Content Area */}
-        <div className="flex-1 overflow-y-auto bg-black">
-          {/* Search and Filters Bar */}
-          <div className="sticky top-0 z-10 bg-black border-b border-white/10 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex-1 max-w-md">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none focus:border-white/20"
+        {/* Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Controls Sidebar */}
+          <div className="w-96 border-r border-white/10 flex flex-col bg-black">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-3">Song Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g., An upbeat pop song about summer adventures"
+                  className="w-full h-32 px-4 py-3 bg-white/5 border border-white/10 focus:border-white/30 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
+                  disabled={isGenerating}
                 />
               </div>
 
-              <div className="flex items-center gap-3">
-                <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all">
-                  Filters (3)
-                </button>
-                <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm hover:bg-white/10 transition-all">
-                  Newest
-                </button>
-                <button className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all">
-                  ‹
-                </button>
-                <span className="text-sm text-white/50">1</span>
-                <button className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all">
-                  ›
+              {/* Genre Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-3">Genre</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {genres.map((genre) => (
+                    <button
+                      key={genre}
+                      onClick={() => setSelectedGenre(genre === selectedGenre ? '' : genre)}
+                      className={`px-4 py-2 text-sm rounded-lg border transition-all ${
+                        selectedGenre === genre
+                          ? 'bg-white/10 border-white/20 text-white'
+                          : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                      }`}
+                      disabled={isGenerating}
+                    >
+                      {genre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Duration */}
+              <div>
+                <label className="block text-sm font-semibold text-white mb-3">Duration</label>
+                <div className="flex gap-2">
+                  {Object.entries(durationOptions).map(([key, { label }]) => (
+                    <button
+                      key={key}
+                      onClick={() => setDuration(key as 'short' | 'medium' | 'long')}
+                      className={`flex-1 px-4 py-2 text-sm rounded-lg border transition-all flex items-center justify-center gap-2 ${
+                        duration === key
+                          ? 'bg-white/10 border-white/20 text-white'
+                          : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                      }`}
+                      disabled={isGenerating}
+                    >
+                      <Clock className="w-4 h-4" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Instrumental Toggle */}
+              <div>
+                <button
+                  onClick={() => setInstrumental(!instrumental)}
+                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                    instrumental
+                      ? 'bg-white/10 border-white/20 text-white'
+                      : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                  }`}
+                  disabled={isGenerating}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Instrumental</span>
+                    <div className={`w-10 h-6 rounded-full transition-colors ${
+                      instrumental ? 'bg-white/30' : 'bg-white/10'
+                    }`}>
+                      <div className={`w-4 h-4 rounded-full bg-white mt-1 transition-transform ${
+                        instrumental ? 'ml-5' : 'ml-1'
+                      }`} />
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
+
+            {/* Generate Button */}
+            <div className="p-6 border-t border-white/10">
+              <button
+                onClick={handleCreate}
+                disabled={isGenerating || !description.trim()}
+                className="w-full py-3 px-6 bg-white/10 hover:bg-white/20 disabled:bg-white/5 text-white font-medium rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Music className="w-5 h-5" />
+                    <span>Generate Music</span>
+                  </>
+                )}
+              </button>
+
+              {isGenerating && progress && (
+                <p className="text-xs text-white/40 text-center mt-3">{progress}</p>
+              )}
+            </div>
           </div>
 
-          {/* Songs Grid */}
-          <div className="p-6">
+          {/* Songs Display Area */}
+          <div className="flex-1 overflow-y-auto bg-black p-6">
             {generatedSongs.length === 0 ? (
-              <div className="flex items-center justify-center h-64">
+              <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <p className="text-white/50 mb-2">No songs found</p>
-                  <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/70 hover:bg-white/10 transition-all">
-                    Reset filters
-                  </button>
+                  <Music className="w-16 h-16 text-white/20 mx-auto mb-4" />
+                  <p className="text-white/50 mb-2">No songs generated yet</p>
+                  <p className="text-white/30 text-sm">Create your first song to get started</p>
                 </div>
               </div>
             ) : (
@@ -384,13 +432,15 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-white mb-1 line-clamp-1">{song.title}</h3>
-                        {song.tags && (
-                          <p className="text-xs text-white/50 line-clamp-1">{song.tags}</p>
-                        )}
+                        <h3 className="font-semibold text-white mb-1 line-clamp-2">{song.title}</h3>
+                        <div className="flex items-center gap-2 text-xs text-white/50">
+                          <span>{song.genre}</span>
+                          <span>•</span>
+                          <span>{song.duration}</span>
+                        </div>
                       </div>
                       <button
-                        onClick={() => handleDownload(song, index)}
+                        onClick={() => handleDownload(song)}
                         className="p-2 hover:bg-white/10 rounded-lg transition-all"
                       >
                         <Download className="w-4 h-4" />
@@ -424,35 +474,6 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
           </div>
         </div>
       </div>
-
-      {/* Bottom Player (Optional) */}
-      {currentlyPlaying !== null && generatedSongs[currentlyPlaying] && (
-        <div className="border-t border-white/10 bg-black px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => togglePlay(currentlyPlaying)}
-                className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all"
-              >
-                <Pause className="w-5 h-5" />
-              </button>
-              <div>
-                <h4 className="text-sm font-semibold text-white">
-                  {generatedSongs[currentlyPlaying].title}
-                </h4>
-                {generatedSongs[currentlyPlaying].tags && (
-                  <p className="text-xs text-white/50">
-                    {generatedSongs[currentlyPlaying].tags}
-                  </p>
-                )}
-              </div>
-            </div>
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-all">
-              <Volume2 className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
