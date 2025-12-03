@@ -22,6 +22,7 @@ import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
 import { AudioStudio } from './AudioStudio';
+import { MusicStudio } from './Studios/MusicStudio';
 import { TTSStudio } from './Studios/TTSStudio';
 import { PPTStudio } from './Studios/PPTStudio';
 import { ImageStudio } from './Studios/ImageStudio';
@@ -78,6 +79,7 @@ export const MainChat: React.FC = () => {
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showVoiceGenerator, setShowVoiceGenerator] = useState(false);
   const [showAudioStudio, setShowAudioStudio] = useState(false);
+  const [showMusicStudio, setShowMusicStudio] = useState(false);
   const [selectedVoiceService, setSelectedVoiceService] = useState<'elevenlabs' | 'gemini'>('elevenlabs');
   const [showPPTGenerator, setShowPPTGenerator] = useState(false);
   const [pptTopic, setPPTTopic] = useState('');
@@ -97,7 +99,7 @@ export const MainChat: React.FC = () => {
 
   // Update studio mode context when generators are shown
   useEffect(() => {
-    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showTTSStudio || showAudioStudio;
+    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showTTSStudio || showAudioStudio || showMusicStudio;
     setIsFullscreenGenerator(isAnyGeneratorOpen);
 
     if (showImageGenerator) {
@@ -107,6 +109,9 @@ export const MainChat: React.FC = () => {
       setMode('video');
       setStudioProjectId(activeProjectId);
     } else if (showAudioStudio) {
+      setMode('voice');
+      setStudioProjectId(activeProjectId);
+    } else if (showMusicStudio) {
       setMode('music');
       setStudioProjectId(activeProjectId);
     } else if (showTTSStudio) {
@@ -116,7 +121,7 @@ export const MainChat: React.FC = () => {
       setMode('chat');
       setStudioProjectId(activeProjectId);
     }
-  }, [showImageGenerator, showVideoGenerator, showTTSStudio, showAudioStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
+  }, [showImageGenerator, showVideoGenerator, showTTSStudio, showAudioStudio, showMusicStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
 
   // Load user preferences on mount
   useEffect(() => {
@@ -1009,6 +1014,12 @@ export const MainChat: React.FC = () => {
               }}
               initialPrompt={videoPrompt}
             />
+          ) : showMusicStudio ? (
+            <MusicStudio
+              onClose={() => {
+                setShowMusicStudio(false);
+              }}
+            />
           ) : showAudioStudio ? (
             <AudioStudio
               onClose={() => {
@@ -1084,9 +1095,14 @@ export const MainChat: React.FC = () => {
                       setImagePrompt(initialPrompt || '');
                       setShowImageGenerator(true);
                     }
-                    // Handle audio studio (unified music and voice interface)
-                    else if (mode === 'music' || modelId === 'suno' || modelId === 'elevenlabs' || modelId === 'gemini-tts') {
-                      console.log('🎵 Opening Audio Studio');
+                    // Handle music studio (Suno)
+                    else if (mode === 'music' || modelId === 'suno') {
+                      console.log('🎵 Opening Music Studio');
+                      setShowMusicStudio(true);
+                    }
+                    // Handle voice studio (TTS services)
+                    else if (modelId === 'elevenlabs' || modelId === 'gemini-tts') {
+                      console.log('🎤 Opening Voice Studio');
                       setShowAudioStudio(true);
                     }
                     // Handle PPT generation
