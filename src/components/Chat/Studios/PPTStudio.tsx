@@ -8,9 +8,11 @@ import { deductTokensForRequest } from '../../../lib/tokenService';
 import { getModelCost } from '../../../lib/modelTokenPricing';
 import { supabase } from '../../../lib/supabase';
 import { useStudioMode } from '../../../contexts/StudioModeContext';
+import { createStudioProject, updateProjectState, loadProject, generateStudioProjectName } from '../../../lib/studioProjectService';
 
 interface PPTStudioProps {
   onClose: () => void;
+  projectId?: string;
 }
 
 interface GeneratedPresentation {
@@ -23,7 +25,7 @@ interface GeneratedPresentation {
   projectId: string;
 }
 
-export const PPTStudio: React.FC<PPTStudioProps> = ({ onClose }) => {
+export const PPTStudio: React.FC<PPTStudioProps> = ({ onClose, projectId: initialProjectId }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
   const { projectId: activeProjectId } = useStudioMode();
@@ -32,6 +34,7 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ onClose }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState('');
   const [tokenBalance, setTokenBalance] = useState(0);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProjectId || activeProjectId || null);
   const [presentations, setPresentations] = useState<GeneratedPresentation[]>([]);
 
   useEffect(() => {
@@ -39,6 +42,66 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ onClose }) => {
       loadTokenBalance();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (initialProjectId && user?.uid) {
+      loadExistingProject(initialProjectId);
+    }
+  }, [initialProjectId, user]);
+
+  const loadExistingProject = async (projectId: string) => {
+    try {
+      const result = await loadProject(projectId);
+      if (result.success && result.project) {
+        const state = result.project.session_state || {};
+        setPrompt(state.prompt || '');
+        setPresentations(state.presentations || []);
+        console.log('✅ Loaded existing PPT project:', projectId);
+      }
+    } catch (error) {
+      console.error('Error loading PPT project:', error);
+    }
+  };
+
+  const saveProjectState = async () => {
+    if (!user?.uid) return null;
+
+    const sessionState = {
+      prompt,
+      presentations
+    };
+
+    try {
+      if (currentProjectId) {
+        await updateProjectState({
+          projectId: currentProjectId,
+          sessionState
+        });
+        console.log('✅ PPT project state updated');
+        return currentProjectId;
+      } else {
+        const projectName = generateStudioProjectName('ppt', prompt);
+        const result = await createStudioProject({
+          userId: user.uid,
+          studioType: 'ppt',
+          name: projectName,
+          description: prompt,
+          model: 'ppt-generator',
+          sessionState
+        });
+
+        if (result.success && result.projectId) {
+          setCurrentProjectId(result.projectId);
+          console.log('✅ New PPT project created:', result.projectId);
+          showToast('success', 'Project Saved', 'Your presentation project has been saved');
+          return result.projectId;
+        }
+      }
+    } catch (error) {
+      console.error('Error saving PPT project:', error);
+    }
+    return null;
+  };
 
   const loadTokenBalance = async () => {
     if (!user?.uid) return;
@@ -126,6 +189,7 @@ export const PPTStudio: React.FC<PPTStudioProps> = ({ onClose }) => {
 
       setPresentations(prev => [presentationData, ...prev]);
       showToast('success', 'Presentation Generated!', `Deducted ${tokensToDeduct.toLocaleString()} tokens`);
+      await saveProjectState();
 
       setPrompt('');
       setProgress('');

@@ -26,6 +26,7 @@ const SITE_URL = 'https://kroniq.ai';
 const SITE_NAME = 'KroniQ AI Platform';
 
 const MODEL_MAP: Record<string, string> = {
+  // Custom Model IDs mapped to OpenRouter format
   'gpt-5-chat': 'openai/gpt-5-chat',
   'gpt-5-codex': 'openai/gpt-5-codex',
   'codex-mini': 'openai/codex-mini',
@@ -35,6 +36,7 @@ const MODEL_MAP: Record<string, string> = {
   'nemotron-nano-free': 'nvidia/nemotron-nano-9b-v2:free',
   'qwen-vl-32b': 'qwen/qwen3-vl-32b-instruct',
   'qwen-vl-30b-free': 'qwen/qwen3-vl-30b-a3b-thinking',
+  'qwen3-vl-30b-free': 'qwen/qwen3-vl-30b-a3b-thinking',
   'claude-3-haiku': 'anthropic/claude-3-haiku',
   'claude-haiku-4.5': 'anthropic/claude-haiku-4.5',
   'claude-sonnet': 'anthropic/claude-sonnet-4.5',
@@ -74,7 +76,10 @@ export async function callOpenRouter(
     throw new Error('OpenRouter API key is not configured. Please add VITE_OPENROUTER_API_KEY to your .env file.');
   }
 
-  const openRouterModel = MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast';
+  // If modelId already contains a slash, it's already in OpenRouter format
+  const openRouterModel = modelId.includes('/')
+    ? modelId
+    : (MODEL_MAP[modelId] || MODEL_MAP['grok-4-fast'] || 'x-ai/grok-4-fast');
 
   log('info', `Calling model: ${openRouterModel} (requested: ${modelId})`);
   log('info', `API Key length: ${OPENROUTER_API_KEY.length}`);

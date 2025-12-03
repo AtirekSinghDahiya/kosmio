@@ -919,7 +919,40 @@ export const MainChat: React.FC = () => {
 
   // Select project
   const handleSelectProject = (projectId: string) => {
-    setActiveProjectId(projectId);
+    const project = projects.find(p => p.id === projectId);
+    if (!project) {
+      setActiveProjectId(projectId);
+      return;
+    }
+
+    // Route to appropriate studio based on project type
+    switch (project.type) {
+      case 'image':
+        setShowImageGenerator(true);
+        setImagePrompt('');
+        break;
+      case 'music':
+        setShowMusicStudio(true);
+        setMusicPrompt('');
+        break;
+      case 'voice':
+      case 'tts':
+        setShowVoiceStudio(true);
+        setVoiceoverText('');
+        break;
+      case 'video':
+        setShowVideoGenerator(true);
+        setVideoPrompt('');
+        break;
+      case 'ppt':
+        setShowPPTGenerator(true);
+        setPPTTopic('');
+        break;
+      default:
+        // For chat projects, just set active project
+        setActiveProjectId(projectId);
+        break;
+    }
   };
 
   // Key press
