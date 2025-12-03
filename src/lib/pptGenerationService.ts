@@ -84,6 +84,7 @@ Guidelines:
       }
     } catch (parseError) {
       console.error('❌ Failed to parse AI response:', parseError);
+      console.log('Using fallback PPT generation');
       pptData = createFallbackPPT(topic, slideCount, response);
     }
 
@@ -105,7 +106,9 @@ Guidelines:
 
   } catch (error) {
     console.error('❌ Error generating PPT content:', error);
-    throw new Error('Failed to generate presentation content');
+    console.log('⚠️ Using emergency fallback for PPT');
+    // Return fallback instead of throwing
+    return createFallbackPPT(topic, slideCount, '');
   }
 }
 

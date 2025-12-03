@@ -57,10 +57,12 @@ export async function composeMusicTrack(
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Beatoven API error:', response.status, errorText);
       throw new Error(`Beatoven API error: ${response.status} - ${errorText}`);
     }
 
     const result: BeatovenComposeResponse = await response.json();
+    console.log('Beatoven response:', result);
 
     if (result.status !== 'started' || !result.task_id) {
       throw new Error('Failed to start composition task');
@@ -75,6 +77,10 @@ export async function composeMusicTrack(
     return trackUrl;
   } catch (error: any) {
     console.error('Beatoven composition error:', error);
+    // Check if it's a fetch/network error
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('Network error: Unable to reach Beatoven AI. Please check your connection.');
+    }
     throw new Error(error.message || 'Failed to compose music with Beatoven AI');
   }
 }

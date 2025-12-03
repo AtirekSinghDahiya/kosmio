@@ -4,6 +4,7 @@ import {
   Wand2, Volume2, Settings, History, FileAudio, Search
 } from 'lucide-react';
 import { generateWithElevenLabs, ELEVENLABS_VOICES } from '../../../lib/elevenlabsTTSService';
+import { generateWithGeminiTTS, GEMINI_VOICES } from '../../../lib/geminiTTSService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { createProject, addMessage } from '../../../lib/chatService';
@@ -241,13 +242,25 @@ export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose, projectId: in
       let audioUrl: string;
 
       if (activeTab === 'tts') {
-        audioUrl = await generateWithElevenLabs({
-          text,
-          voice: selectedVoice.id,
-          model: 'eleven_turbo_v2_5',
-          stability,
-          similarity_boost: similarity
-        }, setProgress);
+        try {
+          audioUrl = await generateWithElevenLabs({
+            text,
+            voice: selectedVoice.id,
+            model: 'eleven_turbo_v2_5',
+            stability,
+            similarity_boost: similarity
+          }, setProgress);
+        } catch (elevenLabsError: any) {
+          console.warn('ElevenLabs failed, trying Gemini TTS fallback:', elevenLabsError.message);
+          showToast('info', 'Using Alternative TTS', 'Switching to Gemini TTS');
+
+          // Fallback to Gemini TTS
+          audioUrl = await generateWithGeminiTTS({
+            text,
+            voice: 'nova',
+            speed: 1.0
+          }, setProgress);
+        }
       } else if (activeTab === 'voice-changer') {
         setProgress('Processing voice change...');
         audioUrl = 'data:audio/mp3;base64,placeholder';
