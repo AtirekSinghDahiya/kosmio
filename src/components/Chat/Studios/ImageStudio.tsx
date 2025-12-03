@@ -466,8 +466,8 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
             </div>
 
             {/* Bottom Prompt Input Area */}
-            <div className="border-t border-white/10 bg-black p-4 sm:p-6">
-              <div className="max-w-4xl mx-auto">
+            <div className="border-t border-white/10 bg-black p-4 sm:p-6 lg:p-8">
+              <div className="max-w-5xl mx-auto">
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <textarea
@@ -533,10 +533,10 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                     <div className="flex items-start justify-between mb-2">
                       <span className="font-medium text-sm sm:text-base">{model.name}</span>
                       <div className="flex gap-1 flex-shrink-0">
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/20">
                           {model.speed}
                         </span>
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-white border border-white/20">
                           {model.quality}
                         </span>
                       </div>
