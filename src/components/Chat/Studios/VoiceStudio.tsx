@@ -11,9 +11,11 @@ import { deductTokensForRequest } from '../../../lib/tokenService';
 import { getModelCost } from '../../../lib/modelTokenPricing';
 import { supabase } from '../../../lib/supabase';
 import { useStudioMode } from '../../../contexts/StudioModeContext';
+import { createStudioProject, updateProjectState, loadProject, generateStudioProjectName } from '../../../lib/studioProjectService';
 
 interface VoiceStudioProps {
   onClose: () => void;
+  projectId?: string;
 }
 
 type StudioTab = 'tts' | 'voice-changer' | 'sound-effects' | 'voice-isolator';
@@ -88,7 +90,7 @@ const quickPrompts = [
   { icon: '🧘', text: 'Guide a meditation class' }
 ];
 
-export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose }) => {
+export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose, projectId: initialProjectId }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
   const { projectId: activeProjectId } = useStudioMode();
@@ -103,6 +105,7 @@ export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose }) => {
   const [styleExaggeration, setStyleExaggeration] = useState(0);
   const [removeBackground, setRemoveBackground] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProjectId || activeProjectId || null);
   const [generatedAudios, setGeneratedAudios] = useState<GeneratedAudio[]>([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
   const [progress, setProgress] = useState('');
@@ -118,6 +121,74 @@ export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose }) => {
       loadTokenBalance();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (initialProjectId && user?.uid) {
+      loadExistingProject(initialProjectId);
+    }
+  }, [initialProjectId, user]);
+
+  const loadExistingProject = async (projectId: string) => {
+    try {
+      const result = await loadProject(projectId);
+      if (result.success && result.project) {
+        const state = result.project.session_state || {};
+        setText(state.text || '');
+        setSelectedVoice(state.selectedVoice || ELEVENLABS_VOICES[0]);
+        setSpeed(state.speed || 1.0);
+        setStability(state.stability || 0.5);
+        setSimilarity(state.similarity || 0.75);
+        setGeneratedAudios(state.generatedAudios || []);
+        console.log('✅ Loaded existing voice project:', projectId);
+      }
+    } catch (error) {
+      console.error('Error loading voice project:', error);
+    }
+  };
+
+  const saveProjectState = async () => {
+    if (!user?.uid) return null;
+
+    const sessionState = {
+      text,
+      selectedVoice,
+      speed,
+      stability,
+      similarity,
+      generatedAudios
+    };
+
+    try {
+      if (currentProjectId) {
+        await updateProjectState({
+          projectId: currentProjectId,
+          sessionState
+        });
+        console.log('✅ Voice project state updated');
+        return currentProjectId;
+      } else {
+        const projectName = generateStudioProjectName('voice', text);
+        const result = await createStudioProject({
+          userId: user.uid,
+          studioType: 'voice',
+          name: projectName,
+          description: text,
+          model: 'elevenlabs',
+          sessionState
+        });
+
+        if (result.success && result.projectId) {
+          setCurrentProjectId(result.projectId);
+          console.log('✅ New voice project created:', result.projectId);
+          showToast('success', 'Project Saved', 'Your voice project has been saved');
+          return result.projectId;
+        }
+      }
+    } catch (error) {
+      console.error('Error saving voice project:', error);
+    }
+    return null;
+  };
 
   const loadTokenBalance = async () => {
     if (!user?.uid) return;
@@ -219,6 +290,7 @@ export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose }) => {
 
       setGeneratedAudios(prev => [audioData, ...prev]);
       showToast('success', 'Audio Generated!', `Deducted ${tokensToDeduct.toLocaleString()} tokens`);
+      await saveProjectState();
 
       setText('');
       setProgress('');

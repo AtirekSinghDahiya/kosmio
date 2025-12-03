@@ -12,6 +12,7 @@ import { saveImageToProject } from '../../../lib/contentSaveService';
 import { executeGeneration, getGenerationLimitMessage } from '../../../lib/unifiedGenerationService';
 import { checkGenerationLimit } from '../../../lib/generationLimitsService';
 import { supabase } from '../../../lib/supabase';
+import { createStudioProject, updateProjectState, loadProject, generateStudioProjectName } from '../../../lib/studioProjectService';
 
 interface GeneratedImage {
   id: string;
@@ -25,11 +26,13 @@ interface GeneratedImage {
 interface ImageStudioProps {
   onClose: () => void;
   initialPrompt?: string;
+  projectId?: string;
 }
 
 export const ImageStudio: React.FC<ImageStudioProps> = ({
   onClose,
-  initialPrompt = ''
+  initialPrompt = '',
+  projectId: initialProjectId
 }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
@@ -44,6 +47,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [limitInfo, setLimitInfo] = useState<string>('');
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProjectId || null);
 
   // Settings
   const [selectedModel, setSelectedModel] = useState('nano-banana');
@@ -61,6 +65,12 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [user]);
+
+  useEffect(() => {
+    if (initialProjectId && user?.uid) {
+      loadExistingProject(initialProjectId);
+    }
+  }, [initialProjectId, user]);
 
   const loadData = async () => {
     if (!user?.uid) return;
@@ -91,6 +101,24 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     }
   };
 
+  const loadExistingProject = async (projectId: string) => {
+    try {
+      const result = await loadProject(projectId);
+      if (result.success && result.project) {
+        const state = result.project.session_state || {};
+        setPrompt(state.prompt || '');
+        setCurrentImage(state.currentImage || null);
+        setImageHistory(state.imageHistory || []);
+        setSelectedModel(state.selectedModel || 'nano-banana');
+        setAspectRatio(state.aspectRatio || 'square');
+        setTemperature(state.temperature || 1.0);
+        console.log('✅ Loaded existing project:', projectId);
+      }
+    } catch (error) {
+      console.error('Error loading project:', error);
+    }
+  };
+
   const saveToHistory = (imageUrl: string, generatedPrompt: string) => {
     const newImage: GeneratedImage = {
       id: Date.now().toString(),
@@ -107,6 +135,50 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     if (user?.uid) {
       localStorage.setItem(`image_history_${user.uid}`, JSON.stringify(updated));
     }
+  };
+
+  const saveProjectState = async () => {
+    if (!user?.uid) return null;
+
+    const sessionState = {
+      prompt,
+      currentImage,
+      imageHistory,
+      selectedModel,
+      aspectRatio,
+      temperature
+    };
+
+    try {
+      if (currentProjectId) {
+        await updateProjectState({
+          projectId: currentProjectId,
+          sessionState
+        });
+        console.log('✅ Project state updated');
+        return currentProjectId;
+      } else {
+        const projectName = generateStudioProjectName('image', prompt);
+        const result = await createStudioProject({
+          userId: user.uid,
+          studioType: 'image',
+          name: projectName,
+          description: prompt,
+          model: selectedModel,
+          sessionState
+        });
+
+        if (result.success && result.projectId) {
+          setCurrentProjectId(result.projectId);
+          console.log('✅ New project created:', result.projectId);
+          showToast('success', 'Project Saved', 'Your image project has been saved');
+          return result.projectId;
+        }
+      }
+    } catch (error) {
+      console.error('Error saving project:', error);
+    }
+    return null;
   };
 
   const deleteFromHistory = (id: string) => {
@@ -199,6 +271,7 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
       showToast('success', 'Image Generated!', 'Your image is ready');
       await loadData();
+      await saveProjectState();
     } else if (result.limitReached) {
       showToast('error', 'Limit Reached', result.error || 'Generation limit exceeded');
     } else if (result.insufficientTokens) {

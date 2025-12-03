@@ -8,9 +8,12 @@ import { deductTokensForRequest } from '../../../lib/tokenService';
 import { getModelCost } from '../../../lib/modelTokenPricing';
 import { supabase } from '../../../lib/supabase';
 import { useStudioMode } from '../../../contexts/StudioModeContext';
+import { createStudioProject, updateProjectState, loadProject, generateStudioProjectName } from '../../../lib/studioProjectService';
+import { executeGeneration } from '../../../lib/unifiedGenerationService';
 
 interface MusicStudioProps {
   onClose: () => void;
+  projectId?: string;
 }
 
 interface GeneratedSong {
@@ -21,7 +24,7 @@ interface GeneratedSong {
   projectId: string;
 }
 
-export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
+export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose, projectId: initialProjectId }) => {
   const { showToast } = useToast();
   const { user } = useAuth();
 
@@ -31,6 +34,7 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
   const [instrumental, setInstrumental] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { projectId: activeProjectId } = useStudioMode();
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(initialProjectId || activeProjectId || null);
   const [generatedSongs, setGeneratedSongs] = useState<GeneratedSong[]>([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState<number | null>(null);
   const [progress, setProgress] = useState('');
@@ -63,6 +67,29 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (initialProjectId && user?.uid) {
+      loadExistingProject(initialProjectId);
+    }
+  }, [initialProjectId, user]);
+
+  const loadExistingProject = async (projectId: string) => {
+    try {
+      const result = await loadProject(projectId);
+      if (result.success && result.project) {
+        const state = result.project.session_state || {};
+        setDescription(state.description || '');
+        setSelectedGenre(state.selectedGenre || '');
+        setDuration(state.duration || 'medium');
+        setInstrumental(state.instrumental || false);
+        setGeneratedSongs(state.generatedSongs || []);
+        console.log('✅ Loaded existing music project:', projectId);
+      }
+    } catch (error) {
+      console.error('Error loading music project:', error);
+    }
+  };
+
   const loadTokenBalance = async () => {
     if (!user?.uid) return;
 
@@ -75,6 +102,49 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
     if (profile) {
       setTokenBalance(profile.tokens_balance || 0);
     }
+  };
+
+  const saveProjectState = async () => {
+    if (!user?.uid) return null;
+
+    const sessionState = {
+      description,
+      selectedGenre,
+      duration,
+      instrumental,
+      generatedSongs
+    };
+
+    try {
+      if (currentProjectId) {
+        await updateProjectState({
+          projectId: currentProjectId,
+          sessionState
+        });
+        console.log('✅ Music project state updated');
+        return currentProjectId;
+      } else {
+        const projectName = generateStudioProjectName('music', description);
+        const result = await createStudioProject({
+          userId: user.uid,
+          studioType: 'music',
+          name: projectName,
+          description: description,
+          model: 'suno',
+          sessionState
+        });
+
+        if (result.success && result.projectId) {
+          setCurrentProjectId(result.projectId);
+          console.log('✅ New music project created:', result.projectId);
+          showToast('success', 'Project Saved', 'Your music project has been saved');
+          return result.projectId;
+        }
+      }
+    } catch (error) {
+      console.error('Error saving music project:', error);
+    }
+    return null;
   };
 
 
@@ -148,6 +218,7 @@ export const MusicStudio: React.FC<MusicStudioProps> = ({ onClose }) => {
 
       setGeneratedSongs(prev => [songData, ...prev]);
       showToast('success', 'Music Generated!', `Deducted ${tokensToDeduct.toLocaleString()} tokens`);
+      await saveProjectState();
       setDescription('');
       setProgress('');
     } catch (error: any) {
