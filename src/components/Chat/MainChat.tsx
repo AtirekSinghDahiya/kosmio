@@ -22,9 +22,9 @@ import { CompactModelSelector } from './CompactModelSelector';
 import { ChatInput } from './ChatInput';
 import { SimpleImageGenerator } from './SimpleImageGenerator';
 import { SimpleVideoGenerator } from './SimpleVideoGenerator';
-import { VoiceoverGenerator } from './VoiceoverGenerator';
 import { AudioStudio } from './AudioStudio';
-import { PPTGenerator } from './PPTGenerator';
+import { TTSStudio } from './Studios/TTSStudio';
+import { PPTStudio } from './Studios/PPTStudio';
 // Studio components disabled
 // import { PPTStudio } from '../Studio/PPTStudio';
 // import { ImageStudioView } from '../Studio/ImageStudioView';
@@ -74,7 +74,7 @@ export const MainChat: React.FC = () => {
   const [imagePrompt, setImagePrompt] = useState('');
   const [showVideoGenerator, setShowVideoGenerator] = useState(false);
   const [videoPrompt, setVideoPrompt] = useState('');
-  const [showVoiceoverGenerator, setShowVoiceoverGenerator] = useState(false);
+  const [showTTSStudio, setShowTTSStudio] = useState(false);
   const [voiceoverText, setVoiceoverText] = useState('');
   const [showVoiceGenerator, setShowVoiceGenerator] = useState(false);
   const [showAudioStudio, setShowAudioStudio] = useState(false);
@@ -97,7 +97,7 @@ export const MainChat: React.FC = () => {
 
   // Update studio mode context when generators are shown
   useEffect(() => {
-    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showVoiceoverGenerator || showAudioStudio;
+    const isAnyGeneratorOpen = showImageGenerator || showVideoGenerator || showTTSStudio || showAudioStudio;
     setIsFullscreenGenerator(isAnyGeneratorOpen);
 
     if (showImageGenerator) {
@@ -109,14 +109,14 @@ export const MainChat: React.FC = () => {
     } else if (showAudioStudio) {
       setMode('music');
       setStudioProjectId(activeProjectId);
-    } else if (showVoiceoverGenerator) {
+    } else if (showTTSStudio) {
       setMode('voice');
       setStudioProjectId(activeProjectId);
     } else {
       setMode('chat');
       setStudioProjectId(activeProjectId);
     }
-  }, [showImageGenerator, showVideoGenerator, showVoiceoverGenerator, showAudioStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
+  }, [showImageGenerator, showVideoGenerator, showTTSStudio, showAudioStudio, activeProjectId, setMode, setStudioProjectId, setIsFullscreenGenerator]);
 
   // Load user preferences on mount
   useEffect(() => {
@@ -300,7 +300,7 @@ export const MainChat: React.FC = () => {
       }
 
       setVoiceoverText(cleanText || textToSend);
-      setShowVoiceoverGenerator(true);
+      setShowTTSStudio(true);
 
       return;
     }
@@ -1015,16 +1015,16 @@ export const MainChat: React.FC = () => {
                 setShowAudioStudio(false);
               }}
             />
-          ) : showVoiceGenerator ? (
-            <VoiceoverGenerator
+          ) : showTTSStudio ? (
+            <TTSStudio
               onClose={() => {
-                setShowVoiceGenerator(false);
+                setShowTTSStudio(false);
                 setVoiceoverText('');
               }}
               initialText={voiceoverText}
             />
           ) : showPPTGenerator ? (
-            <PPTGenerator
+            <PPTStudio
               onClose={() => {
                 setShowPPTGenerator(false);
                 setPPTTopic('');
