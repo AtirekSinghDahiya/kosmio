@@ -455,81 +455,106 @@ export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose }) => {
 
           {/* Sound Effects Tab */}
           {activeTab === 'sound-effects' && (
-            <div className="flex-1 flex flex-col">
-              {/* Tabs */}
-              <div className="border-b border-white/10 px-6">
-                <div className="flex items-center gap-6">
-                  <button className="px-4 py-3 border-b-2 border-white text-sm font-medium">
-                    Explore
-                  </button>
-                  <button className="px-4 py-3 border-b-2 border-transparent text-white/50 hover:text-white text-sm font-medium transition-colors">
-                    History
-                  </button>
-                  <button className="px-4 py-3 border-b-2 border-transparent text-white/50 hover:text-white text-sm font-medium transition-colors">
-                    Favorites
-                  </button>
-                </div>
-              </div>
-
-              {/* Categories */}
-              <div className="p-6">
-                <div className="flex items-center gap-4 overflow-x-auto pb-4 mb-6">
-                  {soundEffectCategories.map((category) => (
-                    <button
-                      key={category.id}
-                      className="flex-shrink-0 group"
-                    >
-                      <div className={`w-40 h-24 bg-gradient-to-br ${category.gradient} rounded-xl p-4 flex items-end transition-transform hover:scale-105`}>
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{category.icon}</span>
-                          <span className="text-white font-semibold">{category.name}</span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Search */}
-                <div className="mb-6">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
-                    <input
-                      type="text"
-                      value={soundSearch}
-                      onChange={(e) => setSoundSearch(e.target.value)}
-                      placeholder="Search sound effects..."
-                      className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                    />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Content Area */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="max-w-4xl mx-auto p-8">
+                  {/* Categories Grid */}
+                  <div className="mb-8">
+                    <h3 className="text-sm font-semibold text-white/70 mb-4 uppercase tracking-wide">Browse Categories</h3>
+                    <div className="grid grid-cols-4 gap-3">
+                      {soundEffectCategories.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => setSoundSearch(category.name.toLowerCase())}
+                          className="group relative overflow-hidden rounded-xl aspect-[4/3]"
+                        >
+                          <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-90 group-hover:opacity-100 transition-opacity`} />
+                          <div className="relative h-full flex flex-col items-center justify-center gap-2 p-4">
+                            <span className="text-3xl">{category.icon}</span>
+                            <span className="text-white font-semibold text-sm">{category.name}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Generation Input */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                  <textarea
-                    value={soundSearch}
-                    onChange={(e) => setSoundSearch(e.target.value)}
-                    placeholder="Describe a sound..."
-                    className="w-full h-24 px-4 py-3 bg-transparent border-none text-white placeholder-white/30 focus:outline-none resize-none"
-                  />
+                  {/* Main Generation Area */}
+                  <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    {/* Prompt Input */}
+                    <div className="p-6 border-b border-white/10">
+                      <label className="block text-sm font-semibold text-white mb-3">
+                        Describe your sound effect
+                      </label>
+                      <textarea
+                        value={soundSearch}
+                        onChange={(e) => setSoundSearch(e.target.value)}
+                        placeholder="e.g., A deep drum hit with reverb, footsteps on wooden floor, dramatic whoosh transition..."
+                        className="w-full h-32 px-4 py-3 bg-black/30 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-white/20 focus:bg-black/40 transition-all resize-none"
+                        disabled={isGenerating}
+                      />
+                    </div>
 
-                  <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-4">
-                      <button className="text-sm text-white/50 hover:text-white transition-colors">
-                        Off
-                      </button>
-                      <button className="text-sm text-white/50 hover:text-white transition-colors">
-                        Auto
-                      </button>
-                      <button className="text-sm text-white/50 hover:text-white transition-colors">
-                        30%
-                      </button>
+                    {/* Duration Selection */}
+                    <div className="px-6 py-4 border-b border-white/10">
+                      <label className="block text-sm font-semibold text-white mb-3">Duration</label>
+                      <div className="flex gap-2">
+                        <button className="flex-1 px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium transition-all">
+                          <div className="flex items-center justify-center gap-2">
+                            <Volume2 className="w-4 h-4" />
+                            <span>0.5s</span>
+                          </div>
+                        </button>
+                        <button className="flex-1 px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium transition-all">
+                          <div className="flex items-center justify-center gap-2">
+                            <Volume2 className="w-4 h-4" />
+                            <span>1s</span>
+                          </div>
+                        </button>
+                        <button className="flex-1 px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium transition-all">
+                          <div className="flex items-center justify-center gap-2">
+                            <Volume2 className="w-4 h-4" />
+                            <span>2s</span>
+                          </div>
+                        </button>
+                        <button className="flex-1 px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-medium transition-all">
+                          <div className="flex items-center justify-center gap-2">
+                            <Volume2 className="w-4 h-4" />
+                            <span>5s</span>
+                          </div>
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm text-white/50">200 / 10,000</span>
-                      <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all">
-                        <Upload className="w-5 h-5" />
+
+                    {/* Generate Button */}
+                    <div className="p-6">
+                      <button
+                        onClick={handleGenerate}
+                        disabled={isGenerating || !soundSearch.trim()}
+                        className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-white/5 disabled:to-white/5 text-white font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-blue-500/20"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader className="w-5 h-5 animate-spin" />
+                            <span>Generating sound effect...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-5 h-5" />
+                            <span>Generate Sound Effect</span>
+                          </>
+                        )}
                       </button>
+                      {isGenerating && progress && (
+                        <p className="text-xs text-white/40 text-center mt-3">{progress}</p>
+                      )}
                     </div>
+                  </div>
+
+                  {/* Info Footer */}
+                  <div className="mt-6 flex items-center justify-between text-sm text-white/50">
+                    <span>{tokenBalance.toLocaleString()} tokens remaining</span>
+                    <span>Powered by AI sound generation</span>
                   </div>
                 </div>
               </div>
