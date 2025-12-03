@@ -8,6 +8,10 @@ import { LandingRouter } from './components/Landing/LandingRouter';
 import { LoginPage } from './components/Auth/LoginPage';
 import { Sidebar } from './components/Layout/Sidebar';
 import { FloatingNavbar } from './components/Layout/FloatingNavbar';
+import { CosmicBackground } from './components/Layout/CosmicBackground';
+import { MainChat } from './components/Chat/MainChat';
+import { UnifiedStudioChat } from './components/Chat/UnifiedStudioChat';
+import { AudioStudio } from './components/Chat/AudioStudio';
 import { ProjectsView } from './components/Projects/ProjectsView';
 import { StudioRouter } from './components/Studios/StudioRouter';
 import { BillingView } from './components/Billing/BillingView';
@@ -19,17 +23,14 @@ import { BackupView } from './components/Backup/BackupView';
 import { CookieConsent } from './components/Common/CookieConsent';
 import { BugReportButton } from './components/Common/BugReportButton';
 import { ErrorBoundary } from './components/Common/ErrorBoundary';
+import { ComingSoon } from './components/Common/ComingSoon';
 import { StudioModeProvider } from './contexts/StudioModeContext';
-
-interface Project {
-  id: string;
-  name: string;
-  type: string;
-}
+import { Project } from './types';
 
 const MainApp: React.FC = () => {
   const { currentUser, userData } = useAuth();
-  const { currentView, navigateTo } = useNavigation();
+  const { currentView, activeProject, navigateTo } = useNavigation();
+  const { theme } = useTheme();
   const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
