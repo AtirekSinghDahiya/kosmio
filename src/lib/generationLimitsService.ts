@@ -93,13 +93,13 @@ export function getGenerationLimitText(type: GenerationType, userType: 'free' | 
 
   switch (type) {
     case 'image':
-      return '5 images per month';
+      return '3 images per month';
     case 'video':
       return '1 video per month';
     case 'song':
-      return '1 song per month';
+      return '2 songs per month';
     case 'tts':
-      return '2 TTS per month';
+      return '3 TTS per month';
     case 'ppt':
       return '1 PPT per month';
     default:
