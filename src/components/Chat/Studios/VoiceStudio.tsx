@@ -646,22 +646,6 @@ export const VoiceStudio: React.FC<VoiceStudioProps> = ({ onClose }) => {
                   </button>
                 </div>
 
-                {/* Announcement Banner */}
-                <div className="bg-gradient-to-br from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-xl p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="bg-gradient-to-br from-green-400 to-blue-500 w-12 h-12 rounded-lg flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-white" />
-                    </div>
-                    <button className="text-white/50 hover:text-white">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <h3 className="font-semibold mb-1">Introducing Image & Video generation</h3>
-                  <p className="text-sm text-white/70">
-                    Generate images, videos and lipsync with your favorite models in a seamless flow.
-                  </p>
-                </div>
-
                 {/* Voice Selector */}
                 <div>
                   <label className="block text-sm font-semibold mb-3">Voice</label>

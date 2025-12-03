@@ -162,9 +162,10 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     }
 
     setIsGenerating(true);
-    setGeneratedImageUrl(null);
+    setCurrentImage(null);
 
-    const result = await executeGeneration({
+    try {
+      const result = await executeGeneration({
       userId: user.uid,
       generationType: 'image',
       modelId: selectedModel,
@@ -205,9 +206,13 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
     } else {
       showToast('error', 'Generation Failed', result.error || 'Failed to generate image');
     }
-
-    setIsGenerating(false);
-    setProgress('');
+    } catch (error) {
+      console.error('Error generating image:', error);
+      showToast('error', 'Generation Failed', error instanceof Error ? error.message : 'Failed to generate image');
+    } finally {
+      setIsGenerating(false);
+      setProgress('');
+    }
   };
 
   const handleDownload = (url: string, filename?: string) => {
