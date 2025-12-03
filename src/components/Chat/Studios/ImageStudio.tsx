@@ -219,9 +219,9 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
   };
 
   return (
-    <div className="h-screen flex bg-black text-white overflow-hidden">
-      {/* Left Sidebar - History */}
-      <div className={`${showSidebar ? 'w-full sm:w-72' : 'w-0'} border-r border-white/10 flex-shrink-0 transition-all duration-300 overflow-hidden fixed lg:relative z-30 h-full bg-black`}>
+    <div className="h-screen flex flex-col bg-black text-white overflow-hidden">
+      {/* History Sidebar - Hidden, using main sidebar instead */}
+      <div className="hidden">
         <div className="h-full flex flex-col">
           {/* Sidebar Header */}
           <div className="p-4 border-b border-white/10">
@@ -315,14 +315,6 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
         {/* Top Bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10 bg-black">
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            {!showSidebar && (
-              <button
-                onClick={() => setShowSidebar(true)}
-                className="p-2 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-            )}
             <div className="min-w-0">
               <h1 className="text-base sm:text-xl font-bold truncate">Image Generation Studio</h1>
               <p className="text-xs sm:text-sm text-white/50 truncate">{limitInfo}</p>
@@ -346,8 +338,10 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Canvas */}
-          <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black relative overflow-auto">
+          {/* Canvas - Center area with prompt at bottom */}
+          <div className="flex-1 flex flex-col bg-black relative overflow-hidden">
+            {/* Image Display Area */}
+            <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-auto">
             {isGenerating ? (
               <div className="flex flex-col items-center gap-6">
                 <div className="relative">
@@ -408,30 +402,85 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="text-center max-w-md px-4">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto mb-4 sm:mb-6 rounded-full bg-gradient-to-br from-[#00FFF0]/20 to-[#8A2BE2]/20 border border-[#00FFF0]/30 flex items-center justify-center">
-                  <Wand2 className="w-12 h-12 sm:w-16 sm:h-16 text-[#00FFF0]/60" />
+              <div className="text-center max-w-2xl px-4">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-6 sm:mb-8 rounded-2xl bg-gradient-to-br from-[#00FFF0]/10 to-[#8A2BE2]/10 border border-[#00FFF0]/20 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#00FFF0]/5 to-transparent animate-pulse" />
+                  <Wand2 className="w-16 h-16 sm:w-20 sm:h-20 text-[#00FFF0]/80 relative z-10" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">Create Something Amazing</h3>
-                <p className="text-sm sm:text-base text-white/50 mb-6">
-                  Enter a detailed description and let KroniQ AI bring your vision to life
+                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">Create Your Vision</h3>
+                <p className="text-sm sm:text-base text-white/50 mb-8 max-w-lg mx-auto">
+                  Describe your image in the prompt below. Be detailed for best results - include style, mood, lighting, and subject details.
                 </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {['Sunset over mountains', 'Futuristic cityscape', 'Abstract art'].map((example) => (
-                    <button
-                      key={example}
-                      onClick={() => setPrompt(example)}
-                      className="px-3 py-1.5 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-full transition-all"
-                    >
-                      {example}
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  <div className="text-xs sm:text-sm text-white/40 font-medium mb-3">Try these examples:</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      'A serene mountain landscape at sunset with golden light',
+                      'Futuristic cityscape with neon lights and flying cars',
+                      'Abstract geometric art in cyan and purple gradients',
+                      'Professional portrait in natural lighting'
+                    ].map((example) => (
+                      <button
+                        key={example}
+                        onClick={() => setPrompt(example)}
+                        className="px-4 py-3 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#00FFF0]/30 rounded-lg transition-all text-left"
+                      >
+                        <span className="text-[#00FFF0] mr-2">→</span>
+                        {example}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
+            </div>
+
+            {/* Bottom Prompt Input Area */}
+            <div className="border-t border-white/10 bg-black p-4 sm:p-6">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="Describe your image in detail... e.g., 'A serene mountain landscape at sunset with snow-capped peaks'"
+                      className="w-full h-20 sm:h-16 px-4 py-3 bg-white/5 border border-white/10 focus:border-[#00FFF0]/40 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
+                      disabled={isGenerating}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          handleGenerate();
+                        }
+                      }}
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-white/40">{prompt.length} / 1000 characters</span>
+                      <span className="text-xs text-white/40">Ctrl+Enter to generate</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating || !prompt.trim()}
+                    className="flex-shrink-0 flex items-center justify-center gap-2 px-6 py-3 bg-[#00FFF0] hover:bg-[#00FFF0]/90 disabled:bg-white/5 text-black font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed h-20 sm:h-16"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader className="w-5 h-5 animate-spin" />
+                        <span className="hidden sm:inline">Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-5 h-5" />
+                        <span className="hidden sm:inline">Generate</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Right Settings Panel */}
+          {/* Right Settings Panel - Compact */}
           <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col bg-black overflow-y-auto max-h-[50vh] lg:max-h-none">
             {/* Model Selection */}
             <div className="p-4 sm:p-6 border-b border-white/10">
@@ -540,39 +589,39 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
               )}
             </div>
 
-            {/* Prompt Input */}
-            <div className="p-4 sm:p-6 mt-auto">
-              <label className="text-sm font-semibold text-white mb-3 block">
-                Describe your image
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="A serene mountain landscape at sunset, with snow-capped peaks reflecting golden light, pine trees in the foreground, and a crystal clear lake..."
-                className="w-full h-24 sm:h-32 px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border border-white/10 focus:border-[#00FFF0]/40 rounded-lg text-white text-sm placeholder-white/30 focus:outline-none resize-none transition-colors"
-                disabled={isGenerating}
-              />
-              <div className="flex justify-between items-center mt-2 mb-4">
-                <span className="text-xs text-white/40">{prompt.length} / 1000 characters</span>
-              </div>
-
-              <button
-                onClick={handleGenerate}
-                disabled={isGenerating || !prompt.trim()}
-                className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-[#00FFF0] hover:bg-[#00FFF0]/90 disabled:bg-white/5 text-black font-semibold rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
+            {/* Quick Actions */}
+            <div className="p-4 sm:p-6 border-t border-white/10">
+              <div className="text-sm font-semibold text-white mb-3">Quick Actions</div>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setPrompt('');
+                    setCurrentImage(null);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Generation
+                </button>
+                {currentImage && (
                   <>
-                    <Loader className="w-5 h-5 animate-spin" />
-                    <span>Generating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    <span>Generate Image</span>
+                    <button
+                      onClick={() => handleDownload(currentImage)}
+                      className="w-full flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all text-sm"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download Image
+                    </button>
+                    <button
+                      onClick={() => copyPrompt(prompt)}
+                      className="w-full flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all text-sm"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy Prompt
+                    </button>
                   </>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         </div>
