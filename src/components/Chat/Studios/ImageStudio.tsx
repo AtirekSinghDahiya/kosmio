@@ -4,8 +4,7 @@ import {
   Image as ImageIcon, ChevronDown, Settings, Sparkles,
   History, Grid, Maximize2, Copy
 } from 'lucide-react';
-import { generateWithImagen } from '../../../lib/googleImagenService';
-import { generateWithNanoBanana } from '../../../lib/geminiNanoBananaService';
+import { generateImage } from '../../../lib/imageService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { saveImageToProject } from '../../../lib/contentSaveService';

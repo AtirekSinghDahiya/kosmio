@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, Wand2, Loader, ChevronDown, ChevronUp } from 'lucide-react';
-import { generateWithImagen } from '../../lib/googleImagenService';
-import { generateWithNanoBanana } from '../../lib/geminiNanoBananaService';
+import { generateImage } from '../../lib/imageService';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { saveImageToProject } from '../../lib/contentSaveService';

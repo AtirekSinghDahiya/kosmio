@@ -4,7 +4,7 @@ import {
   ChevronDown, Plus, Wand2
 } from 'lucide-react';
 import { generateWithVeo3 } from '../../lib/googleVeo3Service';
-import { generateWithSora2 } from '../../lib/openaiSora2Service';
+import { generateVideo } from '../../lib/videoService';
 import { generateWithVeo2 } from '../../lib/veo2Service';
 import { generateWithHailuo } from '../../lib/minimaxHailuoService';
 import { useToast } from '../../contexts/ToastContext';
@@ -34,7 +34,7 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
   const [limitInfo, setLimitInfo] = useState<string>('');
 
   // Settings
-  const [selectedModel, setSelectedModel] = useState<'veo-2' | 'veo-3' | 'sora-2' | 'hailuo'>('veo-2');
+  const [selectedModel, setSelectedModel] = useState<'veo-2' | 'veo-3' | 'kling-video' | 'hailuo'>('kling-video');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const [duration, setDuration] = useState<8 | 24>(8);
   const [resolution, setResolution] = useState<'720p' | '1080p'>('720p');
@@ -80,7 +80,7 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
     const providerMap = {
       'veo-2': 'veo-2',
       'veo-3': 'google-veo',
-      'sora-2': 'openai-sora',
+      'kling-video': 'kie-ai',
       'hailuo': 'minimax-hailuo'
     };
 
@@ -109,12 +109,14 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
           resolution: '768P'
         }, setProgress);
       } else {
-        return await generateWithSora2({
+        // Kling Video via Kie AI
+        setProgress('Generating video with Kie AI...');
+        const result = await generateVideo({
           prompt,
-          aspectRatio: aspectRatioMap,
-          duration,
-          resolution
-        }, setProgress);
+          model: 'kling-video',
+          duration: 5
+        });
+        return result.url;
       }
     });
 
@@ -341,10 +343,10 @@ export const SimpleVideoGenerator: React.FC<SimpleVideoGeneratorProps> = ({
               <div className="text-sm font-semibold text-white mb-3">AI Model</div>
               <div className="space-y-2">
                 {[
+                  { id: 'kling-video', name: 'Kling Video', desc: 'High-quality via Kie AI', badge: 'Premium' },
                   { id: 'veo-2', name: 'Veo 2', desc: 'Fast and reliable', badge: 'Fast' },
                   { id: 'veo-3', name: 'Veo 3.1', desc: 'Latest Google model', badge: 'Premium' },
-                  { id: 'hailuo', name: 'Hailuo', desc: 'High quality', badge: 'Premium' },
-                  { id: 'sora-2', name: 'Sora 2', desc: 'OpenAI advanced', badge: 'Premium' }
+                  { id: 'hailuo', name: 'Hailuo', desc: 'High quality', badge: 'Premium' }
                 ].map((model) => (
                   <button
                     key={model.id}

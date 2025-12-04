@@ -210,8 +210,7 @@ export const AI_MODELS: AIModel[] = [
   { id: 'allenai/olmo-3-7b-instruct', name: 'Olmo 3 7B Instruct', provider: 'AllenAI', description: 'Instruction-following model', category: 'chat', tokensPerMessage: 1500, tier: 'FREE' },
   { id: 'allenai/olmo-3-7b-think', name: 'Olmo 3 7B Think', provider: 'AllenAI', description: 'Reasoning model with thinking process', category: 'chat', tokensPerMessage: 2000, tier: 'BUDGET' },
 
-  // Google Gemini Models (2)
-  { id: 'google/gemini-3-pro-image-preview', name: 'Nano Banana Pro (Gemini 3 Image)', provider: 'Google', description: 'Image generation and vision preview', category: 'chat', tokensPerMessage: 20000, tier: 'PREMIUM' },
+  // Google Gemini Models (1)
   { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', provider: 'Google', description: 'Latest Gemini with reasoning tokens', category: 'chat', tokensPerMessage: 15000, tier: 'PREMIUM' },
 
   // xAI Grok Models (2)
@@ -228,11 +227,22 @@ export const AI_MODELS: AIModel[] = [
   { id: 'openai/gpt-5.1-codex', name: 'GPT-5.1 Codex', provider: 'OpenAI', description: 'Code-specialized GPT-5.1', category: 'code', tokensPerMessage: 18000, tier: 'PREMIUM' },
   { id: 'openai/gpt-5.1-codex-mini', name: 'GPT-5.1 Codex Mini', provider: 'OpenAI', description: 'Fast code model', category: 'code', tokensPerMessage: 8000, tier: 'MID' },
 
-  // Image/Video/Audio Models (5)
-  { id: 'dall-e-3', name: 'DALL-E 3', provider: 'OpenAI', description: 'High quality images', category: 'image', tokensPerMessage: 50000, tier: 'PREMIUM' },
-  { id: 'stable-diffusion-xl', name: 'Stable Diffusion XL', provider: 'Stability AI', description: 'Open source image gen', category: 'image', tokensPerMessage: 25000, tier: 'MID' },
-  { id: 'firefly', name: 'Firefly', provider: 'Adobe', description: 'Commercial safe images', category: 'image', tokensPerMessage: 40000, tier: 'PREMIUM' },
-  { id: 'sora', name: 'Sora', provider: 'OpenAI', description: 'Text to video', category: 'video', tokensPerMessage: 150000, tier: 'PREMIUM' },
+  // Image Models via Kie AI (4)
+  { id: 'flux-pro', name: 'Flux Pro', provider: 'Kie AI', description: 'High-quality image generation', category: 'image', tokensPerMessage: 30000, tier: 'MID' },
+  { id: 'flux-dev', name: 'Flux Dev', provider: 'Kie AI', description: 'Fast development model', category: 'image', tokensPerMessage: 20000, tier: 'BUDGET' },
+  { id: 'sdxl', name: 'Stable Diffusion XL', provider: 'Kie AI', description: 'Popular open-source model', category: 'image', tokensPerMessage: 15000, tier: 'BUDGET' },
+  { id: 'dalle-3', name: 'DALL-E 3', provider: 'Kie AI', description: 'OpenAI image model', category: 'image', tokensPerMessage: 50000, tier: 'PREMIUM' },
+
+  // Video Models via Kie AI (3)
+  { id: 'kling-video', name: 'Kling Video', provider: 'Kie AI', description: 'High-quality video generation', category: 'video', tokensPerMessage: 100000, tier: 'PREMIUM' },
+  { id: 'runway-gen3', name: 'Runway Gen-3', provider: 'Kie AI', description: 'Professional video generation', category: 'video', tokensPerMessage: 120000, tier: 'PREMIUM' },
+  { id: 'luma-dream-machine', name: 'Luma Dream Machine', provider: 'Kie AI', description: 'Cinematic video generation', category: 'video', tokensPerMessage: 110000, tier: 'PREMIUM' },
+
+  // Music Models via Kie AI (2)
+  { id: 'suno-v3.5', name: 'Suno v3.5', provider: 'Kie AI', description: 'Latest Suno music model', category: 'audio', tokensPerMessage: 40000, tier: 'MID' },
+  { id: 'suno-v3', name: 'Suno v3', provider: 'Kie AI', description: 'Stable music generation', category: 'audio', tokensPerMessage: 35000, tier: 'MID' },
+
+  // Voice Models (1)
   { id: 'eleven-labs', name: 'ElevenLabs', provider: 'ElevenLabs', description: 'Natural voice synthesis', category: 'audio', tokensPerMessage: 10000, tier: 'MID' },
 ];
 
