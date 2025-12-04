@@ -130,10 +130,17 @@ export const ImprovedImageStudio: React.FC<ImageStudioProps> = ({
       onProgress: setProgress
     }, async () => {
       setProgress('Generating image with Kie AI...');
-      const imageResult = await generateImage({
-        prompt,
-        model: selectedModel
-      });
+
+      const imageResult = await Promise.race([
+        generateImage({
+          prompt,
+          model: selectedModel
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Image generation timeout after 5 minutes')), 300000)
+        )
+      ]);
+
       return imageResult.url;
     });
 

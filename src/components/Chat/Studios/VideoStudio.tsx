@@ -3,10 +3,7 @@ import {
   X, Video as VideoIcon, Loader, Download, Play, Sparkles,
   Settings, ChevronDown, Plus, Wand2
 } from 'lucide-react';
-import { generateWithVeo3 } from '../../../lib/googleVeo3Service';
-import { generateWithSora2 } from '../../../lib/openaiSora2Service';
-import { generateWithVeo2 } from '../../../lib/veo2Service';
-import { generateWithHailuo } from '../../../lib/minimaxHailuoService';
+import { generateVideo } from '../../../lib/videoService';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { saveVideoToProject } from '../../../lib/contentSaveService';
@@ -34,7 +31,7 @@ export const VideoStudio: React.FC<VideoStudioProps> = ({
   const [limitInfo, setLimitInfo] = useState<string>('');
 
   // Settings
-  const [selectedModel, setSelectedModel] = useState<'veo-2' | 'veo-3' | 'sora-2' | 'hailuo'>('veo-2');
+  const [selectedModel, setSelectedModel] = useState<'veo3_fast' | 'runway-gen3'>('veo3_fast');
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
   const [duration, setDuration] = useState<8 | 24>(8);
   const [resolution, setResolution] = useState<'720p' | '1080p'>('720p');
@@ -77,45 +74,28 @@ export const VideoStudio: React.FC<VideoStudioProps> = ({
     setIsGenerating(true);
     setGeneratedVideoUrl(null);
 
-    const providerMap = {
-      'veo-2': 'veo-2',
-      'veo-3': 'google-veo',
-      'sora-2': 'openai-sora',
-      'hailuo': 'minimax-hailuo'
-    };
-
     const result = await executeGeneration({
       userId: user.uid,
       generationType: 'video',
       modelId: selectedModel,
-      provider: providerMap[selectedModel],
+      provider: 'kie-ai',
       onProgress: setProgress
     }, async () => {
-      const aspectRatioMap = aspectRatio === '16:9' ? 'landscape' : 'portrait';
+      setProgress('Generating video with Kie AI...');
 
-      if (selectedModel === 'veo-2') {
-        return await generateWithVeo2({ prompt }, setProgress);
-      } else if (selectedModel === 'veo-3') {
-        return await generateWithVeo3({
+      const videoResult = await Promise.race([
+        generateVideo({
           prompt,
-          aspectRatio: aspectRatioMap,
-          duration,
-          resolution
-        }, setProgress);
-      } else if (selectedModel === 'hailuo') {
-        return await generateWithHailuo({
-          prompt,
-          duration: duration === 8 ? 6 : duration,
-          resolution: '768P'
-        }, setProgress);
-      } else {
-        return await generateWithSora2({
-          prompt,
-          aspectRatio: aspectRatioMap,
-          duration,
-          resolution
-        }, setProgress);
-      }
+          model: selectedModel,
+          duration: duration === 8 ? 5 : 10,
+          resolution: resolution === '720p' ? '1280x720' : '1920x1080'
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Video generation timeout after 10 minutes')), 600000)
+        )
+      ]);
+
+      return videoResult.url;
     });
 
     if (result.success && result.data) {
@@ -124,7 +104,7 @@ export const VideoStudio: React.FC<VideoStudioProps> = ({
       await saveVideoToProject(user.uid, prompt, result.data, {
         model: selectedModel,
         duration,
-        provider: providerMap[selectedModel]
+        provider: 'kie-ai'
       });
 
       showToast('success', 'Video Generated!', 'Your video is ready');
@@ -339,12 +319,10 @@ export const VideoStudio: React.FC<VideoStudioProps> = ({
             {/* Model Selector */}
             <div className="p-4 sm:p-6 border-b border-white/10">
               <div className="text-sm font-semibold text-white mb-3">AI Model</div>
-              <div className="space-y-2">
+              <parameter name="space-y-2">
                 {[
-                  { id: 'veo-2', name: 'Veo 2', desc: 'Fast and reliable', badge: 'Fast' },
-                  { id: 'veo-3', name: 'Veo 3.1', desc: 'Latest Google model', badge: 'Premium' },
-                  { id: 'hailuo', name: 'Hailuo', desc: 'High quality', badge: 'Premium' },
-                  { id: 'sora-2', name: 'Sora 2', desc: 'OpenAI advanced', badge: 'Premium' }
+                  { id: 'veo3_fast', name: 'Veo 3.1 Fast', desc: 'Google Veo 3.1 fast generation', badge: 'Fast' },
+                  { id: 'runway-gen3', name: 'Runway Gen-3', desc: 'Professional video generation', badge: 'Premium' }
                 ].map((model) => (
                   <button
                     key={model.id}
