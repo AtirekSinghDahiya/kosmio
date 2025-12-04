@@ -67,7 +67,7 @@ Guidelines:
   try {
     const response = await getOpenRouterResponse(
       prompt,
-      'anthropic/claude-3.5-sonnet',
+      'moonshotai/kimi-k2-thinking',
       []
     );
 

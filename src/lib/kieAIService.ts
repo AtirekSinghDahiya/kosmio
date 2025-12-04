@@ -1,142 +1,232 @@
 const KIE_API_KEY = 'c2fc73165de059fdcd158e418571b3d2';
-const KIE_BASE_URL = 'https://api.kie.ai/v1';
-
-interface KieImageRequest {
-  model: string;
-  prompt: string;
-  width?: number;
-  height?: number;
-  steps?: number;
-  guidance_scale?: number;
-}
-
-interface KieVideoRequest {
-  model: string;
-  prompt: string;
-  duration?: number;
-  resolution?: string;
-}
-
-interface KieMusicRequest {
-  model: string;
-  prompt: string;
-  duration?: number;
-  style?: string;
-}
+const KIE_BASE_URL = 'https://api.kie.ai';
 
 export async function generateKieImage(prompt: string, model: string = 'flux-pro'): Promise<string> {
   console.log('🎨 Generating image with Kie AI:', { prompt, model });
 
   try {
-    const response = await fetch(`${KIE_BASE_URL}/images/generations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KIE_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: model,
-        prompt: prompt,
-        width: 1024,
-        height: 1024,
-        steps: 30,
-        guidance_scale: 7.5
-      } as KieImageRequest)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Kie AI image generation failed:', response.status, errorText);
-      throw new Error(`Image generation failed: ${response.status}`);
+    if (model === '4o-image' || model === 'gpt-image-1') {
+      return await generateGPT4oImage(prompt);
     }
 
-    const data = await response.json();
-    console.log('✅ Image generated successfully');
-
-    if (data.data && data.data[0] && data.data[0].url) {
-      return data.data[0].url;
-    } else if (data.url) {
-      return data.url;
-    } else if (data.image_url) {
-      return data.image_url;
-    } else {
-      throw new Error('No image URL in response');
-    }
+    return await generateFluxImage(prompt, model);
   } catch (error) {
     console.error('❌ Kie AI image generation error:', error);
     throw error;
   }
 }
 
-export async function generateKieVideo(prompt: string, model: string = 'kling-video'): Promise<string> {
+async function generateFluxImage(prompt: string, model: string): Promise<string> {
+  const modelMap: { [key: string]: string } = {
+    'flux-pro': 'flux-kontext-pro',
+    'flux-dev': 'flux-kontext-pro',
+    'flux-max': 'flux-kontext-max',
+    'sdxl': 'flux-kontext-pro'
+  };
+
+  const actualModel = modelMap[model] || 'flux-kontext-pro';
+
+  const response = await fetch(`${KIE_BASE_URL}/api/v1/flux/kontext/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${KIE_API_KEY}`
+    },
+    body: JSON.stringify({
+      prompt: prompt,
+      model: actualModel,
+      aspectRatio: '1:1',
+      outputFormat: 'jpeg',
+      enableTranslation: true,
+      promptUpsampling: false,
+      safetyTolerance: 2
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ msg: 'Unknown error' }));
+    console.error('❌ Flux image generation failed:', response.status, errorData);
+    throw new Error(errorData.msg || `Image generation failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log('✅ Flux image task created:', data);
+
+  if (data.code === 200 && data.data?.taskId) {
+    return await pollFluxImageStatus(data.data.taskId);
+  }
+
+  throw new Error('No task ID in response');
+}
+
+async function pollFluxImageStatus(taskId: string, maxAttempts: number = 60): Promise<string> {
+  console.log('⏳ Polling Flux image status:', taskId);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    try {
+      const response = await fetch(`${KIE_BASE_URL}/api/v1/flux/kontext/fetch/${taskId}`, {
+        headers: {
+          'Authorization': `Bearer ${KIE_API_KEY}`
+        }
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+
+      if (data.code === 200 && data.data?.status === 'completed') {
+        const imageUrl = data.data.imageUrls?.[0] || data.data.imageUrl;
+        if (imageUrl) {
+          console.log('✅ Flux image generation completed');
+          return imageUrl;
+        }
+      } else if (data.data?.status === 'failed') {
+        throw new Error('Image generation failed');
+      }
+    } catch (error) {
+      if (attempt === maxAttempts - 1) throw error;
+    }
+  }
+
+  throw new Error('Image generation timeout');
+}
+
+async function generateGPT4oImage(prompt: string): Promise<string> {
+  const response = await fetch(`${KIE_BASE_URL}/api/v1/gpt4o-image/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${KIE_API_KEY}`
+    },
+    body: JSON.stringify({
+      prompt: prompt,
+      size: '1:1',
+      nVariants: 1,
+      isEnhance: false,
+      enableFallback: true,
+      fallbackModel: 'FLUX_MAX'
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ msg: 'Unknown error' }));
+    throw new Error(errorData.msg || `GPT-4o image generation failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (data.code === 200 && data.data?.taskId) {
+    return await pollGPT4oImageStatus(data.data.taskId);
+  }
+
+  throw new Error('No task ID in response');
+}
+
+async function pollGPT4oImageStatus(taskId: string, maxAttempts: number = 60): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    try {
+      const response = await fetch(`${KIE_BASE_URL}/api/v1/gpt4o-image/fetch/${taskId}`, {
+        headers: {
+          'Authorization': `Bearer ${KIE_API_KEY}`
+        }
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+
+      if (data.code === 200 && data.data?.status === 'completed') {
+        const imageUrl = data.data.imageUrls?.[0] || data.data.imageUrl;
+        if (imageUrl) return imageUrl;
+      } else if (data.data?.status === 'failed') {
+        throw new Error('GPT-4o image generation failed');
+      }
+    } catch (error) {
+      if (attempt === maxAttempts - 1) throw error;
+    }
+  }
+
+  throw new Error('GPT-4o image generation timeout');
+}
+
+export async function generateKieVideo(prompt: string, model: string = 'veo3_fast'): Promise<string> {
   console.log('🎬 Generating video with Kie AI:', { prompt, model });
 
   try {
-    const response = await fetch(`${KIE_BASE_URL}/videos/generations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${KIE_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: model,
-        prompt: prompt,
-        duration: 5,
-        resolution: '1280x720'
-      } as KieVideoRequest)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Kie AI video generation failed:', response.status, errorText);
-      throw new Error(`Video generation failed: ${response.status}`);
+    if (model === 'runway-gen3' || model === 'runway') {
+      return await generateRunwayVideo(prompt);
     }
 
-    const data = await response.json();
-    console.log('✅ Video generation initiated');
-
-    if (data.id) {
-      return await pollKieVideoStatus(data.id);
-    } else if (data.video_url) {
-      return data.video_url;
-    } else if (data.url) {
-      return data.url;
-    } else {
-      throw new Error('No video ID or URL in response');
-    }
+    return await generateVeo3Video(prompt);
   } catch (error) {
     console.error('❌ Kie AI video generation error:', error);
     throw error;
   }
 }
 
-async function pollKieVideoStatus(videoId: string, maxAttempts: number = 60): Promise<string> {
-  console.log('⏳ Polling video status:', videoId);
+async function generateVeo3Video(prompt: string): Promise<string> {
+  const response = await fetch(`${KIE_BASE_URL}/api/v1/veo/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${KIE_API_KEY}`
+    },
+    body: JSON.stringify({
+      prompt: prompt,
+      model: 'veo3_fast',
+      generationType: 'TEXT_2_VIDEO',
+      aspectRatio: '16:9',
+      enableTranslation: true
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ msg: 'Unknown error' }));
+    console.error('❌ Veo 3 video generation failed:', response.status, errorData);
+    throw new Error(errorData.msg || `Video generation failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log('✅ Veo 3 video task created:', data);
+
+  if (data.code === 200 && data.data?.taskId) {
+    return await pollVeo3VideoStatus(data.data.taskId);
+  }
+
+  throw new Error('No task ID in response');
+}
+
+async function pollVeo3VideoStatus(taskId: string, maxAttempts: number = 120): Promise<string> {
+  console.log('⏳ Polling Veo 3 video status:', taskId);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     try {
-      const response = await fetch(`${KIE_BASE_URL}/videos/${videoId}`, {
+      const response = await fetch(`${KIE_BASE_URL}/api/v1/veo/fetch/${taskId}`, {
         headers: {
           'Authorization': `Bearer ${KIE_API_KEY}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to check video status: ${response.status}`);
-      }
+      if (!response.ok) continue;
 
       const data = await response.json();
 
-      if (data.status === 'completed' || data.status === 'succeeded') {
-        console.log('✅ Video generation completed');
-        return data.video_url || data.url || data.output;
-      } else if (data.status === 'failed' || data.status === 'error') {
-        throw new Error('Video generation failed');
+      if (data.code === 200 && data.data?.status === 'completed') {
+        const videoUrl = data.data.videoUrl || data.data.video_url;
+        if (videoUrl) {
+          console.log('✅ Veo 3 video generation completed');
+          return videoUrl;
+        }
+      } else if (data.data?.status === 'failed') {
+        throw new Error(data.data.error || 'Video generation failed');
       }
-
-      await new Promise(resolve => setTimeout(resolve, 5000));
     } catch (error) {
-      console.error('Error polling video status:', error);
       if (attempt === maxAttempts - 1) throw error;
     }
   }
@@ -144,76 +234,143 @@ async function pollKieVideoStatus(videoId: string, maxAttempts: number = 60): Pr
   throw new Error('Video generation timeout');
 }
 
-export async function generateKieMusic(prompt: string, duration: number = 30): Promise<string> {
-  console.log('🎵 Generating music with Kie AI (Suno):', { prompt, duration });
+async function generateRunwayVideo(prompt: string): Promise<string> {
+  const response = await fetch(`${KIE_BASE_URL}/api/v1/runway/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${KIE_API_KEY}`
+    },
+    body: JSON.stringify({
+      prompt: prompt,
+      duration: 5,
+      quality: '720p',
+      aspectRatio: '16:9',
+      waterMark: ''
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ msg: 'Unknown error' }));
+    throw new Error(errorData.msg || `Runway video generation failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (data.code === 200 && data.data?.taskId) {
+    return await pollRunwayVideoStatus(data.data.taskId);
+  }
+
+  throw new Error('No task ID in response');
+}
+
+async function pollRunwayVideoStatus(taskId: string, maxAttempts: number = 120): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    try {
+      const response = await fetch(`${KIE_BASE_URL}/api/v1/runway/fetch/${taskId}`, {
+        headers: {
+          'Authorization': `Bearer ${KIE_API_KEY}`
+        }
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+
+      if (data.code === 200 && data.data?.status === 'completed') {
+        const videoUrl = data.data.videoUrl || data.data.video_url;
+        if (videoUrl) return videoUrl;
+      } else if (data.data?.status === 'failed') {
+        throw new Error('Runway video generation failed');
+      }
+    } catch (error) {
+      if (attempt === maxAttempts - 1) throw error;
+    }
+  }
+
+  throw new Error('Runway video generation timeout');
+}
+
+export async function generateKieMusic(
+  prompt: string,
+  customMode: boolean = false,
+  style?: string,
+  title?: string,
+  instrumental: boolean = false
+): Promise<string> {
+  console.log('🎵 Generating music with Kie AI (Suno):', { prompt, customMode, style, title });
 
   try {
-    const response = await fetch(`${KIE_BASE_URL}/audio/generations`, {
+    const body: any = {
+      prompt: prompt,
+      customMode: customMode,
+      instrumental: instrumental,
+      model: 'V5'
+    };
+
+    if (customMode) {
+      if (style) body.style = style;
+      if (title) body.title = title;
+    }
+
+    const response = await fetch(`${KIE_BASE_URL}/api/v1/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${KIE_API_KEY}`
       },
-      body: JSON.stringify({
-        model: 'suno-v3.5',
-        prompt: prompt,
-        duration: duration,
-        make_instrumental: false,
-        wait_audio: false
-      } as KieMusicRequest)
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Kie AI music generation failed:', response.status, errorText);
-      throw new Error(`Music generation failed: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ msg: 'Unknown error' }));
+      console.error('❌ Suno music generation failed:', response.status, errorData);
+      throw new Error(errorData.msg || `Music generation failed: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('✅ Music generation initiated');
+    console.log('✅ Suno music task created:', data);
 
-    if (data.id) {
-      return await pollKieMusicStatus(data.id);
-    } else if (data.audio_url) {
-      return data.audio_url;
-    } else if (data.url) {
-      return data.url;
-    } else {
-      throw new Error('No music ID or URL in response');
+    if (data.code === 200 && data.data?.taskId) {
+      return await pollSunoMusicStatus(data.data.taskId);
     }
+
+    throw new Error('No task ID in response');
   } catch (error) {
     console.error('❌ Kie AI music generation error:', error);
     throw error;
   }
 }
 
-async function pollKieMusicStatus(musicId: string, maxAttempts: number = 60): Promise<string> {
-  console.log('⏳ Polling music status:', musicId);
+async function pollSunoMusicStatus(taskId: string, maxAttempts: number = 120): Promise<string> {
+  console.log('⏳ Polling Suno music status:', taskId);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
     try {
-      const response = await fetch(`${KIE_BASE_URL}/audio/${musicId}`, {
+      const response = await fetch(`${KIE_BASE_URL}/api/v1/fetch/${taskId}`, {
         headers: {
           'Authorization': `Bearer ${KIE_API_KEY}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to check music status: ${response.status}`);
-      }
+      if (!response.ok) continue;
 
       const data = await response.json();
 
-      if (data.status === 'completed' || data.status === 'succeeded') {
-        console.log('✅ Music generation completed');
-        return data.audio_url || data.url || data.output;
-      } else if (data.status === 'failed' || data.status === 'error') {
-        throw new Error('Music generation failed');
+      if (data.code === 200 && data.data?.status === 'complete') {
+        const audioUrl = data.data.audioUrls?.[0] || data.data.audioUrl || data.data.audio_url;
+        if (audioUrl) {
+          console.log('✅ Suno music generation completed');
+          return audioUrl;
+        }
+      } else if (data.data?.status === 'failed') {
+        throw new Error(data.data.error || 'Music generation failed');
       }
-
-      await new Promise(resolve => setTimeout(resolve, 5000));
     } catch (error) {
-      console.error('Error polling music status:', error);
       if (attempt === maxAttempts - 1) throw error;
     }
   }
@@ -223,18 +380,16 @@ async function pollKieMusicStatus(musicId: string, maxAttempts: number = 60): Pr
 
 export const KIE_MODELS = {
   image: [
-    { id: 'flux-pro', name: 'Flux Pro', description: 'High-quality image generation' },
-    { id: 'flux-dev', name: 'Flux Dev', description: 'Fast development model' },
-    { id: 'sdxl', name: 'Stable Diffusion XL', description: 'Popular open-source model' },
-    { id: 'dalle-3', name: 'DALL-E 3', description: 'OpenAI image model' }
+    { id: 'flux-pro', name: 'Flux Pro', description: 'High-quality image generation via Kie AI' },
+    { id: 'flux-dev', name: 'Flux Dev', description: 'Fast image generation via Kie AI' },
+    { id: 'flux-max', name: 'Flux Max', description: 'Maximum quality via Kie AI' },
+    { id: '4o-image', name: 'GPT-4o Image', description: 'OpenAI GPT-4o image generation' }
   ],
   video: [
-    { id: 'kling-video', name: 'Kling Video', description: 'High-quality video generation' },
-    { id: 'runway-gen3', name: 'Runway Gen-3', description: 'Professional video generation' },
-    { id: 'luma-dream-machine', name: 'Luma Dream Machine', description: 'Cinematic video generation' }
+    { id: 'veo3_fast', name: 'Veo 3.1 Fast', description: 'Google Veo 3.1 fast generation' },
+    { id: 'runway-gen3', name: 'Runway Gen-3', description: 'Professional video generation' }
   ],
   music: [
-    { id: 'suno-v3.5', name: 'Suno v3.5', description: 'Latest Suno music model' },
-    { id: 'suno-v3', name: 'Suno v3', description: 'Stable music generation' }
+    { id: 'suno-v5', name: 'Suno V5', description: 'Latest Suno music model' }
   ]
 };

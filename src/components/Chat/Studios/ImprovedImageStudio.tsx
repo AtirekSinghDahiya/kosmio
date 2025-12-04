@@ -126,22 +126,15 @@ export const ImprovedImageStudio: React.FC<ImageStudioProps> = ({
       userId: user.uid,
       generationType: 'image',
       modelId: selectedModel,
-      provider: selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini',
+      provider: 'kie-ai',
       onProgress: setProgress
     }, async () => {
-      if (selectedModel === 'imagen-4') {
-        return await generateWithImagen({
-          prompt,
-          aspectRatio: aspectRatio === 'landscape' ? 'landscape' : aspectRatio === 'portrait' ? 'portrait' : 'square',
-          numberOfImages: 1
-        }, setProgress);
-      } else {
-        return await generateWithNanoBanana({
-          prompt,
-          aspectRatio: aspectRatio === 'landscape' ? 'landscape' : aspectRatio === 'portrait' ? 'portrait' : 'square',
-          numberOfImages: 1
-        }, setProgress);
-      }
+      setProgress('Generating image with Kie AI...');
+      const imageResult = await generateImage({
+        prompt,
+        model: selectedModel
+      });
+      return imageResult.url;
     });
 
     if (result.success && result.data) {
@@ -151,7 +144,7 @@ export const ImprovedImageStudio: React.FC<ImageStudioProps> = ({
       await saveImageToProject(user.uid, prompt, result.data, {
         model: selectedModel,
         dimensions: aspectRatio,
-        provider: selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini'
+        provider: 'kie-ai'
       });
 
       showToast('success', 'Image Generated!', 'Your image is ready');

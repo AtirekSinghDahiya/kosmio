@@ -25,7 +25,7 @@ export interface GeneratedVideo {
 export async function generateVideo(options: VideoGenerationOptions): Promise<GeneratedVideo> {
   const {
     prompt,
-    model = 'kling-video',
+    model = 'veo3_fast',
     duration = 5,
     resolution = '1280x720'
   } = options;
@@ -69,7 +69,7 @@ export function getAvailableVideoModels() {
  */
 export async function generateVideoWithModel(
   prompt: string,
-  model: string = 'kling-video'
+  model: string = 'veo3_fast'
 ): Promise<GeneratedVideo> {
   return generateVideo({ prompt, model });
 }

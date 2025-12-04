@@ -58,33 +58,18 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
     setProgress('Starting...');
 
     try {
-      let imageUrl: string;
+      setProgress('Generating image with Kie AI...');
 
-      if (selectedModel === 'imagen-4') {
-        imageUrl = await generateWithImagen(
-          {
-            prompt,
-            aspectRatio: aspectRatio === 'landscape' ? 'landscape' : aspectRatio === 'portrait' ? 'portrait' : 'square',
-            numberOfImages: 1
-          },
-          (status) => setProgress(status)
-        );
-      } else {
-        imageUrl = await generateWithNanoBanana(
-          {
-            prompt,
-            aspectRatio: aspectRatio === 'landscape' ? 'landscape' : aspectRatio === 'portrait' ? 'portrait' : 'square',
-            numberOfImages: 1
-          },
-          (status) => setProgress(status)
-        );
-      }
+      const result = await generateImage({
+        prompt,
+        model: selectedModel
+      });
 
-      setGeneratedImageUrl(imageUrl);
+      setGeneratedImageUrl(result.url);
 
       // Deduct tokens
-      const modelCost = getModelCost(selectedModel === 'imagen-4' ? 'imagen-4' : 'nano-banana');
-      const provider = selectedModel === 'imagen-4' ? 'google-imagen' : 'google-gemini';
+      const modelCost = getModelCost(selectedModel);
+      const provider = 'kie-ai';
       await deductTokensForRequest(user.uid, selectedModel, provider, modelCost.costPerMessage, 'image');
       console.log('✅ Tokens deducted for image generation');
 

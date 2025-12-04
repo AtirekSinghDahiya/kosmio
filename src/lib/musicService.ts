@@ -32,7 +32,7 @@ export async function generateMusic(options: MusicGenerationOptions): Promise<Ge
   console.log('🎵 Generating music with Kie AI (Suno):', { prompt, duration });
 
   try {
-    const musicUrl = await generateKieMusic(prompt, duration);
+    const musicUrl = await generateKieMusic(prompt, false);
 
     console.log('✅ Music generated successfully');
 

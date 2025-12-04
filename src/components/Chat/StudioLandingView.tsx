@@ -120,9 +120,9 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'Image'
       },
       {
-        id: 'kling-video',
-        name: 'Kling Video',
-        description: 'High-quality video generation via Kie AI',
+        id: 'veo3_fast',
+        name: 'Veo 3.1 Fast',
+        description: 'Google Veo 3.1 fast video generation',
         icon: Video,
         category: 'video',
         badge: 'Video'
@@ -189,12 +189,12 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     ],
     video: [
       {
-        id: 'kling-video',
-        name: 'Kling Video',
-        description: 'High-quality video generation via Kie AI',
+        id: 'veo3_fast',
+        name: 'Veo 3.1 Fast',
+        description: 'Google Veo 3.1 fast generation via Kie AI',
         icon: Video,
         category: 'video',
-        badge: 'Premium'
+        badge: 'Fast'
       },
       {
         id: 'runway-gen3',
@@ -203,14 +203,6 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         icon: Video,
         category: 'video',
         badge: 'Premium'
-      },
-      {
-        id: 'veo-3',
-        name: 'Google Veo 3',
-        description: 'Fast video generation',
-        icon: Video,
-        category: 'video',
-        badge: 'Fast'
       },
     ],
     audio: [
