@@ -208,18 +208,25 @@ export const ImageStudio: React.FC<ImageStudioProps> = ({
 
   const models = [
     {
-      id: 'nano-banana',
-      name: 'Nano Banana',
-      description: 'Gemini 2.5 Flash powered image generation',
+      id: 'flux-pro',
+      name: 'Flux Pro',
+      description: 'High-quality image generation via Kie AI',
+      speed: 'Fast',
+      quality: 'Premium'
+    },
+    {
+      id: 'flux-dev',
+      name: 'Flux Dev',
+      description: 'Fast image generation via Kie AI',
       speed: 'Fast',
       quality: 'High'
     },
     {
-      id: 'imagen-4',
-      name: 'Imagen 4.0',
-      description: 'Latest Google AI model with enhanced quality',
+      id: 'sdxl',
+      name: 'Stable Diffusion XL',
+      description: 'Open-source model via Kie AI',
       speed: 'Medium',
-      quality: 'Premium'
+      quality: 'High'
     }
   ];
 

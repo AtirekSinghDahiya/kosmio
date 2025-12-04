@@ -104,25 +104,25 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
         badge: 'Reasoning'
       },
       {
-        id: 'nano-banana',
-        name: 'Nano Banana',
-        description: 'Fast image generation with Flux Schnell model',
+        id: 'flux-pro',
+        name: 'Flux Pro',
+        description: 'High-quality image generation via Kie AI',
         icon: Image,
         category: 'image',
         badge: 'Image'
       },
       {
-        id: 'imagen-4',
-        name: 'Imagen 4.0',
-        description: 'Professional image generation with Flux Pro model',
+        id: 'flux-dev',
+        name: 'Flux Dev',
+        description: 'Fast image generation via Kie AI',
         icon: Image,
         category: 'image',
         badge: 'Image'
       },
       {
-        id: 'sora-2',
-        name: 'Sora 2',
-        description: 'OpenAI video generation - 10-15s high-quality videos',
+        id: 'kling-video',
+        name: 'Kling Video',
+        description: 'High-quality video generation via Kie AI',
         icon: Video,
         category: 'video',
         badge: 'Video'
@@ -163,17 +163,25 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     chat: [],
     images: [
       {
-        id: 'nano-banana',
-        name: 'Nano Banana (Flux Schnell)',
-        description: 'Fast image generation with Flux Schnell model',
+        id: 'flux-pro',
+        name: 'Flux Pro',
+        description: 'High-quality image generation via Kie AI',
+        icon: Image,
+        category: 'image',
+        badge: 'Premium'
+      },
+      {
+        id: 'flux-dev',
+        name: 'Flux Dev',
+        description: 'Fast image generation via Kie AI',
         icon: Image,
         category: 'image',
         badge: 'Fast'
       },
       {
-        id: 'imagen-4',
-        name: 'Imagen 4.0 (Flux Pro)',
-        description: 'Professional image generation with Flux Pro model',
+        id: 'sdxl',
+        name: 'Stable Diffusion XL',
+        description: 'Open-source image generation via Kie AI',
         icon: Image,
         category: 'image',
         badge: 'Pro'
@@ -181,9 +189,17 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
     ],
     video: [
       {
-        id: 'sora-2',
-        name: 'OpenAI Sora 2',
-        description: 'Generate 10-15s high-quality videos with Sora 2',
+        id: 'kling-video',
+        name: 'Kling Video',
+        description: 'High-quality video generation via Kie AI',
+        icon: Video,
+        category: 'video',
+        badge: 'Premium'
+      },
+      {
+        id: 'runway-gen3',
+        name: 'Runway Gen-3',
+        description: 'Professional video generation via Kie AI',
         icon: Video,
         category: 'video',
         badge: 'Premium'
@@ -191,7 +207,7 @@ export const StudioLandingView: React.FC<StudioLandingViewProps> = ({ onSelectMo
       {
         id: 'veo-3',
         name: 'Google Veo 3',
-        description: 'Fast video generation with Google Veo',
+        description: 'Fast video generation',
         icon: Video,
         category: 'video',
         badge: 'Fast'

@@ -26,12 +26,13 @@ export const SimpleImageGenerator: React.FC<SimpleImageGeneratorProps> = ({
   const [aspectRatio, setAspectRatio] = useState<'square' | 'landscape' | 'portrait' | '4:3' | '3:4'>('square');
   const [numImages, setNumImages] = useState(1);
   const [outputFormat, setOutputFormat] = useState<'JPEG' | 'PNG' | 'WebP'>('JPEG');
-  const [selectedModel, setSelectedModel] = useState('imagen-4');
+  const [selectedModel, setSelectedModel] = useState('flux-pro');
   const [showControls, setShowControls] = useState(true);
 
   const models = [
-    { id: 'imagen-4', name: 'Google Imagen 4.0', description: 'Google\'s latest image model', speed: 'Fast', provider: 'google' },
-    { id: 'nano-banana', name: 'Gemini Nano Banana', description: 'Gemini\'s built-in image generation', speed: 'Medium', provider: 'google' },
+    { id: 'flux-pro', name: 'Flux Pro', description: 'High-quality image generation', speed: 'Fast', provider: 'kie-ai' },
+    { id: 'flux-dev', name: 'Flux Dev', description: 'Fast image generation', speed: 'Fast', provider: 'kie-ai' },
+    { id: 'sdxl', name: 'Stable Diffusion XL', description: 'Open-source image model', speed: 'Medium', provider: 'kie-ai' },
   ];
 
   const handleGenerate = async () => {
