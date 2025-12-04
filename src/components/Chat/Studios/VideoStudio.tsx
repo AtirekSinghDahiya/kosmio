@@ -319,7 +319,7 @@ export const VideoStudio: React.FC<VideoStudioProps> = ({
             {/* Model Selector */}
             <div className="p-4 sm:p-6 border-b border-white/10">
               <div className="text-sm font-semibold text-white mb-3">AI Model</div>
-              <parameter name="space-y-2">
+              <div className="space-y-2">
                 {[
                   { id: 'veo3_fast', name: 'Veo 3.1 Fast', desc: 'Google Veo 3.1 fast generation', badge: 'Fast' },
                   { id: 'runway-gen3', name: 'Runway Gen-3', desc: 'Professional video generation', badge: 'Premium' }

@@ -1,9 +1,10 @@
 /**
  * Image Generation Service
- * Uses Kie AI for high-quality image generation
+ * Routes to Kie AI or Puter.js based on model
  */
 
 import { generateKieImage, KIE_MODELS } from './kieAIService';
+import { generateImageWithPuter, isPuterModel } from './puterService';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -23,19 +24,40 @@ export interface GeneratedImage {
 }
 
 /**
- * Generate image using Kie AI
+ * Generate image using appropriate service (Kie AI or Puter.js)
  */
 export async function generateImage(options: ImageGenerationOptions): Promise<GeneratedImage> {
   const {
     prompt,
-    model = 'flux-pro'
+    model = 'flux-kontext',
+    negativePrompt,
+    width,
+    height,
+    steps
   } = options;
 
-  console.log('🎨 Generating image with Kie AI:', prompt);
+  console.log('🎨 Generating image:', { model, prompt: prompt.substring(0, 50) });
 
   try {
-    const imageUrl = await generateKieImage(prompt, model);
+    let imageUrl: string;
     const seed = Date.now();
+
+    // Check if it's a free Puter.js model
+    if (isPuterModel(model)) {
+      console.log('🆓 Using free Puter.js model:', model);
+      const result = await generateImageWithPuter(prompt, model, {
+        negative_prompt: negativePrompt,
+        width,
+        height,
+        steps,
+        seed
+      });
+      imageUrl = result.url;
+    } else {
+      // Use Kie AI for paid models
+      console.log('💎 Using Kie AI model:', model);
+      imageUrl = await generateKieImage(prompt, model);
+    }
 
     console.log('✅ Image generated successfully');
 

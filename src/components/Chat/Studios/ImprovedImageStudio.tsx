@@ -183,25 +183,65 @@ export const ImprovedImageStudio: React.FC<ImageStudioProps> = ({
 
   const models = [
     {
-      id: 'flux-pro',
-      name: 'Flux Pro',
-      description: 'High-quality image generation via Kie AI',
+      id: 'flux-kontext',
+      name: 'Flux Kontext',
+      description: 'In-context image editing and generation',
       speed: 'Fast',
       quality: 'Premium'
     },
     {
-      id: 'flux-dev',
-      name: 'Flux Dev',
-      description: 'Fast image generation via Kie AI',
+      id: 'flux-1.1-pro',
+      name: 'FLUX 1.1 Pro',
+      description: 'Black Forest Labs latest model',
       speed: 'Fast',
+      quality: 'Premium'
+    },
+    {
+      id: 'flux-schnell',
+      name: 'FLUX Schnell',
+      description: 'Ultra-fast generation',
+      speed: 'Ultra Fast',
       quality: 'High'
+    },
+    {
+      id: 'imagen-4',
+      name: 'Google Imagen 4',
+      description: 'Google\'s advanced image model (FREE)',
+      speed: 'Fast',
+      quality: 'Premium',
+      badge: 'FREE'
+    },
+    {
+      id: 'nano-banana-pro',
+      name: 'Nano Banana Pro',
+      description: 'Gemini 3 Pro with text rendering (FREE)',
+      speed: 'Fast',
+      quality: 'High',
+      badge: 'FREE'
+    },
+    {
+      id: 'nano-banana',
+      name: 'Nano Banana',
+      description: 'Gemini 2.5 Flash fast generation (FREE)',
+      speed: 'Ultra Fast',
+      quality: 'Medium',
+      badge: 'FREE'
+    },
+    {
+      id: 'stable-diffusion-3',
+      name: 'Stable Diffusion 3',
+      description: 'Latest SD model (FREE)',
+      speed: 'Medium',
+      quality: 'High',
+      badge: 'FREE'
     },
     {
       id: 'sdxl',
       name: 'Stable Diffusion XL',
-      description: 'Open-source model via Kie AI',
+      description: 'Classic open-source model (FREE)',
       speed: 'Medium',
-      quality: 'High'
+      quality: 'High',
+      badge: 'FREE'
     }
   ];
 
